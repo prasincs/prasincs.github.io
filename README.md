@@ -1,7 +1,6 @@
-flyerhzm.github.com
+prasincs.github.com
 ===================
 
-my blog <http://huangzhimin.com>
 
 Usage
 -----
