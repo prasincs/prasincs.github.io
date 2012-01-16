@@ -1,0 +1,8 @@
+---
+layout: post
+title: New Blag
+categories:
+- blog jekyll
+---
+
+So, I've been thinking about this for a while and I finally decided to pull trigger on moving my site fully to github. Let's see where this goes.
