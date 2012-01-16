@@ -7,12 +7,14 @@ categories:
 
 So, I've been thinking about this for a while and I finally decided to pull trigger on moving my site fully to github. Let's see where this goes. Also, I want to give a little intro on how to build a site like this (very bare-bones right now, I'm not very fancy). 
 
-Originally, [nextdoorhacker.com](http://www.nextdoorhacker.com) was running on a Linode box that I owned since 2008 (summer of freshman year, oh the times), since I was doing a lot of PHP around then, I ran wordpress on it. Later on, I ran 4legs.org on it along with a wide-assortment of side projects. But wordpress tends to get really annoying to manage if someone isn't paying you to do it. For me, blogs have always been luxury. So signing in, writing some stuff in a textbox, obsessing over the typeface, getting annoyed over wordpress messing up the format and above all, keeping up with the security patches, new versions becomes work for a blog that probably total of two people ever read.
+Originally, [nextdoorhacker.com](http://www.nextdoorhacker.com) was running on a Linode box that I owned since 2008 (summer of freshman year, oh the times), since I was doing a lot of PHP around then, I ran wordpress on it. Later on, I ran [4legs.org](http://4legs.org) on it along with a wide-assortment of side projects. But wordpress tends to get really annoying to manage if someone isn't paying you to do it. For me, blogs have always been luxury. So signing in, writing some stuff in a textbox, obsessing over the typeface, getting annoyed over wordpress messing up the format and above all, keeping up with the security patches, new versions becomes work for a blog that probably total of two people ever read.
 
 Mind you, I didn't start from scratch in moving the site. I took the basic style from [flyerhzm.github.com](http://flyerhzm.github.com) and removed a lot of things from the site. So, it's not really a fork, just me being too lazy to write the stylesheets, pages from scratch again. Just FYI, if you're ever in the situation to take a git repository and making your own, you can just remove the .git folder and run git init again. Of course, you should only do this if you do have the rights, etc.
 
 Creating new posts is just about running, of course after replacing blog_title with something else.
 
 {% highlight bash %}
-vim $(date +%Y-%m-%d-blog_title.markdown)
+vim _posts/$(date +%Y-%m-%d-blog_title.markdown)
 {% endhighlight %}
+
+After that, it's just about writing [Markdown](http://daringfireball.net/projects/markdown/) files
