@@ -1,6 +1,6 @@
 ---
 layout: post
-title: New Blag - how I learned stop worrying and love Jekyll
+title: New Blag - how I learned to stop worrying and love Jekyll
 categories:
 - blog jekyll
 ---
