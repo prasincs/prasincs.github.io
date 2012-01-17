@@ -21,7 +21,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  jekyll (= 0.10.0)
+  jekyll
   jekyll_ext
-  liquid (= 2.2.2)
+  liquid
   rdiscount
