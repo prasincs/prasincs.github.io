@@ -1,0 +1,32 @@
+---
+layout: post
+title: PHP isset with variable name
+categories:
+- php
+- hack
+---
+
+I wont try to justify PHP hacking but I was working on a project that's based on [CodeIgniter](http://codeigniter.com). It's on a cycle of heavy refactoring. I was wondering if I could do something like 
+
+{% highlight php %}
+isset("variable_name");
+{% endhighlight %}
+
+similar to  python
+{% highlight python %}
+"variable_name" in globals() 
+{% endhighlight %}
+
+Same idea with locals() in python.
+
+Thankfully, php has the equivalent of `globals()` being `get_defined_vars()` which would return you all the variables declared so far. Now you can just write your own `isset_varname()`
+
+
+{% highlight php %}
+function isset_varname($varname){
+  return array_key_exists($varname, get_defined_vars());
+}
+{% endhighlight %}
+
+you'd probably need to check for the variable name regex and store output from get_defined_vars() in another place too. Of course, if there's some other similar function that anyone else knows about, I'd be happy to find out.
+
