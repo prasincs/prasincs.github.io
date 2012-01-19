@@ -19,13 +19,18 @@ similar to  python
 
 Same idea with locals() in python.
 
-Thankfully, php has the equivalent of `globals()` being `get_defined_vars()` which would return you all the variables declared so far. Now you can just write your own `isset_varname()`
+Thankfully, php has the equivalent of `globals()` being `$GLOBALS` which would return you all the variables declared so far. Now you can just write your own `isset_varname()`. `get_defined_vars()` is equivalent in php to `locals()`. in  python.
 
 
 {% highlight php %}
+<?php
 function isset_varname($varname){
-  return array_key_exists($varname, get_defined_vars());
+  return array_key_exists($varname, $GLOBALS);
 }
+$test= "test";
+var_dump(isset_varname("test")); // should print bool(true)
+var_dump(isset_varname("test2")); // should print bool(false)
+?>
 {% endhighlight %}
 
 you'd probably need to check for the variable name regex and store output from get_defined_vars() in another place too. Of course, if there's some other similar function that anyone else knows about, I'd be happy to find out.
