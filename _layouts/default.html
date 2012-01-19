@@ -29,16 +29,38 @@
         <div id="content">
           {{ content }}
         </div>
-      <div id="sidebar">
-        <div id="carrington-about" class="widget">
+        <div id="sidebar">
+          <div id="carrington-about" class="widget">
             <div class="about">
               <h2 class="widget-title">About</h2>
               <p>I'm Prasanna Gautam. Just your friendly neighborhood hacker! All ideas here are my own and under no circumstance are to be considered representative of my employer(s).</p>
               <a class="more" href="/about.html">more →</a>
             </div>
           </div>
+          <div id="primary-sidebar">
+            <div class="widget">
+              <h2 class="widget-title">Categories</h2>
+              <ul>
+                {% for category in site.categories %}
+                <li><a href="/categories/{{category | first}}">{{category | first}} ({{category | last | size }})</a></li>
+                {% endfor %}
+              </ul>
+            </div>
+          </div>
+          <div id="secondary-sidebar">
+            <div class="widget">
+              <h2 class="widget-title">Recent Posts</h2>
+              <ul>
+                {% for post in site.posts limit:10 %}
+                <li>
+                <a href="{{ post.url }}" title="{{ post.title }}" rel="bookmark">{{ post.title }}</a>
+                </li>
+                {% endfor %}
+              </ul>
+              <div class="clear"></div>
+            </div>
+          </div>
         </div>
-      </div>
     </div>
     <div id="footer" class="section">
       <div class="wrapper">
