@@ -2,7 +2,8 @@
 layout: post
 title: New Blag - how I learned to stop worrying and love Jekyll
 categories:
-- blog jekyll
+- blog 
+- jekyll
 ---
 
 So, I've been thinking about this for a while and I finally decided to pull trigger on moving my site fully to github. Let's see where this goes. Also, I want to give a little intro on how to build a site like this (very bare-bones right now, I'm not very fancy). 
