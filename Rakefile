@@ -57,14 +57,18 @@ task :post do
     abort("rake aborted!") if ask("#{filename} already exists. Do you want to overwrite?", ['y', 'n']) == 'n'
   end
   
+  category= ENV['category']? ENV['category']: ''
+
+  tags = ENV['tags'] ? ENV['tags'].split(","): []
+
   puts "Creating new post: #{filename}"
   open(filename, 'w') do |post|
     post.puts "---"
     post.puts "layout: post"
     post.puts "title: \"#{title.gsub(/-/,' ')}\""
     post.puts 'description: ""'
-    post.puts "category: "
-    post.puts "tags: []"
+    post.puts "category: #{category} "
+    post.puts "tags: #{tags.to_s}"
     post.puts "---"
     post.puts "{% include JB/setup %}"
   end
