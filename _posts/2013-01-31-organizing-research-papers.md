@@ -38,7 +38,7 @@ I'd like it to run on the iPad, Android, and the browser.. I don't exactly care 
 I'm lazy, and so are most people, I'd like to get BibTeX format documentation generated for me wherever it makes sense, if I got it off of some researcher or some site. It should let me add these if I just got the PDF and I want to keep track. The use case I'm thinking is, if I'm writing a new paper, I'd like to be able to tag with something, and just get a list of BibTeX annotations to paste for LaTeX to generate in whatever format I want.
 
 
-## Collaboration, Sharing
+### Collaboration, Sharing
 
 I don't research alone, unless it's the time-honored tradition of searching for [cat videos](http://www.youtube.com/watch?v=wf_IIbT8HGk), even that reddit probably has got to be the journal of sorts. Actually, on that note, I ran into [this paper](http://www.plosone.org/article/info:doi%2F10.1371%2Fjournal.pone.0046362) on how viewing cute images promotes a careful behavior and narrows attention focus. Believe it or not, I ran into it via [Sanjay Ghemawat's G+ post](https://plus.google.com/105332691637769400620/posts/V77u6LeFAYy). There you go, with enough cute pics, you might come up with BigTable. 
 
