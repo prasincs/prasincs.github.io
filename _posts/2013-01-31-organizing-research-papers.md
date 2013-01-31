@@ -13,6 +13,8 @@ I keep finding myself asking this question way too often
 
 Most often it's either in one of my moleskine notebooks (seriously, those things are incredible - I keep two), date stamped with some scribble or on Evernote. I don't get annotations and in-place notes. I like to scribble on the side a fair bit and annotate. While iAnnotate apps work, I can't save that to Evernote yet, while keeping it editable. While I'm pretty sure Evernote or Dropbox can be adapted to do all of this with some cleverness or discipline, but here's some of the research I did on how to organize your documents, research papers.
 
+## What I want
+
 The ideal research note-taking application would let me do few things:
 
 ### Keeping Track
