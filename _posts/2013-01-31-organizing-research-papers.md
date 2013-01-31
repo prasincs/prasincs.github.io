@@ -33,7 +33,7 @@ I think I can do the two I mentioned earlier with kindle to some extent. What Ki
 I'd like it to run on the iPad, Android, and the browser.. I don't exactly care much about client applications, they're nice to have in addition to these.
 
 
-### Bibbliography wherever applicable (BibTeX)
+### Bibliography wherever applicable (BibTeX)
 
 I'm lazy, and so are most people, I'd like to get BibTeX format documentation generated for me wherever it makes sense, if I got it off of some researcher or some site. It should let me add these if I just got the PDF and I want to keep track. The use case I'm thinking is, if I'm writing a new paper, I'd like to be able to tag with something, and just get a list of BibTeX annotations to paste for LaTeX to generate in whatever format I want.
 
@@ -44,13 +44,13 @@ I don't research alone, unless it's the time-honored tradition of searching for 
 
 Back to the topic, I'd like to share with other people what I'm reading and ideally maintain a "burn list" of sorts with colleagues on what papers I'm reading for a particular project. There's some "discovery" part here that you get for cheap but I can barely get around to reading what I plan on reading.
 
-## Importing other sources
+### Importing other sources
 
 PDFs, web pages, not just research articles
 
 ## Possible tools that "get it"
 
-So far I think Mendeley comes the closest to this grand vision, but there are others, this is by no means comprehensive. 
+So far I think Mendeley comes the closest to this grand vision (it didn't do tracking last time I used it but matters less than others), but there are others, this is by no means comprehensive. 
 
 * [Mendeley](http://www.mendeley.com/features/) -- good tool, I used it extensively for some research at school, beginning to use it again.
 
