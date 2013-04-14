@@ -3,3 +3,4 @@ config/deploy.rb
 Capfile
 .rvmrc
 .bundle
+*.swp
