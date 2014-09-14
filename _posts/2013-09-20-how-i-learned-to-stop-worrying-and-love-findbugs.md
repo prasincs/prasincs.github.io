@@ -9,9 +9,9 @@ tags: ["java", "findbugs"]
 
 *Update:* I know this is about a year late. I should do `git stash pop` more often.
 
-## the Five Stages of Grief
+## The Five Stages of Grief
 
-Here's a cycle I see repeating in programmers (including myself) whenever a static analyzer is introduced in build process too late in the game. 
+Here is a cycle I see repeating in programmers (including myself) whenever a static analyzer is introduced in build process too late in the game. 
 
 * Denial:
   - Before running anything "My code is awesome, the static analyzer will not catch anything for sure." And after running -- it should be a minor fix to resolving any issues
@@ -31,7 +31,7 @@ Here's a cycle I see repeating in programmers (including myself) whenever a stat
 
 ## Post-Acceptance
 
-Many times, I have had to turn off findbugs or add many exceptions to avoid introspecting into libraries I may not have control over. This leads to brittle software regardless of how awesome your coding and debugging skills are. I once had to include some WebSphereMQ libraries that were and are still dark-arts to me how they function. I had to ensure nothing in the namespace could ever be looked at. But the problem is -- now, a core component of your application is ignored by your safety checks. I think the only way to ensure performance and safety is to ensure across the organization that minimum safety checks are done for everything used. It's easier said than done in big slow moving enterprises. Here's my findbugs-ignore.xml that I copy-paste in any new projects. See if you spot any issues. 
+Many times, I have had to turn off findbugs or add many exceptions to avoid introspecting into libraries I may not have control over. This leads to brittle software regardless of how awesome your coding and debugging skills are. I once had to include some WebSphereMQ libraries that were and are still dark-arts to me how they function. I had to ensure nothing in the namespace could ever be looked at. But the problem is -- now, a core component of your application is ignored by your safety checks. I think the only way to ensure performance and safety is to ensure across the organization that minimum safety checks are done for everything used. It is easier said than done in big slow moving enterprises. Here is my `findbugs-ignore.xml` that I copy-paste in any new projects. See if you spot any issues. 
 
 ```
 <FindBugsFilter>
