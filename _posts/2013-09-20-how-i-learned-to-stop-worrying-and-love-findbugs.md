@@ -53,7 +53,6 @@ On that Note. If you have to parse some XMLs and you are given some XSDs with qu
 
 
 ```
-            <!-- Oh yes, here you are! Explanation of code: will use binding.xjb file to add some sanity to generate java classes required for the project from provided xsd files-->
                 <plugin>
                     <groupId>org.jvnet.jaxb2.maven2</groupId>
                     <artifactId>maven-jaxb2-plugin</artifactId>
