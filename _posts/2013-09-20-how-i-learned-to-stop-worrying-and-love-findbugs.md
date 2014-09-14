@@ -124,12 +124,6 @@ I have gotten bitten by terrible ISO8601 standards, so anything timestamp, I con
 Ok, now that I have referenced a "Bean" I have to include that too.. Do not copy this.. this was very specific to what I was doing. I got a date source with no timestamp that I had reasonable guarantee that it would orginate from Eastern time. I hope you don't have to do such hacks. But if you need to, this will be handy.
 
 ```
-      /**
-       * Converts a date <code>String</code> to a <code>Date</code>
-       * and back.
-       *
-       * @author David Winterfeldt
-       */
       public class DateXmlAdapter extends XmlAdapter<String, DateTime> {
       
         public static final DateTimeFormatter NO_TIMEZONE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZone(DateTimeZone.forID("America/New_York"));
