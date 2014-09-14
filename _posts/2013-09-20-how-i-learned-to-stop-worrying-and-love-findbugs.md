@@ -34,7 +34,7 @@ Here is a cycle I see repeating in programmers (including myself) whenever a sta
 Many times, I have had to turn off findbugs or add many exceptions to avoid introspecting into libraries I may not have control over. This leads to brittle software regardless of how awesome your coding and debugging skills are. I once had to include some WebSphereMQ libraries that were and are still dark-arts to me how they function. I had to ensure nothing in the namespace could ever be looked at. But the problem is -- now, a core component of your application is ignored by your safety checks. I think the only way to ensure performance and safety is to ensure across the organization that minimum safety checks are done for everything used. It is easier said than done in big slow moving enterprises. Here is my `findbugs-ignore.xml` that I copy-paste in any new projects. See if you spot any issues. 
 
 ```
-    <FindBugsFilter>
+<FindBugsFilter>
       <Match>
         <Class name="~.*Test$"/>
       </Match>
@@ -44,7 +44,7 @@ Many times, I have had to turn off findbugs or add many exceptions to avoid intr
       <Match>
         <Package name="awesome.package"/>
       </Match>
-    </FindBugsFilter>
+</FindBugsFilter>
 ```
 
 I ignore tests, mostly because I give myself freedom to cheat in those. You should avoid obvious problems but if being able to abuse reflection in test makes your tests better understandable, go ahead and do it. The last match is a generated package that has history of its own. I ran into enough problems trying to get it close enough to get findbugs to pass properly that I have started to ignore them by default and add enough sane items in the code generation step to ensure rest of the system does not fall apart.
