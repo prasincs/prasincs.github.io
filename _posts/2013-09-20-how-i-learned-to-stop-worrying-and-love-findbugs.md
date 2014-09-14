@@ -7,7 +7,7 @@ tags: ["java", "findbugs"]
 ---
 {% include JB/setup %}
 
-*Update:* I know this is about a year late. I should do `git stash pop` more often.
+*Update:* I know this is about a year late. I should do `git stash pop` more often. Also, after tweaking Jekyll Bootstrap too much I've decided to give up and port to something sane like Ghost or Octopress.
 
 ## The Five Stages of Grief
 
