@@ -7,7 +7,7 @@ tags: ["java", "findbugs"]
 ---
 {% include JB/setup %}
 
-*Update:* I know this is about a year late. I should do `git stash pop` more often.
+*Update:* I know this is about a year late. I should do `git stash pop` more often. Also, after tweaking Jekyll Bootstrap too much I've decided to give up and port to something sane like Ghost or Octopress.
 
 ## The Five Stages of Grief
 
@@ -35,15 +35,15 @@ Many times, I have had to turn off findbugs or add many exceptions to avoid intr
 
 ```
 <FindBugsFilter>
-  <Match>
-    <Class name="~.*Test$"/>
-  </Match>
-  <Match>
-    <Package name="~test\..*"/>
-  </Match>
-  <Match>
-    <Package name="awesome.package"/>
-  </Match>
+      <Match>
+        <Class name="~.*Test$"/>
+      </Match>
+      <Match>
+        <Package name="~test\..*"/>
+      </Match>
+      <Match>
+        <Package name="awesome.package"/>
+      </Match>
 </FindBugsFilter>
 ```
 
@@ -53,42 +53,42 @@ On that Note. If you have to parse some XMLs and you are given some XSDs with qu
 
 
 ```
-   <!-- Oh yes, here you are! Explanation of code: will use binding.xjb file to add some sanity to generate java classes required for the project from provided xsd files-->
-            <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.8.3</version>
-                <configuration>
-                    <schemaDirectory>${basedir}/src/main/resources/schema</schemaDirectory>
-                    <bindingDirectory>${basedir}/src/main/resources/schema</bindingDirectory>
-                    <strict>false</strict>
-                    <extension>true</extension>
-                    <generatePackage>awesome.package</generatePackage>
-                    <plugins>
-                        <plugin>
-                            <groupId>org.jvnet.jaxb2_commons</groupId>
-                            <artifactId>jaxb2-basics</artifactId>
-                            <version>0.6.2</version>
-                        </plugin>
-                        <plugin>
-                            <groupId>org.jvnet.jaxb2_commons</groupId>
-                            <artifactId>jaxb2-basics-annotate</artifactId>
-                            <version>0.6.2</version>
-                        </plugin>
-                    </plugins>
-
-                    <args>
-                        <!-- JAXB/Jackson annotations to make xml/json serialization easier -->
-                        <arg>-Xannotate</arg>
-                        <!-- For debugging -->
-                        <arg>-XtoString</arg>
-                        <!-- Value based equality and hashcode methods -->
-                        <arg>-Xequals</arg>
-                        <arg>-XhashCode</arg>
-                        <arg>-Xmergeable</arg>
-                        <arg>-Xcopyable</arg>
-                    </args>
-                </configuration>
+                <plugin>
+                    <groupId>org.jvnet.jaxb2.maven2</groupId>
+                    <artifactId>maven-jaxb2-plugin</artifactId>
+                    <version>0.8.3</version>
+                    <configuration>
+                        <schemaDirectory>${basedir}/src/main/resources/schema</schemaDirectory>
+                        <bindingDirectory>${basedir}/src/main/resources/schema</bindingDirectory>
+                        <strict>false</strict>
+                        <extension>true</extension>
+                        <generatePackage>awesome.package</generatePackage>
+                        <plugins>
+                            <plugin>
+                                <groupId>org.jvnet.jaxb2_commons</groupId>
+                                <artifactId>jaxb2-basics</artifactId>
+                                <version>0.6.2</version>
+                            </plugin>
+                            <plugin>
+                                <groupId>org.jvnet.jaxb2_commons</groupId>
+                                <artifactId>jaxb2-basics-annotate</artifactId>
+                                <version>0.6.2</version>
+                            </plugin>
+                        </plugins>
+    
+                        <args>
+                            <!-- JAXB/Jackson annotations to make xml/json serialization easier -->
+                            <arg>-Xannotate</arg>
+                            <!-- For debugging -->
+                            <arg>-XtoString</arg>
+                            <!-- Value based equality and hashcode methods -->
+                            <arg>-Xequals</arg>
+                            <arg>-XhashCode</arg>
+                            <arg>-Xmergeable</arg>
+                            <arg>-Xcopyable</arg>
+                        </args>
+                    </configuration>
+                  </plugin>
 ```
 
 I have gotten bitten by terrible ISO8601 standards, so anything timestamp, I convert them to JODA DateTime formats immediately via a `bindings.xjb` file. This might be worth another post. I'm including the `bindings.xjb` file here anyway for reference.
@@ -96,59 +96,53 @@ I have gotten bitten by terrible ISO8601 standards, so anything timestamp, I con
 
 
 ```
-<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<jaxb:bindings xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
-               xmlns:xs="http://www.w3.org/2001/XMLSchema"
-               xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-               xmlns:annox="http://annox.dev.java.net"
-               xsi:schemaLocation="http://java.sun.com/xml/ns/jaxb http://java.sun.com/xml/ns/jaxb/bindingschema_2_0.xsd"
-               version="2.1">
-
-    <jaxb:globalBindings>
-        <!-- Use java.util.Calendar instead of javax.xml.datatype.XMLGregorianCalendar for xs:dateTime
-          for obvious sanity-saving reasons -->
-        <xjc:javaType  adapter="awesome.package.beans.adapter.DateXmlAdapter" name="org.joda.time.DateTime" xmlType="xs:date" />
-        <xjc:javaType  adapter="awesome.package.beans.adapter.DateXmlAdapter" name="org.joda.time.DateTime" xmlType="xs:dateTime" />
-
-        <!-- Force all classes implements Serializable -->
-        <xjc:serializable uid="1"/>
-    </jaxb:globalBindings>
-
-
-
-
-</jaxb:bindings>
+      <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+      <jaxb:bindings xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+                     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                     xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                     xmlns:annox="http://annox.dev.java.net"
+                     xsi:schemaLocation="http://java.sun.com/xml/ns/jaxb http://java.sun.com/xml/ns/jaxb/bindingschema_2_0.xsd"
+                     version="2.1">
+      
+          <jaxb:globalBindings>
+              <!-- Use java.util.Calendar instead of javax.xml.datatype.XMLGregorianCalendar for xs:dateTime
+                for obvious sanity-saving reasons -->
+              <xjc:javaType  adapter="awesome.package.beans.adapter.DateXmlAdapter" name="org.joda.time.DateTime" xmlType="xs:date" />
+              <xjc:javaType  adapter="awesome.package.beans.adapter.DateXmlAdapter" name="org.joda.time.DateTime" xmlType="xs:dateTime" />
+      
+              <!-- Force all classes implements Serializable -->
+              <xjc:serializable uid="1"/>
+          </jaxb:globalBindings>
+      
+      
+      
+      
+      </jaxb:bindings>
 ```
 
 Ok, now that I have referenced a "Bean" I have to include that too.. Do not copy this.. this was very specific to what I was doing. I got a date source with no timestamp that I had reasonable guarantee that it would orginate from Eastern time. I hope you don't have to do such hacks. But if you need to, this will be handy.
 
 ```
-/**
- * Converts a date <code>String</code> to a <code>Date</code>
- * and back.
- *
- * @author David Winterfeldt
- */
-public class DateXmlAdapter extends XmlAdapter<String, DateTime> {
-
-  public static final DateTimeFormatter NO_TIMEZONE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZone(DateTimeZone.forID("America/New_York"));
-
-  private static final DateTimeFormatter CHECKING_FORMAT =
-        ISODateTimeFormat.dateTime();
-
-    @Override
-    public DateTime unmarshal(String value) {
-
-      return NO_TIMEZONE_TIME_FORMAT.parseDateTime(value);
-    }
-
-    @Override
-    public String marshal(DateTime value) {
-      return CHECKING_FORMAT.print(value);
-    }
-
-}
+      public class DateXmlAdapter extends XmlAdapter<String, DateTime> {
+      
+        public static final DateTimeFormatter NO_TIMEZONE_TIME_FORMAT = DateTimeFormat.forPattern("yyyy-MM-dd'T'HH:mm:ss").withZone(DateTimeZone.forID("America/New_York"));
+      
+        private static final DateTimeFormatter CHECKING_FORMAT =
+              ISODateTimeFormat.dateTime();
+      
+          @Override
+          public DateTime unmarshal(String value) {
+      
+            return NO_TIMEZONE_TIME_FORMAT.parseDateTime(value);
+          }
+      
+          @Override
+          public String marshal(DateTime value) {
+            return CHECKING_FORMAT.print(value);
+          }
+      
+      }
 ```
 
 Ok, back to findbugs.. Being able to use findbugs to keep sanity despite all thes pitfalls makes it an excellent tool. Additionally, I have found that any bad coding practices get caught immediately by the CI server anyway.
