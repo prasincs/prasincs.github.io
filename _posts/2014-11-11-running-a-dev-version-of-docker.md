@@ -143,7 +143,8 @@ It's mostly `2022` but doesn't hurt to look
 If you want to script it, I recommend the excellent jq tool to get the number.
 There are ways to do this with awk/sed/grep tools too.
 
-    bot2docker info | jq '.SSHPort' 2022
+    bot2docker info | jq '.SSHPort' 
+    2022
 
 Lets save that to a variable 
 
