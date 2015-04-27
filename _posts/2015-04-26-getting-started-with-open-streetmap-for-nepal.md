@@ -15,24 +15,24 @@ For more detailed instructions, please check the following wiki pages.
 
 
 
-* Create an Account on Openstreetmap.org 
+# Create an Account on Openstreetmap.org 
 
 You can go to [Sign up page](https://www.openstreetmap.org/user/new) and create one. You'll have to validate your email address.
 
-* Sign in to the site by following the link.
+# Sign in to the site by following the link.
 
 You'll be greeted with something like the following.
 
 ![OSM Login Page](/assets/images/nepal/osm-login.png)
 
-* Go to the task manager and search for tasks for Nepal
+# Go to the task manager and search for tasks for Nepal
 
 The Humanitarian OSM Team (HOT) has a Tasking Manager that assigns tasks for you to pick and choose. It's over at [http://tasks.hotosm.org/](http://tasks.hotosm.org/).
 
 ![OSM Tasking Manager](/assets/images/nepal/osm-tasking-manager.png)
 
 
-* Pick a Task
+# Pick a Task
 
 The main screen is laid out with left side designating instructions and right side with map and various tasks. The way it works is as follows:
 
@@ -42,7 +42,7 @@ The main screen is laid out with left side designating instructions and right si
 
 ![HOT Task Selection](/assets/images/nepal/osm-tasking-select.png)
 
-* Click on Contribute Tab
+# Click on Contribute Tab
 
 On the left side of screen there are various tabs, "Contribute" is the one you want to pick. You can let it pick one at random for you or pick one in the map.
 
@@ -52,15 +52,15 @@ You need to select "Start Mapping" to lock the region.
 
 ![HOT Task Lock](/assets/images/nepal/osm-tasking-lock.png)
 
-* Use an editor to work on mapping.
+# Use an editor to work on mapping.
 
 There are various desktop options that are great if you want to merge with existing data, do some GIS work, etc. But the learning curve for them is pretty steep. You can use the online iD Editor just fine. It's synced with the servers, so as soon as you save, it becomes accessible to others for reviewing. 
 
 ![HOT Task Edit](/assets/images/nepal/osm-tasking-edit-id.png)
 
-* Open iD editor and start mapping
+## Open iD editor and start mapping
 
-** Follow the walkthrough.
+### Follow the walkthrough.
 
 I think the walkthrough is done very well and is very straightforward if you have done any amount of graphics work. Even MS Paint experience is good here. :)
 
@@ -68,13 +68,18 @@ Once you are done editing, save it so it's accessible to others.
 
 ![OSM iD Editor Save](/assets/images/nepal/osm-id-save.png)
 
-* Remember to Unlock once you are done mapping
+# Remember to Unlock once you are done mapping
 
 Please, do remember to save so that someone else can continue the work if you can't.
 
 ![OSM Task Unlock](/assets/images/nepal/osm-tasking-unlock.png)
 
 
-* More resources
+# More resources
 
 This is an attempt to boil down a series of tasks, if you have any questions or confusions contact the fine folks in #hot IRC channel on oftc.net or leave a comment here and I'll try my best to answer them. And thank you for your work. You're awesome!!
+
+
+* There are tons more resource on [wiki.openstreetmap.org/wiki/2015_Nepal_earthquake](http://wiki.openstreetmap.org/wiki/2015_Nepal_earthquake)
+* [Nepal Remote Mapping Guide](http://wiki.openstreetmap.org/wiki/Nepal_remote_mapping_guide)
+* [Nepal Roads Guidelines](http://wiki.openstreetmap.org/wiki/Nepal/Roads)
