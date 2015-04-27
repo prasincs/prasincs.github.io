@@ -88,4 +88,4 @@ This is an attempt to boil down a series of tasks, if you have any questions or 
 * I found out about [Kathmandu Living Labs Resources](http://kathmandulivinglabs.org/resource). They have great tutorials.
 
 
-*Update*: Explained the process of mapping and why we'd want to do so. Thanks [@biswas](https://twitter.com/biswas/)
+**Update**: Explained the process of mapping and why we'd want to do so. Thanks [@biswas](https://twitter.com/biswas/)
