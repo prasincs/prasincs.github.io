@@ -7,7 +7,9 @@ tags: []
 ---
 {% include JB/setup %}
 
-As you must be well aware of the enormous toll the earthquake has taken for Nepal by now, there's still work you can do to help the boots on the ground doing rescue work by helping map the region. I'm going to attempt walking through the process for a new user. There are a lot of options here, so I'm going to pick the one that's most efficient to get started.
+As you must be well aware of the enormous toll the earthquake has taken for Nepal by now, there's still work you can do to help the boots on the ground doing rescue work by helping map the affected regions. Basically, outside of major towns and cities, Nepal's landscape is very hilly -- there are few if any roads to most villages. It doesn't help in rescue efforts now that all the villages are reduced to rubbles. If there are people stranded in these remote locations, knowing where the houses, residential areas are would expedite the process for rescue efforts. You would be looking at satellite images of the region and labeling whether a particular item is a path, road, house, or anything else. It requires paying attention to roads and having a general sense of what could be accessible. 
+
+Unfortunately the process is still hard to grasp for beginners, so I'm going to attempt walking through the process for a new user. There are a lot of options here, so I'm going to pick the one that's most efficient to get started.
 
 For more detailed instructions, please check the following wiki pages.
 
@@ -83,3 +85,7 @@ This is an attempt to boil down a series of tasks, if you have any questions or 
 * There are tons more resource on [wiki.openstreetmap.org/wiki/2015_Nepal_earthquake](http://wiki.openstreetmap.org/wiki/2015_Nepal_earthquake)
 * [Nepal Remote Mapping Guide](http://wiki.openstreetmap.org/wiki/Nepal_remote_mapping_guide)
 * [Nepal Roads Guidelines](http://wiki.openstreetmap.org/wiki/Nepal/Roads)
+* I found out about [Kathmandu Living Labs Resources](http://kathmandulivinglabs.org/resource). They have great tutorials.
+
+
+*Update*: Explained the process of mapping and why we'd want to do so. Thanks [@biswas](https://twitter.com/biswas/)
