@@ -153,9 +153,9 @@ Get the direct link.
     ./make-distribution.sh --tgz
 
 This will make a file "spark-1.2.0-bin-1.0.4.tgz", You can place this in HDFS
-share, NFS mount, S3 or HTTP service and access it using "SPARK<sub>EXECUTOR</sub><sub>URI</sub>".
+share, NFS mount, S3 or HTTP service and access it using `SPARK_EXECUTOR_URI`.
 If it's your own cluster that runs Spark jobs often, you're better off just setting
-"SPARK<sub>HOME</sub>" in the same place on every node, in an NFS mount or similar.
+`SPARK_HOME` in the same place on every node, in an NFS mount or similar.
 
 1.  Running Spark
 
@@ -166,7 +166,7 @@ If it's your own cluster that runs Spark jobs often, you're better off just sett
         export SPARK_MASTER_WEBUI_PORT=4040
         SPARK_MASTER_IP=10.1.10.47 SPARK_LOCAL_IP=127.0.0.1 ./bin/spark-shell --master mesos://zk://localhost:2181,localhost:2182,localhost:2183/mesos
     
-    The "SPARK<sub>MASTER</sub><sub>IP</sub>" and "SPARK<sub>LOCAL</sub><sub>IP</sub>" are just declared so that they're
+    The `SPARK_MASTER_IP` and `SPARK_LOCAL_IP` are just declared so that they're
     explicitly detected and it's not all in loopback. This will also run a web UI on port 4040.
     
         15/02/02 15:02:51 INFO SparkILoop: Created spark context..
