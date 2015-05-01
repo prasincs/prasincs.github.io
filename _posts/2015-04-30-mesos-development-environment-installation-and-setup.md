@@ -2,8 +2,8 @@
 layout: post
 title: "Mesos Development Environment Installation and setup"
 description: ""
-category:  
-tags: []
+category:  "mesos"
+tags: ["mesos", "distributed systems", "how to"]
 ---
 {% include JB/setup %}
 
@@ -36,18 +36,17 @@ tags: []
 
 
 
-# Mesos Development Environment Installation and setup<a id="sec-1" name="sec-1"></a>
-
 I realized recently that I have a somewhat non-standard setup for 
 running/testing Mesos on my OSX system. Initially, I started this to see how well Mesos
 compiles on OSX, but given that this setup has worked fine for me, I've been running it.
 For a more accurate benchmark, I recommend running in VMs or some cloud provider.
  
+
+## Questions<a id="sec-1-1" name="sec-1-1"></a>
+
 This is a guide to getting started with setting up mesos on your local system
 and soon, on a Cluster. First of all, you need to ask a few questions to
 yourself. 
-
-## Questions<a id="sec-1-1" name="sec-1-1"></a>
 
 ### Why do you want to run Mesos?<a id="sec-1-1-1" name="sec-1-1-1"></a>
 
