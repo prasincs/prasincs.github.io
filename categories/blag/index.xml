@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>NextDoorHacker</title>
+    <link>http://nextdoorhacker.com/categories/blag/index.xml</link>
+    <description>Recent content on NextDoorHacker</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <atom:link href="http://nextdoorhacker.com/categories/blag/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Running a dev version of docker</title>
+      <link>http://nextdoorhacker.com/2014/11/11/running-a-dev-version-of-docker/</link>
+      <pubDate>Tue, 11 Nov 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://nextdoorhacker.com/2014/11/11/running-a-dev-version-of-docker/</guid>
+      <description>
+
+&lt;p&gt;I have recently been working on fixing some personal pain-points for Docker. It
+came about because of a course I am taking at UConn this fall on
+&lt;a href=&#34;http://www.engr.uconn.edu/~mok11002/public_html/cse5095_fall2014.htm&#34;&gt;Troubleshooting Distributed
+Systems&lt;/a&gt; -
+Excellent course by the way.&lt;/p&gt;
+
+&lt;p&gt;The current issue I&amp;rsquo;m looking at is the one about
+&lt;a href=&#34;https://github.com/docker/docker/issues/7195&#34;&gt;logging&lt;/a&gt;. Yep, I somehow managed
+to volunteered to do this in a month with a full-time job and 4 hours a week of driving
+back and forth from UConn. Anyway, I needed to run a dev version of Docker in my
+local machine alongside the stable version. I&amp;rsquo;m on a mac running boot2docker.
+There are &lt;a href=&#34;http://www.siliconfidential.com/articles/docker-coreos-osx/&#34;&gt;other
+ways&lt;/a&gt; to do this
+but I find boot2docker sufficient for almost all the work I&amp;rsquo;d want to do in this
+case.&lt;/p&gt;
+
+&lt;h2 id=&#34;compiling-docker&#34;&gt;Compiling Docker&lt;/h2&gt;
+
+&lt;p&gt;Basically, follow the instruction in
+&lt;a href=&#34;http://docs.docker.com/contributing/devenvironment/&#34;&gt;http://docs.docker.com/contributing/devenvironment/&lt;/a&gt;. The short form of it is:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;git clone git@github.com:docker/docker.git
+cd docker
+make BINDDIR=. cross
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Docker compiles itself in a docker container (of course) and it was a seamless
+operation aside from the fact that I could not access the binaries after the
+compilation was done. The problem is that your &lt;code&gt;BINDDIR&lt;/code&gt; is not set to the
+current directory. I have come to run the make command with that environment
+variable, for tasks other than tests.&lt;/p&gt;
+
+&lt;p&gt;You will find the compiled versions in the following directory structure
+ (inside the &lt;code&gt;bundles&lt;/code&gt; directory)&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bundles
+├── 1.3.1
+│   └── binary
+│       ├── docker -&amp;gt; docker-1.3.1
+│       ├── docker-1.3.1
+│       ├── docker-1.3.1.md5
+│       └── docker-1.3.1.sha256
+└── 1.3.1-dev
+    ├── binary
+    │   ├── docker -&amp;gt; docker-1.3.1-dev
+    │   ├── docker-1.3.1-dev
+    │   ├── docker-1.3.1-dev.md5
+    │   └── docker-1.3.1-dev.sha256
+    └── cross
+        ├── darwin
+        │   ├── 386
+        │   │   ├── docker -&amp;gt; docker-1.3.1-dev
+        │   │   ├── docker-1.3.1-dev
+        │   │   ├── docker-1.3.1-dev.md5
+        │   │   └── docker-1.3.1-dev.sha256
+        │   └── amd64
+        │       ├── docker -&amp;gt; docker-1.3.1-dev
+        │       ├── docker-1.3.1-dev
+        │       ├── docker-1.3.1-dev.md5
+        │       └── docker-1.3.1-dev.sha256
+        ├── freebsd
+        │   ├── 386
+        │   │   ├── docker -&amp;gt; docker-1.3.1-dev
+        │   │   ├── docker-1.3.1-dev
+        │   │   ├── docker-1.3.1-dev.md5
+        │   │   └── docker-1.3.1-dev.sha256
+        │   ├── amd64
+        │   │   ├── docker -&amp;gt; docker-1.3.1-dev
+        │   │   ├── docker-1.3.1-dev
+        │   │   ├── docker-1.3.1-dev.md5
+        │   │   └── docker-1.3.1-dev.sha256
+        │   └── arm
+        │       ├── docker -&amp;gt; docker-1.3.1-dev
+        │       ├── docker-1.3.1-dev
+        │       ├── docker-1.3.1-dev.md5
+        │       └── docker-1.3.1-dev.sha256
+        └── linux
+            ├── 386
+            │   ├── docker -&amp;gt; docker-1.3.1-dev
+            │   ├── docker-1.3.1-dev
+            │   ├── docker-1.3.1-dev.md5
+            │   └── docker-1.3.1-dev.sha256
+            ├── amd64
+            │   ├── docker -&amp;gt; ../../../binary/docker
+            │   ├── docker-1.3.1-dev -&amp;gt; ../../../binary/docker-1.3.1-dev
+            │   ├── docker-1.3.1-dev.md5 -&amp;gt; ../../../binary/docker-1.3.1-dev.md5
+            │   └── docker-1.3.1-dev.sha256 -&amp;gt; ../../../binary/docker-1.3.1-dev.sha256
+            └── arm
+                ├── docker -&amp;gt; docker-1.3.1-dev
+                ├── docker-1.3.1-dev
+                ├── docker-1.3.1-dev.md5
+                └── docker-1.3.1-dev.sha256
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Since I&amp;rsquo;m using a Macbook Pro - when I try to run &lt;code&gt;./bundles/1.3.1-dev/cross/darwin/amd64/docker ps&lt;/code&gt; I get&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;2014/11/11 04:17:49 Error response from daemon: client and server don&#39;t have same version (client : 1.16, server: 1.15)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This means the versions of client and servers do not match. Now I don&amp;rsquo;t really want to replace the stable docker instance running in &lt;code&gt;boot2docker&lt;/code&gt;.&lt;/p&gt;
+
+&lt;p&gt;The solution is slightly hacky but works well enough for what I need.&lt;/p&gt;
+
+&lt;h1 id=&#34;move-docker-binary-to-the-vm&#34;&gt;Move Docker binary to the VM&lt;/h1&gt;
+
+&lt;p&gt;This would be similar for other systems too - I&amp;rsquo;m going to assume &lt;code&gt;boot2docker&lt;/code&gt; for simplicity again&lt;/p&gt;
+
+&lt;h2 id=&#34;find-boot2docker-ssh-port&#34;&gt;Find boot2docker ssh port&lt;/h2&gt;
+
+&lt;p&gt;It&amp;rsquo;s mostly &lt;code&gt;2022&lt;/code&gt; but doesn&amp;rsquo;t hurt to look&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ boot2docker info
+
+{
+  &amp;quot;Name&amp;quot;: &amp;quot;boot2docker-vm&amp;quot;,
+  &amp;quot;UUID&amp;quot;: &amp;quot;c0bad522-2c24-4a96-bf54-d2c0225be3a2&amp;quot;,
+  &amp;quot;Iso&amp;quot;: &amp;quot;/Users/nextdooerhacker/.boot2docker/boot2docker.iso&amp;quot;,
+  &amp;quot;State&amp;quot;: &amp;quot;running&amp;quot;,
+  &amp;quot;CPUs&amp;quot;: 8,
+  &amp;quot;Memory&amp;quot;: 2048,
+  &amp;quot;VRAM&amp;quot;: 8,
+  &amp;quot;CfgFile&amp;quot;: &amp;quot;/Users/nextdoorhacker/VirtualBox VMs/boot2docker-vm/boot2docker-vm.vbox&amp;quot;,
+  &amp;quot;BaseFolder&amp;quot;: &amp;quot;/Users/nextdoorhacker/VirtualBox VMs/boot2docker-vm&amp;quot;,
+  &amp;quot;OSType&amp;quot;: &amp;quot;&amp;quot;,
+  &amp;quot;Flag&amp;quot;: 0,
+  &amp;quot;BootOrder&amp;quot;: null,
+  &amp;quot;DockerPort&amp;quot;: 0,
+  &amp;quot;SSHPort&amp;quot;: 2022,
+  &amp;quot;SerialFile&amp;quot;: &amp;quot;/Users/nextdoorhacker/.boot2docker/boot2docker-vm.sock&amp;quot;
+}%
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;If you want to script it, I recommend the excellent jq tool to get the number.
+There are ways to do this with awk/sed/grep tools too.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;bot2docker info | jq &#39;.SSHPort&#39;
+2022
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Lets save that to a variable&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;PORT=$(boot2docker info | jq &#39;.SSHPort&#39;)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;move-the-binaries-to-boot2docker&#34;&gt;Move the binaries to boot2docker&lt;/h2&gt;
+
+&lt;p&gt;From your docker directory, the following command:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;scp -r -P $PORT bundles/1.3.1-dev/cross/linux/amd64/ docker@localhost:
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The password according to &lt;a href=&#34;https://github.com/boot2docker/boot2docker&#34;&gt;https://github.com/boot2docker/boot2docker&lt;/a&gt; is
+&lt;code&gt;tcuser&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h2 id=&#34;ssh-into-boot2docker&#34;&gt;SSH into boot2docker&lt;/h2&gt;
+
+&lt;p&gt;This should drop you into the boot2docker shell&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;boot2docker ssh
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;run-the-dev-docker-instance&#34;&gt;Run the dev docker instance&lt;/h2&gt;
+
+&lt;p&gt;I picked the port &lt;code&gt;2378&lt;/code&gt; pretty much arbitrarily here. I wanted to run with
+just changing the &lt;code&gt;DOCKER_HOST&lt;/code&gt; variable. Unless I&amp;rsquo;m hacking on the TLS part, I
+shouldn&amp;rsquo;t have to change that.  This is the command I run:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;cd amd64
+sudo ./docker -d -D -g . -H unix:// -H tcp://0.0.0.0:2378 --tlsverify --tlscacert=/var/lib/boot2docker/tls/ca.pem --tlscert=/var/lib/boot2docker/tls/server.pem --tlskey=/var/lib/boot2docker/tls/serverkey.pem -p docker.pid
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Only things that have changed are&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;the &lt;code&gt;-D&lt;/code&gt; argument for debug mode - I find it useful to have it running. Docker is not that verbose to bother me&lt;/li&gt;
+&lt;li&gt;the pidfile to be in the current directory&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;using-the-new-client&#34;&gt;Using the new client&lt;/h2&gt;
+
+&lt;p&gt;Now prefix with the new port number &amp;ndash; everything else will remain the same.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;DOCKER_HOST=tcp://192.168.59.103:2378 ./bundles/1.3.1-dev/cross/darwin/amd64/docker run -t -i ubuntu  /bin/bash
+root@c886080a6024:/#
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Congrats you have a dev version of docker running. Commence hackery!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Simple Pandoc process</title>
+      <link>http://nextdoorhacker.com/2014/09/16/simple-pandoc-process/</link>
+      <pubDate>Tue, 16 Sep 2014 00:00:00 +0000</pubDate>
+      
+      <guid>http://nextdoorhacker.com/2014/09/16/simple-pandoc-process/</guid>
+      <description>
+
+&lt;p&gt;So, I recently signed up for a Distributed Systems course at UConn (&lt;a href=&#34;http://www.engr.uconn.edu/~mok11002/public_html/cse5095_fall2014.htm&#34;&gt;http://www.engr.uconn.edu/~mok11002/public_html/cse5095_fall2014.htm&lt;/a&gt;). It involves a lot of reading and writing reviews. I have always written these class assignments in LaTeX except when I have been expressedly forbidden from using it. However, there&amp;rsquo;s a whole gamut of problems with writing in LaTeX directly. Partly, you may not always be in a place where your environment is sane. So, being able to store as plaintext/markdown would be awesome. Here&amp;rsquo;s what I do for the reviews:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;Every file named after the day it is due &amp;ndash; so I don&amp;rsquo;t have to remember the name of the paper or some other arbitrary thing.&lt;/p&gt;&lt;/li&gt;
+
+&lt;li&gt;&lt;p&gt;Pandoc runs and generates PDF&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;So, a file for a project due on Sept 9th may look like this &lt;code&gt;sept_9.md&lt;/code&gt; and upon run the pandoc command &lt;code&gt;pandoc -V geometry=&#39;margin=1in&#39; -f markdown -o sept_9.pdf sept_9.md &amp;amp;&amp;amp; open sept_9.pdf&lt;/code&gt; your PDF viewer will show you the result. Caveat, this is on a mac, if you are on Linux replace open with xdg-open.&lt;/p&gt;
+
+&lt;h2 id=&#34;makefile&#34;&gt;Makefile&lt;/h2&gt;
+
+&lt;p&gt;So to make the process even more seamless, I have a Makefile that matches on the basename and compiles it for you:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;%: %.md
+  pandoc -V geometry=&#39;margin=1in&#39; -f markdown -o $*.pdf $*.md &amp;amp;&amp;amp; open $*.pdf
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;So now I just need to run &lt;code&gt;make sept_9&lt;/code&gt; and an updated PDF of that day opens up. I can extend it to support all the format pandoc supports but I&amp;rsquo;ll leave that until I absolutely must.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Moving on to Jekyll Bootstrap</title>
+      <link>http://nextdoorhacker.com/2012/12/10/moving-on-to-jekyll-bootstrap/</link>
+      <pubDate>Mon, 10 Dec 2012 00:00:00 +0000</pubDate>
+      
+      <guid>http://nextdoorhacker.com/2012/12/10/moving-on-to-jekyll-bootstrap/</guid>
+      <description>&lt;p&gt;So, I finally decided to port this site to Jekyll-Bootstrap along with a bunch of other projects. There are some helper functions in Jekyll Bootstrap that I find very convenient to use. Particularly since I&amp;rsquo;m using ruby/rake all the time, it&amp;rsquo;s easier to just run the &lt;code&gt;rake post&lt;/code&gt; command to just post whatever you need to. I&amp;rsquo;ll add a few more things in the future. Right now, I&amp;rsquo;m just testing a bunch of things and didn&amp;rsquo;t exactly pay much attention to making the site look good.&lt;/p&gt;
+
+&lt;p&gt;Not exactly sure why this wasn&amp;rsquo;t done before but I added something minor to the jekyll bootstrap &lt;code&gt;Rakefile&lt;/code&gt; - creating posts with categories from the commandline itself. Basically, &lt;code&gt;rake post title=&amp;quot;My Title&amp;quot; category=blag tags=jekyll,bootstrap&lt;/code&gt;. Feel free to pull the &lt;a href=&#34;http://github.com/prasincs/prasincs.github.com&#34;&gt;source&lt;/a&gt; and use it in your Jekyll-Bootstrap site.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

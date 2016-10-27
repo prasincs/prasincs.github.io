@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>NextDoorHacker</title>
+    <link>http://nextdoorhacker.com/categories/music/index.xml</link>
+    <description>Recent content on NextDoorHacker</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <atom:link href="http://nextdoorhacker.com/categories/music/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Nicer Music Posts</title>
+      <link>http://nextdoorhacker.com/2013/04/14/nicer-music-posts/</link>
+      <pubDate>Sun, 14 Apr 2013 00:00:00 +0000</pubDate>
+      
+      <guid>http://nextdoorhacker.com/2013/04/14/nicer-music-posts/</guid>
+      <description>&lt;p&gt;So, I found this awesome library called &lt;a href=&#34;http://vexflow.com/vextab/&#34;&gt;VexTab&lt;/a&gt; that allows you to write down musical notations in a simple syntax and generates a HTML5/javascript rendering of the notation.  I have some little snippets to allow rendering chords and tabs with/without notations. This will be specific to Jekyll generated sites on Github, you can be much cleverer on your server.&lt;/p&gt;
+
+&lt;p&gt;It&amp;rsquo;s almost too easy but here you go. How to include music notation in your blog &amp;ndash; you can ignore raphael.js and chart/chord.js files if you don&amp;rsquo;t want chord representations. Put these files in your html from vexflow/vextab projects.
+
+&lt;script src=&#34;http://nextdoorhacker.com/js/raphael.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;http://nextdoorhacker.com/js/jquery.min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;http://nextdoorhacker.com/js/underscore-min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;http://nextdoorhacker.com/js/vexflow-min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;http://nextdoorhacker.com/js/tabdiv-min.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;http://nextdoorhacker.com/js/chord.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;http://nextdoorhacker.com/js/chart.js&#34;&gt;&lt;/script&gt;
+&lt;script src=&#34;http://nextdoorhacker.com/js/music-post.js&#34;&gt;&lt;/script&gt;
+&lt;/p&gt;
+
+&lt;p&gt;You can to get the &lt;code&gt;tabdiv-min.js&lt;/code&gt; file from vextab project after compiling. Or, you can browse to the &lt;code&gt;/assets/themes/js&lt;/code&gt; directory and copy all the files. Please respect the work of original author. Look at &lt;code&gt;music-post.js&lt;/code&gt; file to see how this is done.&lt;/p&gt;
+
+&lt;p&gt;After that, you can render anything in the &lt;code&gt;VexTab&lt;/code&gt; format including the chords.&lt;/p&gt;
+
+&lt;p&gt;So your code
+
+&lt;div class=&#34;music music-vextab&#34;&gt;
+tabstave notation=true tablature=false
+notes Cn-D-E/4 F#/5
+&lt;/div&gt;
+
+&lt;/p&gt;
+
+&lt;p&gt;will look like&lt;/p&gt;
+
+&lt;div class=&#34;music music-vextab&#34;&gt;
+tabstave notation=true tablature=false
+notes Cn-D-E/4 F#/5
+&lt;/div&gt;
+
+&lt;p&gt;For more details on what the texts mean, please check the &lt;a href=&#34;http://vexflow.com/vextab/tutorial.html&#34;&gt;VexTab tutorial&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;And, I adapted this from the &lt;a href=&#34;http://vexflow.com/vexchords/&#34;&gt;Vexchord Demo&lt;/a&gt;
+
+&lt;div class=&#34;music music-chord&#34; data-key=&#34;E&#34; data-str=&#34;E&#34; data-shape=&#34;M E&#34;&gt;
+&lt;/div&gt;
+&lt;/p&gt;
+
+&lt;p&gt;will look like
+&lt;div class=&#34;music music-chord&#34; data-key=&#34;E&#34; data-str=&#34;E&#34; data-shape=&#34;M E&#34;&gt;
+&lt;/div&gt;&lt;/p&gt;
+
+&lt;p&gt;Next step is to start blogging about music/theory along with nicer notations!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,9 +1,0 @@
-baseURL: http://nextdoorhacker.com/
-disablePathToLower: true
-languageCode: en-us
-title: NextDoorHacker
-publishdir: _site
-indexes:
-  category: "categories"
-canonifyurls: true
-...

@@ -1,0 +1,254 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>NextDoorHacker</title>
+    <link>http://nextdoorhacker.com/categories/mesos/index.xml</link>
+    <description>Recent content on NextDoorHacker</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <atom:link href="http://nextdoorhacker.com/categories/mesos/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Mesos Development Environment Installation and setup</title>
+      <link>http://nextdoorhacker.com/2015/04/30/mesos-development-environment-installation-and-setup/</link>
+      <pubDate>Thu, 30 Apr 2015 00:00:00 +0000</pubDate>
+      
+      <guid>http://nextdoorhacker.com/2015/04/30/mesos-development-environment-installation-and-setup/</guid>
+      <description>
+
+&lt;div id=&#34;table-of-contents&#34;&gt;
+&lt;h2&gt;Table of Contents&lt;/h2&gt;
+&lt;div id=&#34;text-table-of-contents&#34;&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1&#34;&gt;1. Mesos Development Environment Installation and setup&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1-1&#34;&gt;1.1. Questions&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1-1-1&#34;&gt;1.1.1. Why do you want to run Mesos?&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1-1-2&#34;&gt;1.1.2. What Frameworks are you going to run on Mesos?&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1-2&#34;&gt;1.2. Background Readings&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1-3&#34;&gt;1.3. Pre-requisites (Development Environment)&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1-3-1&#34;&gt;1.3.1. Zookeeper&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1-3-2&#34;&gt;1.3.2. Mesos Masters&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1-3-3&#34;&gt;1.3.3. Mesos Slaves&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;#sec-1-3-4&#34;&gt;1.3.4. Testing this Cluster with Spark&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;p&gt;I realized recently that I have a somewhat non-standard setup for
+running/testing Mesos on my OSX system. Initially, I started this to see how well Mesos
+compiles on OSX, but given that this setup has worked fine for me, I&amp;rsquo;ve been running it.
+For a more accurate benchmark, I recommend running in VMs or some cloud provider.&lt;/p&gt;
+
+&lt;h2 id=&#34;questions-a-id-sec-1-1-name-sec-1-1-a&#34;&gt;Questions&lt;a id=&#34;sec-1-1&#34; name=&#34;sec-1-1&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;This is a guide to getting started with setting up mesos on your local system
+and soon, on a Cluster. First of all, you need to ask a few questions to
+yourself.&lt;/p&gt;
+
+&lt;h3 id=&#34;why-do-you-want-to-run-mesos-a-id-sec-1-1-1-name-sec-1-1-1-a&#34;&gt;Why do you want to run Mesos?&lt;a id=&#34;sec-1-1-1&#34; name=&#34;sec-1-1-1&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;Is it going to reduce any complexity that you are encountering, or introducing
+more. Remember, making things more distributed without monitoring just adds more
+things that can fail. That&amp;rsquo;s not a reason to avoid building distributed systems,
+but a good reason to look at monitoring and maintenance from the beginning.&lt;/p&gt;
+
+&lt;h3 id=&#34;what-frameworks-are-you-going-to-run-on-mesos-a-id-sec-1-1-2-name-sec-1-1-2-a&#34;&gt;What Frameworks are you going to run on Mesos?&lt;a id=&#34;sec-1-1-2&#34; name=&#34;sec-1-1-2&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;There are various great frameworks that exist for mesos at the time of this
+writing (January 28, 2015). It&amp;rsquo;s not terribly hard to write one either &amp;#x2013; if
+you want a Clojure example, check out
+&lt;a href=&#34;https://github.com/edpaget/riak-mesos&#34;&gt;https://github.com/edpaget/riak-mesos&lt;/a&gt;. There are better examples in Clojure
+and Go. There are various meta-frameworks like Marathon and Aurora too. Kubernetes is gaining
+a lot of popularity too now. I haven&amp;rsquo;t run it on top of mesos yet, so I&amp;rsquo;m not sure how well it works.&lt;/p&gt;
+
+&lt;h2 id=&#34;background-readings-a-id-sec-1-2-name-sec-1-2-a&#34;&gt;Background Readings&lt;a id=&#34;sec-1-2&#34; name=&#34;sec-1-2&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
+
+&lt;p&gt;These aren&amp;rsquo;t required but I highly recommend checking them out.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Original Mesos Paper (&lt;a href=&#34;http://people.csail.mit.edu/matei/papers/2011/nsdi_mesos.pdf&#34;&gt;http://people.csail.mit.edu/matei/papers/2011/nsdi_mesos.pdf&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Omega Paper (&lt;a href=&#34;http://research.google.com/pubs/pub41684.html&#34;&gt;http://research.google.com/pubs/pub41684.html&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;YARN vs Mesos (&lt;a href=&#34;http://www.quora.com/How-does-YARN-compare-to-Mesos&#34;&gt;http://www.quora.com/How-does-YARN-compare-to-Mesos&lt;/a&gt; and &lt;a href=&#34;http://blog.typeobject.com/a-quick-comparison-of-mesos-and-yarn&#34;&gt;http://blog.typeobject.com/a-quick-comparison-of-mesos-and-yarn&lt;/a&gt;)&lt;/li&gt;
+&lt;li&gt;Borg Paper (&lt;a href=&#34;http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/43438.pdf&#34;&gt;http://static.googleusercontent.com/media/research.google.com/en/us/pubs/archive/43438.pdf&lt;/a&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These are somewhat outdated at this point as the current mesos code also has
+input from Wilkes and gang &amp;#x2013; so it&amp;rsquo;s closer to Mesos-Omega.&lt;/p&gt;
+
+&lt;p&gt;On the &amp;ldquo;might be too bleeding-edge-for-production&amp;rdquo; category.&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Quasar from Stanford (&lt;a href=&#34;http://www.industry-academia.org/download/2014-asplos-quasar-Stanford-paper.pdf&#34;&gt;http://www.industry-academia.org/download/2014-asplos-quasar-Stanford-paper.pdf&lt;/a&gt;) focuses on assigning resource allocation based on constraints for processes to get the best QoS. Mesos Frameworks like Aurora are moving towards this too.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;pre-requisites-development-environment-a-id-sec-1-3-name-sec-1-3-a&#34;&gt;Pre-requisites (Development Environment)&lt;a id=&#34;sec-1-3&#34; name=&#34;sec-1-3&#34;&gt;&lt;/a&gt;&lt;/h2&gt;
+
+&lt;h3 id=&#34;zookeeper-a-id-sec-1-3-1-name-sec-1-3-1-a&#34;&gt;Zookeeper&lt;a id=&#34;sec-1-3-1&#34; name=&#34;sec-1-3-1&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;You can run this as a single instance for development but given that mesos
+depends on Zookeeper cluster to provide source of truth, you want to run these
+as a cluster. Ideally 3 or 5 nodes.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;wget http://apache.cs.utah.edu/zookeeper/stable/zookeeper-3.4.6.tar.gz tar
+-xzvf zookeeper-3.4.6.tar.gz cd zookeeper-3.4.6
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Generate Zookeeper configuration&lt;/p&gt;
+
+&lt;p&gt;You can manually try to do this but it&amp;rsquo;s can be annoying if you&amp;rsquo;re trying it for
+testing the servers. I use this project for doing
+that. &lt;a href=&#34;https://github.com/phunt/zkconf&#34;&gt;https://github.com/phunt/zkconf&lt;/a&gt;, it&amp;rsquo;s kind of complicated &amp;#x2013; so I&amp;rsquo;ll
+supply the relevant configuration files generated here.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;pip install cheetah cheetah compile *.tmpl python zkconf.py --count 3
+~/work/mesos/zookeeper-3.4.6/conf/standalone-confs
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This will add some files in the given directory that will start the cluster for
+you. The default zookeeper connection string is&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;localhost:2181,localhost:2182,localhost:2183
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Keep note of this &amp;#x2013; this will be useful later for Mesos configuration.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Aside: Using Zookeeper from Clojure&lt;/p&gt;
+
+&lt;p&gt;The best way to use Zookeeper from Clojure is to use the curator framework &amp;#x2013; I
+have used the curator library for Clojure which is a wrapper around Apache
+Curator library. &lt;a href=&#34;https://github.com/pingles/curator&#34;&gt;https://github.com/pingles/curator&lt;/a&gt;&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;h3 id=&#34;mesos-masters-a-id-sec-1-3-2-name-sec-1-3-2-a&#34;&gt;Mesos Masters&lt;a id=&#34;sec-1-3-2&#34; name=&#34;sec-1-3-2&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;Now, lets get Mesos. I&amp;rsquo;m assuming a fresh OSX installation &amp;#x2013; (10.10 with
+Homebrew).&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;wget http://archive.apache.org/dist/mesos/0.21.0/mesos-0.21.0.tar.gz tar -zxvf
+mesos-0.21.0.tar.gz cd mesos-0.21.0 ./configure make export
+MESOS_HOME=/Users/pgautam/work/mesos/mesos-0.21.0 mkdir -p
+work-dir/{5050,5051,5052} mkdir -p log-dir/{5050,5051,5052}
+./bin/mesos-master.sh --zk=zk://localhost:2181,localhost:2182,localhost:2183/mesos  --work_dir=$PWD/work-dir/5050 --quorum=2 --port=5050 --log_dir=$PWD/log-dir/5050
+./bin/mesos-master.sh --zk=zk://localhost:2181,localhost:2182,localhost:2183/mesos --work_dir=$PWD/work-dir/5051 --quorum=2 --port=5051 --log_dir=$PWD/log-dir/5051
+./bin/mesos-master.sh --zk=zk://localhost:2181,localhost:2182,localhost:2183/mesos --work_dir=$PWD/work-dir/5052 --quorum=2 --port=5052 --log_dir=$PWD/log-dir/5052
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://mesos.apache.org/documentation/latest/configuration/&#34;&gt;http://mesos.apache.org/documentation/latest/configuration/&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.digitalocean.com/community/tutorials/how-to-configure-a-production-ready-mesosphere-cluster-on-ubuntu-14-04&#34;&gt;https://www.digitalocean.com/community/tutorials/how-to-configure-a-production-ready-mesosphere-cluster-on-ubuntu-14-04&lt;/a&gt;&lt;/p&gt;
+
+&lt;h3 id=&#34;mesos-slaves-a-id-sec-1-3-3-name-sec-1-3-3-a&#34;&gt;Mesos Slaves&lt;a id=&#34;sec-1-3-3&#34; name=&#34;sec-1-3-3&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;We are only going to run one mesos slave this time because they&amp;rsquo;re determined by
+IP address to run on local system.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;cd mesos-0.21.0 ./bin/mesos-slave.sh --port=5053 --master=zk://localhost:2181,localhost:2182,localhost:2183/mesos
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Note that you only have one slave with this method. Without slaves, there&amp;rsquo;s no
+&amp;ldquo;worker&amp;rdquo; to run the tasks on but it demonstrates the key concepts well.&lt;/p&gt;
+
+&lt;h3 id=&#34;testing-this-cluster-with-spark-a-id-sec-1-3-4-name-sec-1-3-4-a&#34;&gt;Testing this Cluster with Spark&lt;a id=&#34;sec-1-3-4&#34; name=&#34;sec-1-3-4&#34;&gt;&lt;/a&gt;&lt;/h3&gt;
+
+&lt;p&gt;Now, you want to download Spark from &lt;a href=&#34;http://spark.apache.org/downloads.html&#34;&gt;http://spark.apache.org/downloads.html&lt;/a&gt; &amp;#x2013;
+Get the direct link.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;wget http://d3kbcqa49mib13.cloudfront.net/spark-1.2.0.tgz
+tar -xzvf spark-1.2.0.tgz
+cd spark-1.2.0
+./make-distribution.sh --tgz
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;This will make a file &amp;ldquo;spark-1.2.0-bin-1.0.4.tgz&amp;rdquo;, You can place this in HDFS
+share, NFS mount, S3 or HTTP service and access it using &lt;code&gt;SPARK_EXECUTOR_URI&lt;/code&gt;.
+If it&amp;rsquo;s your own cluster that runs Spark jobs often, you&amp;rsquo;re better off just setting
+&lt;code&gt;SPARK_HOME&lt;/code&gt; in the same place on every node, in an NFS mount or similar.&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;p&gt;Running Spark&lt;/p&gt;
+
+&lt;p&gt;I&amp;rsquo;m assuming OSX here, for Linux it would be libmesos.so&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;export MESOS_NATIVE_LIBRARY=$HOME/work/mesos/mesos-0.21.0/src/.libs/libmesos.dylib
+export SPARK_HOME=$HOME/work/mesos/spark-1.2.0
+export SPARK_MASTER_WEBUI_PORT=4040
+SPARK_MASTER_IP=10.1.10.47 SPARK_LOCAL_IP=127.0.0.1 ./bin/spark-shell --master mesos://zk://localhost:2181,localhost:2182,localhost:2183/mesos
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The &lt;code&gt;SPARK_MASTER_IP&lt;/code&gt; and &lt;code&gt;SPARK_LOCAL_IP&lt;/code&gt; are just declared so that they&amp;rsquo;re
+explicitly detected and it&amp;rsquo;s not all in loopback. This will also run a web UI on port 4040.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;15/02/02 15:02:51 INFO SparkILoop: Created spark context..
+Spark context available as sc.
+
+scala&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Download the training files from
+&lt;a href=&#34;http://ampcamp.berkeley.edu/5/exercises/getting-started.html&#34;&gt;http://ampcamp.berkeley.edu/5/exercises/getting-started.html&lt;/a&gt; and place them
+somewhere. I have them inside the &amp;ldquo;mesos&amp;rdquo; directory.  Lets try running the
+sample program.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;scala&amp;gt; val pagecounts = sc.textFile(&amp;quot;../spark-training/data/pagecounts&amp;quot;)
+15/02/02 15:02:55 INFO MemoryStore: ensureFreeSpace(32768) called with curMem=0, maxMem=278302556
+15/02/02 15:02:55 INFO MemoryStore: Block broadcast_0 stored as values in memory (estimated size 32.0 KB, free 265.4 MB)
+15/02/02 15:02:55 INFO MemoryStore: ensureFreeSpace(4959) called with curMem=32768, maxMem=278302556
+15/02/02 15:02:55 INFO MemoryStore: Block broadcast_0_piece0 stored as bytes in memory (estimated size 4.8 KB, free 265.4 MB)
+15/02/02 15:02:55 INFO BlockManagerInfo: Added broadcast_0_piece0 in memory on localhost:52212 (size: 4.8 KB, free: 265.4 MB)
+15/02/02 15:02:55 INFO BlockManagerMaster: Updated info of block broadcast_0_piece0
+15/02/02 15:02:55 INFO SparkContext: Created broadcast 0 from textFile at &amp;lt;console&amp;gt;:12
+pagecounts: org.apache.spark.rdd.RDD[String] = ../spark-training/data/pagecounts MappedRDD[1] at textFile at &amp;lt;console&amp;gt;:12
+
+scala&amp;gt; pagecounts.take(10).foreach(println)
+15/02/02 15:05:13 INFO SparkContext: Starting job: take at &amp;lt;console&amp;gt;:15
+15/02/02 15:05:13 INFO DAGScheduler: Got job 5 (take at &amp;lt;console&amp;gt;:15) with 1 output partitions (allowLocal=true)
+15/02/02 15:05:13 INFO DAGScheduler: Final stage: Stage 5(take at &amp;lt;console&amp;gt;:15)
+15/02/02 15:05:13 INFO DAGScheduler: Parents of final stage: List()
+15/02/02 15:05:13 INFO DAGScheduler: Missing parents: List()
+15/02/02 15:05:13 INFO DAGScheduler: Submitting Stage 5 (../spark-training/data/pagecounts MappedRDD[1] at textFile at &amp;lt;console&amp;gt;:12), which has no missing parents
+15/02/02 15:05:13 INFO MemoryStore: ensureFreeSpace(2560) called with curMem=60037, maxMem=278302556
+15/02/02 15:05:13 INFO MemoryStore: Block broadcast_6 stored as values in memory (estimated size 2.5 KB, free 265.4 MB)
+15/02/02 15:05:13 INFO MemoryStore: ensureFreeSpace(1902) called with curMem=62597, maxMem=278302556
+15/02/02 15:05:13 INFO MemoryStore: Block broadcast_6_piece0 stored as bytes in memory (estimated size 1902.0 B, free 265.3 MB)
+15/02/02 15:05:13 INFO BlockManagerInfo: Added broadcast_6_piece0 in memory on localhost:52212 (size: 1902.0 B, free: 265.4 MB)
+15/02/02 15:05:13 INFO BlockManagerMaster: Updated info of block broadcast_6_piece0
+15/02/02 15:05:13 INFO SparkContext: Created broadcast 6 from broadcast at DAGScheduler.scala:838
+15/02/02 15:05:13 INFO DAGScheduler: Submitting 1 missing tasks from Stage 5 (../spark-training/data/pagecounts MappedRDD[1] at textFile at &amp;lt;console&amp;gt;:12)
+15/02/02 15:05:13 INFO TaskSchedulerImpl: Adding task set 5.0 with 1 tasks
+15/02/02 15:05:13 INFO TaskSetManager: Starting task 0.0 in stage 5.0 (TID 5, 10.1.10.47, PROCESS_LOCAL, 1337 bytes)
+15/02/02 15:05:13 INFO BlockManagerInfo: Added broadcast_6_piece0 in memory on 10.1.10.47:52221 (size: 1902.0 B, free: 265.4 MB)
+15/02/02 15:05:13 INFO TaskSetManager: Finished task 0.0 in stage 5.0 (TID 5) in 32 ms on 10.1.10.47 (1/1)
+15/02/02 15:05:13 INFO DAGScheduler: Stage 5 (take at &amp;lt;console&amp;gt;:15) finished in 0.034 s
+15/02/02 15:05:13 INFO TaskSchedulerImpl: Removed TaskSet 5.0, whose tasks have all completed, from pool
+15/02/02 15:05:13 INFO DAGScheduler: Job 5 finished: take at &amp;lt;console&amp;gt;:15, took 0.040613 s
+20090505-000000 aa Main_Page 2 9980
+20090505-000000 ab %D0%90%D0%B8%D0%BD%D1%82%D0%B5%D1%80%D0%BD%D0%B5%D1%82 1 465
+20090505-000000 ab %D0%98%D1%85%D0%B0%D0%B4%D0%BE%D1%83_%D0%B0%D0%B4%D0%B0%D2%9F%D1%8C%D0%B0 1 16086
+20090505-000000 af.b Tuisblad 1 36236
+20090505-000000 af.d Tuisblad 4 189738
+20090505-000000 af.q Tuisblad 2 56143
+20090505-000000 af Afrika 1 46833
+20090505-000000 af Afrikaans 2 53577
+20090505-000000 af Australi%C3%AB 1 132432
+20090505-000000 af Barack_Obama 1 23368
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You now have a distributed Spark instance now!&lt;/p&gt;&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
