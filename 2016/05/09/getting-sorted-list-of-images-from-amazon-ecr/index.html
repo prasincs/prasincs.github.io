@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+
+  
+  
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  
+
+  
+  <title>Getting sorted list of images from Amazon ECR</title>
+
+  
+  
+  <link rel="stylesheet" href="http://nextdoorhacker.com/css/hugo-octopress.css">
+
+  
+  
+
+  
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+
+  
+  <link href="http://nextdoorhacker.com/favicon.png" rel="icon">
+
+  
+  
+  
+
+  
+
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+
+  <meta name="author" content="">
+
+  
+  <meta name="generator" content="Hugo 0.18-DEV" />
+
+  
+  
+
+</head>
+<body>
+
+
+<header role="banner"><hgroup>
+  
+  <h1><a href="http://nextdoorhacker.com/">NextDoorHacker</a></h1>
+    <h2></h2>
+</hgroup></header>
+
+
+<nav role="navigation">
+
+<ul class="main-navigation">
+  
+  
+</ul>
+
+
+<ul class="subscription">
+  
+
+</ul>
+
+
+</nav>
+
+
+<div id="main">
+  <div id="content">
+    <div>
+      <article class="hentry" role="article">
+
+        
+        
+
+<header>
+    <p class="meta">May 9, 2016
+         - 2 minute read 
+        
+
+        
+    </p>
+    <h1 class="entry-title">
+         Getting sorted list of images from Amazon ECR 
+    </h1>
+</header>
+
+
+        <div class="entry-content">
+          
+          
+          
+          <p>I recently switched from using own hosted Docker Registry to the amazon hosted <a href="https://aws.amazon.com/ecr/">Elastic Container Registry</a> and found that the UI, well, sucks. The results aren&rsquo;t returned in any kind of sorted order and the UI doesn&rsquo;t help you do that. In addition, it&rsquo;s the same issue with the cli tool. I wish they included a timestamp field to know when the layer/image was created but in absence of that, the image tag are the best we have to go with.</p>
+
+<pre><code>package aws
+
+import (
+	&quot;fmt&quot;
+	&quot;sort&quot;
+	&quot;strings&quot;
+
+	&quot;github.com/aws/aws-sdk-go/aws&quot;
+	&quot;github.com/aws/aws-sdk-go/aws/session&quot;
+	&quot;github.com/aws/aws-sdk-go/service/ecr&quot;
+)
+
+type SortImageIds []*ecr.ImageIdentifier
+
+func (c SortImageIds) Len() int      { return len(c) }
+func (c SortImageIds) Swap(i, j int) { c[i], c[j] = c[j], c[i] }
+func (c SortImageIds) Less(i, j int) bool {
+
+	//fmt.Println(*c[i].ImageTag, *c[j].ImageTag)
+	if c[i].ImageTag == nil {
+		return true
+	}
+	if c[j].ImageTag == nil {
+		return false
+	}
+	return strings.Compare(*c[i].ImageTag, *c[j].ImageTag) == -1
+}
+
+func GetSortedImageIds(region string, registryId string, repositoryName string) []*ecr.ImageIdentifier {
+
+	ecrSvc := ecr.New(session.New(), &amp;aws.Config{Region: aws.String(region)})
+
+	done := false
+	var imageIds []*ecr.ImageIdentifier
+	params := &amp;ecr.ListImagesInput{
+		RepositoryName: aws.String(repositoryName),
+		MaxResults:     aws.Int64(100),
+		RegistryId:     aws.String(registryId),
+	}
+	for !done {
+		resp, err := ecrSvc.ListImages(params)
+
+		if err != nil {
+			// Print the error, cast err to awserr.Error to get the Code and
+			// Message from an error.
+			fmt.Println(err.Error())
+			return nil
+		}
+
+		//fmt.Println(resp)
+		for _, imageID := range resp.ImageIds {
+			imageIds = append(imageIds, imageID)
+		}
+		if resp.NextToken == nil {
+			done = true
+		} else {
+			params.NextToken = resp.NextToken
+		}
+	}
+	sort.Sort(SortImageIds(imageIds))
+
+	return imageIds
+
+}
+</code></pre>
+
+<p>This is a very simple implementation &ndash; some details have been removed. You&rsquo;re expected to have your AWS environment variables already setup. If the CLI tool is working for you, you should be fine.</p>
+
+<p>Now you can call this function using</p>
+
+<pre><code>imageIds := awsapi.GetSortedImageIds(&quot;us-east-1&quot;, &quot;&lt;account Id&gt;&quot;, &quot;&lt;repo name&gt;&quot;)
+fmt.Println(imageIds)
+</code></pre>
+
+<p>and get a lexically sorted list by ImageTag.</p>
+
+        </div>
+        
+
+<footer>
+  <p class="meta">
+    <span class="byline author vcard">Posted by <span class="fn"></span></span>
+    
+    <time>May 9, 2016</time>
+    
+      <span class="categories">
+        Tags:
+        
+          <a class="category" href="http://nextdoorhacker.com/tags/golang">golang</a>  <a class="category" href="http://nextdoorhacker.com/tags/aws">aws</a>  <a class="category" href="http://nextdoorhacker.com/tags/ecr">ecr</a>  <a class="category" href="http://nextdoorhacker.com/tags/docker">docker</a>  
+    
+    </span>
+  </p>
+
+  
+  
+
+  
+
+  <p class="meta">
+    
+        <a class="basic-alignment left" href="http://nextdoorhacker.com/2016/05/08/proxy-aware-http-client-in-go/" title="Proxy Aware Http Client in Go">Proxy Aware Http Client in Go</a>
+    
+
+    
+  </p>
+  
+</footer>
+
+      </article>
+    </div>
+    
+
+<aside class="sidebar thirds">
+  <section class="first odd">
+
+    
+
+    <p>
+      
+    </p>
+  </section>
+
+
+
+  
+  <ul class="sidebar-nav">
+    <li class="sidebar-nav-item">
+      
+      
+      
+      
+       
+      
+      
+      
+      
+      
+
+    
+    
+    </li>
+  </ul>
+
+  
+
+  
+
+  
+  
+  
+
+</aside>
+
+  </div>
+</div>
+
+<footer role="contentinfo">
+  <p>Copyright &copy; 2016  - <a href="http://nextdoorhacker.com/license/">License</a> -
+  <span class="credit">Powered by <a target="_blank" href="https://gohugo.io">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/">Hugo-Octopress</a> theme.
+</p>
+
+</footer>
+
+
+</body>
+</html>
+

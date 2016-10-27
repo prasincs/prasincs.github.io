@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+
+  
+  
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  
+
+  
+  <title>Proxy Aware Http Client in Go</title>
+
+  
+  
+  <link rel="stylesheet" href="http://nextdoorhacker.com/css/hugo-octopress.css">
+
+  
+  
+
+  
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+
+  
+  <link href="http://nextdoorhacker.com/favicon.png" rel="icon">
+
+  
+  
+  
+
+  
+
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+
+  <meta name="author" content="">
+
+  
+  <meta name="generator" content="Hugo 0.18-DEV" />
+
+  
+  
+
+</head>
+<body>
+
+
+<header role="banner"><hgroup>
+  
+  <h1><a href="http://nextdoorhacker.com/">NextDoorHacker</a></h1>
+    <h2></h2>
+</hgroup></header>
+
+
+<nav role="navigation">
+
+<ul class="main-navigation">
+  
+  
+</ul>
+
+
+<ul class="subscription">
+  
+
+</ul>
+
+
+</nav>
+
+
+<div id="main">
+  <div id="content">
+    <div>
+      <article class="hentry" role="article">
+
+        
+        
+
+<header>
+    <p class="meta">May 8, 2016
+         - 2 minute read 
+        
+
+        
+    </p>
+    <h1 class="entry-title">
+         Proxy Aware Http Client in Go 
+    </h1>
+</header>
+
+
+        <div class="entry-content">
+          
+          
+          
+          <p>I keep running into situations where I find myself at a cafe or something where I&rsquo;d rather not send all my traffic through work VPN. So alternatively, I use a SOCKS5 proxy for that. That works well for browsing, etc but what about applications I&rsquo;m developing as well. Thankfully Go has a library that makes proxy aware http Clients really easy to write.</p>
+
+<p>It&rsquo;s not executable, but I uploaded my example on Go Playground. <a href="https://play.golang.org/p/NWfG9b5GIN">https://play.golang.org/p/NWfG9b5GIN</a></p>
+
+<pre><code class="language-go">package main
+
+import (
+	&quot;fmt&quot;
+	&quot;io/ioutil&quot;
+	&quot;net/http&quot;
+	&quot;net/url&quot;
+	&quot;os&quot;
+
+	&quot;golang.org/x/net/proxy&quot;
+)
+
+func ProxyAwareHttpClient() *http.Client {
+	// sane default
+	var dialer proxy.Dialer
+	// eh, I want the type to be proxy.Dialer but assigning proxy.Direct makes the type proxy.direct
+	dialer = proxy.Direct
+	proxyServer, isSet := os.LookupEnv(&quot;HTTP_PROXY&quot;)
+	if isSet {
+		proxyUrl, err := url.Parse(proxyServer)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, &quot;Invalid proxy url %q\n&quot;, proxyUrl)
+		}
+		dialer, err = proxy.FromURL(proxyUrl, proxy.Direct)
+	}
+
+	// setup a http client
+	httpTransport := &amp;http.Transport{}
+	httpClient := &amp;http.Client{Transport: httpTransport}
+	httpTransport.Dial = dialer.Dial
+	return httpClient
+}
+
+func main() {
+	req, err := http.NewRequest(&quot;GET&quot;, &quot;http://google.com&quot;, nil)
+	if err != nil {
+		panic(err)
+	}
+
+	client := ProxyAwareHttpClient()
+	res, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	defer res.Body.Close()
+	contents, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(contents))
+}
+</code></pre>
+
+<p>Try this:</p>
+
+<p>First just run <code>go run main.go</code> which should query Google.com and get you the output.</p>
+
+<p>Then open a socks proxy to your favorite server using <code>ssh -D 8081 &lt;server&gt;</code></p>
+
+<pre><code>HTTP_PROXY=socks5://localhost:8081 go run main.go
+</code></pre>
+
+<p>The nice thing here is that this solution works for other types of proxies too. I have tried http and https. I do understand the convention is to use the lowercase <code>http_proxy</code> which is fairly easy to change too.</p>
+
+        </div>
+        
+
+<footer>
+  <p class="meta">
+    <span class="byline author vcard">Posted by <span class="fn"></span></span>
+    
+    <time>May 8, 2016</time>
+    
+      <span class="categories">
+        Tags:
+        
+          
+    
+    </span>
+  </p>
+
+  
+  
+
+  
+
+  <p class="meta">
+    
+        <a class="basic-alignment left" href="http://nextdoorhacker.com/2015/04/30/mesos-development-environment-installation-and-setup/" title="Mesos Development Environment Installation and setup">Mesos Development Environment Installation and setup</a>
+    
+
+    
+      <a class="basic-alignment right" href="http://nextdoorhacker.com/2016/05/09/getting-sorted-list-of-images-from-amazon-ecr/" title="Getting sorted list of images from Amazon ECR">Getting sorted list of images from Amazon ECR</a>
+    
+  </p>
+  
+</footer>
+
+      </article>
+    </div>
+    
+
+<aside class="sidebar thirds">
+  <section class="first odd">
+
+    
+
+    <p>
+      
+    </p>
+  </section>
+
+
+
+  
+  <ul class="sidebar-nav">
+    <li class="sidebar-nav-item">
+      
+      
+      
+      
+       
+      
+      
+      
+      
+      
+
+    
+    
+    </li>
+  </ul>
+
+  
+
+  
+
+  
+  
+  
+
+</aside>
+
+  </div>
+</div>
+
+<footer role="contentinfo">
+  <p>Copyright &copy; 2016  - <a href="http://nextdoorhacker.com/license/">License</a> -
+  <span class="credit">Powered by <a target="_blank" href="https://gohugo.io">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/">Hugo-Octopress</a> theme.
+</p>
+
+</footer>
+
+
+</body>
+</html>
+

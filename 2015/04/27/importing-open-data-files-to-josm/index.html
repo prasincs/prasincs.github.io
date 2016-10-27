@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en-us">
+<head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  
+  <meta name="HandheldFriendly" content="True">
+  <meta name="MobileOptimized" content="320">
+  <meta name="viewport" content="width=device-width,minimum-scale=1,maximum-scale=1">
+
+  
+  
+  <link href="//fonts.googleapis.com/css?family=PT+Serif:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  <link href="//fonts.googleapis.com/css?family=PT+Sans:regular,italic,bold,bolditalic" rel="stylesheet" type="text/css">
+  
+
+  
+  <title>Importing Open Data Files to JOSM</title>
+
+  
+  
+  <link rel="stylesheet" href="http://nextdoorhacker.com/css/hugo-octopress.css">
+
+  
+  
+
+  
+  <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">
+
+  
+  <link href="http://nextdoorhacker.com/favicon.png" rel="icon">
+
+  
+  
+  
+
+  
+
+  <meta name="description" content="">
+  <meta name="keywords" content="">
+
+  <meta name="author" content="">
+
+  
+  <meta name="generator" content="Hugo 0.18-DEV" />
+
+  
+  
+
+</head>
+<body>
+
+
+<header role="banner"><hgroup>
+  
+  <h1><a href="http://nextdoorhacker.com/">NextDoorHacker</a></h1>
+    <h2></h2>
+</hgroup></header>
+
+
+<nav role="navigation">
+
+<ul class="main-navigation">
+  
+  
+</ul>
+
+
+<ul class="subscription">
+  
+
+</ul>
+
+
+</nav>
+
+
+<div id="main">
+  <div id="content">
+    <div>
+      <article class="hentry" role="article">
+
+        
+        
+
+<header>
+    <p class="meta">Apr 27, 2015
+         - 2 minute read 
+        
+
+        
+    </p>
+    <h1 class="entry-title">
+         Importing Open Data Files to JOSM 
+    </h1>
+</header>
+
+
+        <div class="entry-content">
+          
+          
+          
+          
+
+<p>Following on my previous post on <a href="http://nextdoorhacker.com/2015/04/26/getting-started-with-open-streetmap-for-nepal">Getting Starting with Open StreetMap for Nepal</a>, I wanted to look at the open datasets and GIS shapefiles that people have been sharing. Given the lack of additional data and poor satellite image resolution, being able to delineate Village Development Committee (VDC) would be great help, in my opinion. Here&rsquo;s how to setup the <a href="http://josm.openstreetmap.de">JOSM</a> tool to do so. We&rsquo;ll get the data from <a href="https://data.hdx.rwlabs.org/nepal-earthquake">HDX Data repository</a> in the form of zip files to open in JOSM.</p>
+
+<p>My base system is Mac OSX &ndash; Linux and Windows are somewhat similar (all you need to know is <em>Preferences</em> are under the Program Name menu in OSX and under Edit in Linux and Windows).</p>
+
+<h1 id="download-josm">Download JOSM</h1>
+
+<p>Get the relevant version from <a href="http://josm.openstreetmap.de/">http://josm.openstreetmap.de/</a>, I think the jar file is good enough on all OSes.</p>
+
+<h1 id="run-the-program">Run the program</h1>
+
+<p>If you&rsquo;re okay with commandline, run <code>java -jar josm-tested.jar</code> or just click on the jar file or application.</p>
+
+<h2 id="setup-remote-control">Setup Remote Control</h2>
+
+<p>The way JOSM works with rest of OpenStreetMap is that it opens ports on 8111 and 8112 for external applications controlling JOSM.</p>
+
+<p>Go to <em>JOSM &gt; Preferences</em> and click the remote like button on the left side. It took me a while to see the tabs on the left.</p>
+
+<p><img src="http://nextdoorhacker.com/assets/images/nepal/osm-josm-remotecontrol.png" alt="JOSM Remote Control" /></p>
+
+<p>Enable Remote Control in the screen. You&rsquo;ll be asked to restart the application for the changes to take effect.</p>
+
+<h2 id="open-the-browser-where-the-task-is-open-and-select-edit-with-josm">Open the browser where the task is open and Select &ldquo;Edit with JOSM&rdquo;</h2>
+
+<p><img src="http://nextdoorhacker.com/assets/images/nepal/osm-josm-browser.png" alt="Edit with JOSM from Browser" /></p>
+
+<p>The JOSM window should open the right location with the proper layers.</p>
+
+<p>If the screen is all black with some lines, it means you have to pick one of the imagery services from the Imagery menu. I pick &ldquo;Bing Aerial Images&rdquo;</p>
+
+<p><img src="http://nextdoorhacker.com/assets/images/nepal/osm-josm-screen.png" alt="JOSM initial image" /></p>
+
+<h1 id="importing-opendata-from-hdx-data-repository">Importing OpenData from HDX data repository</h1>
+
+<p>Download the dataset from <a href="https://data.hdx.rwlabs.org/dataset/nepal-admin-level-4-administrative-boundaries-cod">https://data.hdx.rwlabs.org/dataset/nepal-admin-level-4-administrative-boundaries-cod</a>. It will be a zip file named <code>npl_polbnda_adm4_vdc_25k_50k_sdn_wgs84.shp.zip</code>.</p>
+
+<h2 id="download-opendata-plugin">Download Opendata plugin</h2>
+
+<h3 id="open-preferences">Open Preferences</h3>
+
+<p>Open Preferences and Click on &ldquo;Configure available plugins&hellip;&rdquo; icon on the left. It&rsquo;s 4th item from the top as of 2015-26 release.</p>
+
+<p><img src="http://nextdoorhacker.com/assets/images/nepal/osm-josm-plugins.png" alt="JOSM Plugins" /></p>
+
+<p>Search for OpenData and select it.</p>
+
+<p><img src="http://nextdoorhacker.com/assets/images/nepal/osm-josm-plugins-opendata.png" alt="JOSM OpenData Plugin" /></p>
+
+<p>Once you&rsquo;ve selected it, press ok.</p>
+
+<h1 id="open-the-zip-file">Open the Zip File</h1>
+
+<p>Go to <em>File &gt; Open</em> and navigate to the zip file <code>npl_polbnda_adm4_vdc_25k_50k_sdn_wgs84.shp.zip</code> that you downloaded earlier. This will show up as a new layer on top of the existing map. You can enable and disable the layers from the right hand side.</p>
+
+<p><img src="http://nextdoorhacker.com/assets/images/nepal/osm-josm-hdx-layer.png" alt="JOSM - New HDX Layer" /></p>
+
+<h1 id="continue-mapping">Continue Mapping</h1>
+
+<p>I&rsquo;m currently using this only as a guide to avoid pushing something upstream that breaks things. You can download more datasets and shape files to guide your mapping work.</p>
+
+        </div>
+        
+
+<footer>
+  <p class="meta">
+    <span class="byline author vcard">Posted by <span class="fn"></span></span>
+    
+    <time>Apr 27, 2015</time>
+    
+      <span class="categories">
+        Tags:
+        
+          
+    
+    </span>
+  </p>
+
+  
+  
+
+  
+
+  <p class="meta">
+    
+        <a class="basic-alignment left" href="http://nextdoorhacker.com/2015/04/26/getting-started-with-open-streetmap-for-nepal/" title="Getting Started with Open StreetMap for Nepal">Getting Started with Open StreetMap for Nepal</a>
+    
+
+    
+      <a class="basic-alignment right" href="http://nextdoorhacker.com/2015/04/30/mesos-development-environment-installation-and-setup/" title="Mesos Development Environment Installation and setup">Mesos Development Environment Installation and setup</a>
+    
+  </p>
+  
+</footer>
+
+      </article>
+    </div>
+    
+
+<aside class="sidebar thirds">
+  <section class="first odd">
+
+    
+
+    <p>
+      
+    </p>
+  </section>
+
+
+
+  
+  <ul class="sidebar-nav">
+    <li class="sidebar-nav-item">
+      
+      
+      
+      
+       
+      
+      
+      
+      
+      
+
+    
+    
+    </li>
+  </ul>
+
+  
+
+  
+
+  
+  
+  
+
+</aside>
+
+  </div>
+</div>
+
+<footer role="contentinfo">
+  <p>Copyright &copy; 2016  - <a href="http://nextdoorhacker.com/license/">License</a> -
+  <span class="credit">Powered by <a target="_blank" href="https://gohugo.io">Hugo</a> and <a target="_blank" href="https://github.com/parsiya/hugo-octopress/">Hugo-Octopress</a> theme.
+</p>
+
+</footer>
+
+
+</body>
+</html>
+
