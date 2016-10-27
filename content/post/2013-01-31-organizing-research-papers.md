@@ -6,10 +6,10 @@ title: Organizing Research Papers
 url: /2013/01/31/organizing-research-papers/
 ---
 
-{% include JB/setup %}
+
 
 I keep finding myself asking this question way too often
-  
+
     I definitely read that in a paper (or, blog post, quora article) a while back, where was it?
 
 Most often it's either in one of my moleskine notebooks (seriously, those things are incredible - I keep two), date stamped with some scribble or on Evernote. I don't get annotations and in-place notes. I like to scribble on the side a fair bit and annotate. While iAnnotate apps work, I can't save that to Evernote yet, while keeping it editable. While I'm pretty sure Evernote or Dropbox can be adapted to do all of this with some cleverness or discipline, but here's some of the research I did on how to organize your documents, research papers.
@@ -43,7 +43,7 @@ I'm lazy, and so are most people, I'd like to get BibTeX format documentation ge
 
 ### Collaboration, Sharing
 
-I don't research alone, unless it's the time-honored tradition of searching for [cat videos](http://www.youtube.com/watch?v=wf_IIbT8HGk), even that reddit probably has got to be the journal of sorts. Actually, on that note, I ran into [this paper](http://www.plosone.org/article/info:doi%2F10.1371%2Fjournal.pone.0046362) on how viewing cute images promotes a careful behavior and narrows attention focus. Believe it or not, I ran into it via [Sanjay Ghemawat's G+ post](https://plus.google.com/105332691637769400620/posts/V77u6LeFAYy). There you go, with enough cute pics, you might come up with BigTable. 
+I don't research alone, unless it's the time-honored tradition of searching for [cat videos](http://www.youtube.com/watch?v=wf_IIbT8HGk), even that reddit probably has got to be the journal of sorts. Actually, on that note, I ran into [this paper](http://www.plosone.org/article/info:doi%2F10.1371%2Fjournal.pone.0046362) on how viewing cute images promotes a careful behavior and narrows attention focus. Believe it or not, I ran into it via [Sanjay Ghemawat's G+ post](https://plus.google.com/105332691637769400620/posts/V77u6LeFAYy). There you go, with enough cute pics, you might come up with BigTable.
 
 Back to the topic, I'd like to share with other people what I'm reading and ideally maintain a "burn list" of sorts with colleagues on what papers I'm reading for a particular project. There's some "discovery" part here that you get for cheap but I can barely get around to reading what I plan on reading.
 
@@ -53,7 +53,7 @@ PDFs, web pages, not just research articles
 
 ## Possible tools that "get it"
 
-So far I think Mendeley comes the closest to this grand vision (it didn't do tracking last time I used it but matters less than others), but there are others, this is by no means comprehensive. 
+So far I think Mendeley comes the closest to this grand vision (it didn't do tracking last time I used it but matters less than others), but there are others, this is by no means comprehensive.
 
 * [Mendeley](http://www.mendeley.com/features/) -- good tool, I used it extensively for some research at school, beginning to use it again.
 

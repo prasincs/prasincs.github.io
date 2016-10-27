@@ -9,11 +9,11 @@ title: Installing Emacs 24.2 from source with Checkinstall on Ubuntu 13.04
 url: /2013/07/20/installing-emacs-from-source-with-checkinstall-on-ubuntu/
 ---
 
-{% include JB/setup %}
+
 
 **Caveat** This isn't very well written, I might revisit this at some point. These are really just my notes in installing emacs and some reasons why I'm going out of the vim world in response to some crazy issues I'm having.
 
-I recently decided that I should give Emacs another go. As you might know based on my posts that I really like vim. It's just simple and easy to find everywhere. Great for sysadmins and programmers alike. What I've been finding is the same kind of bloat that I saw in Emacs years before. As I kept adding more languages and features to use Vim as more of an IDE (for clojure specifically), these warts became more apparently. For example, I was segfaulting my vim editor every once in a while while editing Clojure because something odd was happening with my syntax analyzing plugin and the vim buffer. 
+I recently decided that I should give Emacs another go. As you might know based on my posts that I really like vim. It's just simple and easy to find everywhere. Great for sysadmins and programmers alike. What I've been finding is the same kind of bloat that I saw in Emacs years before. As I kept adding more languages and features to use Vim as more of an IDE (for clojure specifically), these warts became more apparently. For example, I was segfaulting my vim editor every once in a while while editing Clojure because something odd was happening with my syntax analyzing plugin and the vim buffer.
 There are additional problems with Vim and Clojure that I found.. say, you absentmindedly wrote a code like this. I use the magnificent Vim Fireplace plugin to code in Clojure.
 
     (loop [i 0]
@@ -27,7 +27,7 @@ Now that I've ranted and unnecessarily over-explained myself, here goes what I w
 
 ## Getting Emacs source
 
-You can download emacs source using 
+You can download emacs source using
 
     wget http://alpha.gnu.org/gnu/emacs/pretest/emacs-24.2.90.tar.gz
     tar -xzvf emacs-24.2.90.tar.gz
@@ -56,8 +56,3 @@ This is definitely the easiest part, assuming things don't break on you randomly
 So, this is the whole reason for using Checkinstall to install emacs or other packages that you need to get from source for one reason or other. You can just do `dpkg -r emacs`
 
 If you want to install your emacs side by side with another one, you might want to change  the name and give a different path in the `./configure` step.
-
-
-
-
-

@@ -6,7 +6,7 @@ title: Proxy Aware Http Client in Go
 url: /2016/05/08/proxy-aware-http-client-in-go/
 ---
 
-{% include JB/setup %}
+
 
 I keep running into situations where I find myself at a cafe or something where I'd rather not send all my traffic through work VPN. So alternatively, I use a SOCKS5 proxy for that. That works well for browsing, etc but what about applications I'm developing as well. Thankfully Go has a library that makes proxy aware http Clients really easy to write.
 

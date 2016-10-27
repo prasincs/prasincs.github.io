@@ -8,11 +8,11 @@ title: Perfect Vim Setup for Go
 url: /2013/07/05/perfect-vim-setup-for-go/
 ---
 
-{% include JB/setup %}
 
-So, the more I use Go, more I like what I'm getting. It's one of the very few languages that guides you to write better code right off the bat by making it easy and not pedantic. I have a big rant in my head about this but I'll save you the pain. 
 
-This was one thing my vim setup was missing. As my go programs became bigger, I kept thinking, I'd really like better autocomplete and, heck, even syntax highlighting. I'll focus on two ways to do this for vim, one without using Pathogen, Vundle and one using Pathogen ( I don't use Vundle but the idea is the same ). 
+So, the more I use Go, more I like what I'm getting. It's one of the very few languages that guides you to write better code right off the bat by making it easy and not pedantic. I have a big rant in my head about this but I'll save you the pain.
+
+This was one thing my vim setup was missing. As my go programs became bigger, I kept thinking, I'd really like better autocomplete and, heck, even syntax highlighting. I'll focus on two ways to do this for vim, one without using Pathogen, Vundle and one using Pathogen ( I don't use Vundle but the idea is the same ).
 
 ## Your Golang setup
 
@@ -48,7 +48,7 @@ Or if you're like me and use submodules
 
 Using Vundle is the same idea, except you add the git repository in your config file.
 
-## OmiComplete support 
+## OmiComplete support
 
 Remember in step 1 where we added the `$GOPATH/bin` in your `$PATH` variable? This is where it will come handy. So, if you've ever run the `go get` command to get packages, if the package delcares an executable, it will be placed in the bin directory. In our case, it's an autocompletion daemon called [gocode](https://github.com/nsf/gocode).
 
@@ -77,7 +77,7 @@ Or
 So, now you should have Omnicomplete support for it.. if you have SuperTab installed, it should be mapped to Tab key otherwise `<C-x><C-o>` would work for autocomplete goodness.
 
 
-## Other plugins to look at 
+## Other plugins to look at
 
 * [Syntastic](https://github.com/scrooloose/syntastic) - does syntax detection and when combined with TagBar is pretty awesome
 

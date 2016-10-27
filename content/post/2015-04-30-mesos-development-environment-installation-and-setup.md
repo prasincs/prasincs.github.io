@@ -11,7 +11,7 @@ title: Mesos Development Environment Installation and setup
 url: /2015/04/30/mesos-development-environment-installation-and-setup/
 ---
 
-{% include JB/setup %}
+
 
 <div id="table-of-contents">
 <h2>Table of Contents</h2>
@@ -42,17 +42,17 @@ url: /2015/04/30/mesos-development-environment-installation-and-setup/
 
 
 
-I realized recently that I have a somewhat non-standard setup for 
+I realized recently that I have a somewhat non-standard setup for
 running/testing Mesos on my OSX system. Initially, I started this to see how well Mesos
 compiles on OSX, but given that this setup has worked fine for me, I've been running it.
 For a more accurate benchmark, I recommend running in VMs or some cloud provider.
- 
+
 
 ## Questions<a id="sec-1-1" name="sec-1-1"></a>
 
 This is a guide to getting started with setting up mesos on your local system
 and soon, on a Cluster. First of all, you need to ask a few questions to
-yourself. 
+yourself.
 
 ### Why do you want to run Mesos?<a id="sec-1-1-1" name="sec-1-1-1"></a>
 
@@ -104,19 +104,19 @@ as a cluster. Ideally 3 or 5 nodes.
     testing the servers. I use this project for doing
     that. <https://github.com/phunt/zkconf>, it's kind of complicated &#x2013; so I'll
     supply the relevant configuration files generated here.
-    
+
         pip install cheetah cheetah compile *.tmpl python zkconf.py --count 3
         ~/work/mesos/zookeeper-3.4.6/conf/standalone-confs
-    
+
     This will add some files in the given directory that will start the cluster for
     you. The default zookeeper connection string is
-    
+
         localhost:2181,localhost:2182,localhost:2183
-    
+
     Keep note of this &#x2013; this will be useful later for Mesos configuration.
-    
+
     1.  Aside: Using Zookeeper from Clojure
-    
+
         The best way to use Zookeeper from Clojure is to use the curator framework &#x2013; I
         have used the curator library for Clojure which is a wrapper around Apache
         Curator library. <https://github.com/pingles/curator>
@@ -166,25 +166,25 @@ If it's your own cluster that runs Spark jobs often, you're better off just sett
 1.  Running Spark
 
     I'm assuming OSX here, for Linux it would be libmesos.so
-    
+
         export MESOS_NATIVE_LIBRARY=$HOME/work/mesos/mesos-0.21.0/src/.libs/libmesos.dylib
         export SPARK_HOME=$HOME/work/mesos/spark-1.2.0
         export SPARK_MASTER_WEBUI_PORT=4040
         SPARK_MASTER_IP=10.1.10.47 SPARK_LOCAL_IP=127.0.0.1 ./bin/spark-shell --master mesos://zk://localhost:2181,localhost:2182,localhost:2183/mesos
-    
+
     The `SPARK_MASTER_IP` and `SPARK_LOCAL_IP` are just declared so that they're
     explicitly detected and it's not all in loopback. This will also run a web UI on port 4040.
-    
+
         15/02/02 15:02:51 INFO SparkILoop: Created spark context..
         Spark context available as sc.
-        
+
         scala>
-    
+
     Download the training files from
     <http://ampcamp.berkeley.edu/5/exercises/getting-started.html> and place them
     somewhere. I have them inside the "mesos" directory.  Lets try running the
     sample program.
-    
+
         scala> val pagecounts = sc.textFile("../spark-training/data/pagecounts")
         15/02/02 15:02:55 INFO MemoryStore: ensureFreeSpace(32768) called with curMem=0, maxMem=278302556
         15/02/02 15:02:55 INFO MemoryStore: Block broadcast_0 stored as values in memory (estimated size 32.0 KB, free 265.4 MB)
@@ -194,7 +194,7 @@ If it's your own cluster that runs Spark jobs often, you're better off just sett
         15/02/02 15:02:55 INFO BlockManagerMaster: Updated info of block broadcast_0_piece0
         15/02/02 15:02:55 INFO SparkContext: Created broadcast 0 from textFile at <console>:12
         pagecounts: org.apache.spark.rdd.RDD[String] = ../spark-training/data/pagecounts MappedRDD[1] at textFile at <console>:12
-    
+
         scala> pagecounts.take(10).foreach(println)
         15/02/02 15:05:13 INFO SparkContext: Starting job: take at <console>:15
         15/02/02 15:05:13 INFO DAGScheduler: Got job 5 (take at <console>:15) with 1 output partitions (allowLocal=true)
@@ -227,6 +227,5 @@ If it's your own cluster that runs Spark jobs often, you're better off just sett
         20090505-000000 af Afrikaans 2 53577
         20090505-000000 af Australi%C3%AB 1 132432
         20090505-000000 af Barack_Obama 1 23368
-    
-    You now have a distributed Spark instance now!
 
+    You now have a distributed Spark instance now!

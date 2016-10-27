@@ -10,9 +10,10 @@ title: Getting sorted list of images from Amazon ECR
 url: /2016/05/09/getting-sorted-list-of-images-from-amazon-ecr/
 ---
 
-{% include JB/setup %}
+
 
 I recently switched from using own hosted Docker Registry to the amazon hosted [Elastic Container Registry](https://aws.amazon.com/ecr/) and found that the UI, well, sucks. The results aren't returned in any kind of sorted order and the UI doesn't help you do that. In addition, it's the same issue with the cli tool. I wish they included a timestamp field to know when the layer/image was created but in absence of that, the image tag are the best we have to go with.
+
 
 ```
 package aws
