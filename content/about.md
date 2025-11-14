@@ -1,46 +1,44 @@
 ---
-title: "About Me"
+title: "About"
 url: "/about/"
 summary: "About Prasanna Gautam"
 ---
 
-## About Me
+## Professional Background
 
-I'm a software engineer with a passion for distributed systems, cloud infrastructure, and security. I write about technology, engineering practices, and open source development.
+Prasanna Gautam is the Research Lead for Blockchain Integrations at Anchorage Digital. As an early engineering hire at Anchorage Digital, he has worked with a broad set of blockchains and interactions at various stages of development. He served on the Technical Steering Committee for Diem, which eventually became the core of Aptos and Sui blockchains. At Anchorage, he has built staking, governance, and smart contract interaction solutions across multiple blockchains, with a current focus on scaling secure solutions using Trusted Execution Environments (TEEs), reproducible builds, and enhanced developer experience.
 
-## Connect With Me
+Before joining Anchorage Digital, Prasanna spent a decade building high-performance, cloud-based wireless access points at Mist Systems, optimized for large-scale, low-latency indoor WiFi roaming and BLE-based location tracking. His earlier work includes developing real-time e-commerce recommendation services and high-quality video delivery systems.
 
-- [LinkedIn](https://www.linkedin.com/in/prasannagautam?utm_source=share_via&utm_content=profile&utm_medium=member_ios) - Professional profile and experience
-- [GitHub](http://github.com/prasincs) - Code and projects
-- [Hardware Security Newsletter](https://hardwaresecurity.substack.com/) - Insights on hardware security
-- [Medium](https://medium.com/@prasincs) - Technical writing and articles
+## Technical Expertise
 
-## Open Source Projects
+- Distributed systems and consensus algorithms
+- Blockchain infrastructure and smart contract security
+- What-you-see-is-what-you-sign (WYSIWYS) frameworks
+- Trusted Execution Environments (TEEs) and hardware security
+- Cloud infrastructure and containerization
+- System design and performance optimization
 
-I'm passionate about contributing to open source. Here are some projects I've worked on:
+## Open Source Contributions
 
 ### [AWS Nitro Verifier](https://github.com/anchorageoss/awsnitroverifier)
-A tool for verifying AWS Nitro Enclaves attestation documents, enabling secure verification of enclave workloads.
+Tool for verifying AWS Nitro Enclaves attestation documents for secure enclave workload verification.
 
 ### [Quark](https://github.com/mistsys/quark)
-A lightweight container runtime and orchestration framework.
+Lightweight container runtime and orchestration framework.
 
 ### [go-tenable](https://github.com/mistsys/go-tenable)
-Go client library for the Tenable API, making it easier to interact with Tenable security products programmatically.
+Go client library for the Tenable API.
 
 ### [Accord](https://github.com/mistsys/accord)
-A distributed consensus library and framework.
+Distributed consensus library and framework.
 
 ### Apache Kafka - Zookeeper Maintainer
-I was briefly a maintainer for the Zookeeper components of Apache Kafka, contributing to the reliability and stability of one of the most widely-used distributed streaming platforms. You can find my contributions in the [Apache Kafka JIRA](https://issues.apache.org/jira/browse/KAFKA).
+Maintainer for the Zookeeper components of Apache Kafka. Contributions can be found in the [Apache Kafka JIRA](https://issues.apache.org/jira/browse/KAFKA).
 
-## Current Interests
+## Connect
 
-I'm particularly interested in:
-- Distributed systems and consensus algorithms
-- Cloud infrastructure and containerization
-- Security engineering and hardware security
-- Open source software development
-- Go programming and system design
-
-Feel free to reach out if you'd like to discuss any of these topics or collaborate on projects!
+- [LinkedIn](https://www.linkedin.com/in/prasannagautam?utm_source=share_via&utm_content=profile&utm_medium=member_ios)
+- [GitHub](http://github.com/prasincs)
+- [Hardware Security Newsletter](https://hardwaresecurity.substack.com/)
+- [Medium](https://medium.com/@prasincs)
