@@ -1,0 +1,91 @@
+baseURL: https://nextdoorhacker.com/
+languageCode: en-us
+title: NextDoorHacker
+theme: hugo-octopress
+
+# Pagination
+paginate: 6
+
+# Disable path lowercasing
+disablePathToLower: true
+
+# Output directory for GitHub Pages
+publishDir: public
+
+# URL handling
+canonifyURLs: true
+
+# Taxonomies (updated from deprecated 'indexes')
+taxonomies:
+  category: categories
+  tag: tags
+
+# Permalinks
+permalinks:
+  post: /:year/:month/:day/:title/
+
+# Syntax highlighting (updated from deprecated pygments settings)
+markup:
+  highlight:
+    codeFences: true
+    style: monokai
+    lineNos: false
+  goldmark:
+    renderer:
+      unsafe: true
+
+# Menu configuration
+menu:
+  main:
+    - name: Blog
+      url: /
+      weight: 1
+    - name: Categories
+      url: /categories/
+      weight: 2
+
+# Theme parameters
+params:
+  # Sidebar configuration
+  sidebarRecentLimit: 5
+  sidebarHeader: "About"
+  sidebarText: |
+    Personal blog about software development, distributed systems, and technology.
+
+  # Author information
+  author: "NextDoorHacker"
+  subtitle: "Software Development & System Design"
+
+  # Content settings
+  truncate: true
+
+  # Social links (update with your actual profiles)
+  github: "https://github.com/prasincs"
+  twitter: ""
+  linkedin: ""
+
+  # Search engine
+  searchEngineURL: "https://www.google.com/search"
+
+  # Reading time
+  disableReadingTime: false
+
+  # Google fonts
+  disableGoogleFonts: false
+
+  # Taxonomy pages
+  generateTaxonomyList: true
+
+  # RSS
+  rss: true
+
+  # Default description
+  defaultDescription: "NextDoorHacker - Software Development Blog"
+
+  # 404 page
+  notFoundHeader: "Page Not Found"
+  notFoundText: "The page you're looking for doesn't exist. Please use the navigation menu above."
+
+# Build settings
+build:
+  writeStats: true

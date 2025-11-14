@@ -1,7 +1,27 @@
+# Hugo build outputs
+public/
+resources/
+.hugo_build.lock
+
+# Old Jekyll artifacts
 _site/**
 config/deploy.rb
 Capfile
 .rvmrc
 .bundle
+
+# Editor files
 *.swp
+*~
+.vscode/
+.idea/
+
+# OS files
 .DS_Store
+Thumbs.db
+
+# Node modules (if using npm)
+node_modules/
+
+# Hugo cache
+.hugo_cache/
