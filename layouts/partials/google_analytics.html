@@ -1,0 +1,5 @@
+{{/* Custom Google Analytics partial for PaperMod compatibility */}}
+{{/* Use Hugo's built-in Google Analytics template if ID is configured */}}
+{{ if .Site.Config.Services.GoogleAnalytics.ID }}
+  {{ template "_internal/google_analytics.html" . }}
+{{ end }}
