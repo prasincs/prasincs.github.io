@@ -6,6 +6,7 @@ description: ""
 tags: []
 title: Nicer Music Posts
 url: /2013/04/14/nicer-music-posts/
+music: true
 ---
 
 
