@@ -3,7 +3,7 @@
 <div id="main">
  <div id="content">
   <div class="blog-index">
-    {{ $paginator := .Paginate (where .Data.Pages "Type" "post") }}
+    {{ $paginator := .Paginate (where .Site.RegularPages "Type" "post") }}
     {{ range $paginator.Pages }}
     <article>
 

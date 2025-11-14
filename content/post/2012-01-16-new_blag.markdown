@@ -17,6 +17,6 @@ Creating new posts is just about running, of course after replacing blog_title w
 
 {{< highlight bash >}}
 vim _posts/$(date +%Y-%m-%d-blog_title.markdown)
-{{< / highlight >}}
+{{< /highlight >}}
 
 After that, it's just about writing [Markdown](http://daringfireball.net/projects/markdown/) files

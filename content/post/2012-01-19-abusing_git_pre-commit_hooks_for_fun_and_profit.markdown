@@ -19,7 +19,7 @@ bundle install
 bundle exec ejekyll
 cp -rf _site/categories .
 git add .
-{{< / highlight >}}
+{{< /highlight >}}
 
 not too surprising - I initialize rvm environment (I have that set in both bash and zsh shells that I use but it's better to be explicit), `bundle install` and `bundle exec ejekyll` commands install the dependencies declared in the `Gemfile` and then run the static website generation using Jekyll. Now that I have plugins goodness, I can copy the categories folder from `_site` and make sure everything is staged.
 
@@ -28,6 +28,6 @@ Now the next step would be to make the pre-commit hook itself. So, the pre-commi
 {{< highlight bash >}}
 #!/bin/bash
 ./run_extensions.sh
-{{< / highlight >}}
+{{< /highlight >}}
 
 after this, make sure to run `chmod +x .git/hooks/pre-commit` so that it's executable. From now all, each commit is going to generate all the necessary categories structure.

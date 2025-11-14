@@ -22,7 +22,7 @@ It's almost too easy but here you go. How to include music notation in your blog
 <script src="/js/chord.js"></script>
 <script src="/js/chart.js"></script>
 <script src="/js/music-post.js"></script>
-{{< / highlight >}}
+{{< /highlight >}}
 
 
 You can to get the `tabdiv-min.js` file from vextab project after compiling. Or, you can browse to the `/assets/themes/js` directory and copy all the files. Please respect the work of original author. Look at `music-post.js` file to see how this is done.
@@ -36,7 +36,7 @@ tabstave notation=true tablature=false
 notes Cn-D-E/4 F#/5
 </div>
 
-{{< / highlight >}}
+{{< /highlight >}}
 
 will look like
 
@@ -51,7 +51,7 @@ And, I adapted this from the [Vexchord Demo](http://vexflow.com/vexchords/)
 {{< highlight html >}}
 <div class="music music-chord" data-key="E" data-str="E" data-shape="M E">
 </div>
-{{< / highlight >}}
+{{< /highlight >}}
 
 will look like
 <div class="music music-chord" data-key="E" data-str="E" data-shape="M E">
