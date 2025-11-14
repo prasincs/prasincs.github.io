@@ -31,7 +31,7 @@ Lightweight container runtime and orchestration framework.
 Go client library for the Tenable API.
 
 ### [Accord](https://github.com/mistsys/accord)
-Distributed consensus library and framework.
+SSH Certificate Authority service.
 
 ### Apache Kafka - Zookeeper Maintainer
 Maintainer for the Zookeeper components of Apache Kafka. Contributions can be found in the [Apache Kafka JIRA](https://issues.apache.org/jira/browse/KAFKA).
