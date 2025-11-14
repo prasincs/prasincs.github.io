@@ -1,21 +1,15 @@
 baseURL: https://nextdoorhacker.com/
 languageCode: en-us
 title: NextDoorHacker
-theme: hugo-octopress
+theme: PaperMod
 
 # Pagination
-paginate: 6
-
-# Disable path lowercasing
-disablePathToLower: true
+paginate: 10
 
 # Output directory for GitHub Pages
 publishDir: public
 
-# URL handling
-canonifyURLs: true
-
-# Taxonomies (updated from deprecated 'indexes')
+# Taxonomies
 taxonomies:
   category: categories
   tag: tags
@@ -24,7 +18,7 @@ taxonomies:
 permalinks:
   post: /:year/:month/:day/:title/
 
-# Syntax highlighting (updated from deprecated pygments settings)
+# Syntax highlighting
 markup:
   highlight:
     codeFences: true
@@ -34,57 +28,74 @@ markup:
     renderer:
       unsafe: true
 
-# Menu configuration
+# Enable emoji support
+enableEmoji: true
+
+# Menu
 menu:
   main:
-    - name: Blog
-      url: /
-      weight: 1
+    - name: Archive
+      url: /archives/
+      weight: 5
     - name: Categories
       url: /categories/
-      weight: 2
+      weight: 10
+    - name: Tags
+      url: /tags/
+      weight: 15
+    - name: Search
+      url: /search/
+      weight: 20
 
-# Theme parameters
+# PaperMod theme configuration
 params:
-  # Sidebar configuration
-  sidebarRecentLimit: 5
-  sidebarHeader: "About"
-  sidebarText: |
-    Personal blog about software development, distributed systems, and technology.
+  env: production
+  description: "Personal blog about software development, distributed systems, and technology"
+  author: NextDoorHacker
 
-  # Author information
-  author: "NextDoorHacker"
-  subtitle: "Software Development & System Design"
+  # Home page
+  homeInfoParams:
+    Title: "NextDoorHacker"
+    Content: >
+      Personal blog about software development, distributed systems, and technology.
+      Writing about Go, distributed systems, cloud infrastructure, and engineering practices.
 
-  # Content settings
-  truncate: true
+  # Social links
+  socialIcons:
+    - name: github
+      url: "https://github.com/prasincs"
 
-  # Social links (update with your actual profiles)
-  github: "https://github.com/prasincs"
-  twitter: ""
-  linkedin: ""
+  # Show reading time
+  ShowReadingTime: true
 
-  # Search engine
-  searchEngineURL: "https://www.google.com/search"
+  # Show post navigation links
+  ShowPostNavLinks: true
 
-  # Reading time
-  disableReadingTime: false
+  # Show breadcrumbs
+  ShowBreadCrumbs: true
 
-  # Google fonts
-  disableGoogleFonts: false
+  # Show code copy button
+  ShowCodeCopyButtons: true
 
-  # Taxonomy pages
-  generateTaxonomyList: true
+  # Show table of contents
+  ShowToc: true
 
-  # RSS
-  rss: true
+  # Table of contents open by default
+  TocOpen: false
 
-  # Default description
-  defaultDescription: "NextDoorHacker - Software Development Blog"
+  # Date format
+  DateFormat: "January 2, 2006"
 
-  # 404 page
-  notFoundHeader: "Page Not Found"
-  notFoundText: "The page you're looking for doesn't exist. Please use the navigation menu above."
+  # Cover image settings
+  cover:
+    linkFullImages: true
+
+# Outputs - needed for search
+outputs:
+  home:
+    - HTML
+    - RSS
+    - JSON # needed for search
 
 # Build settings
 build:

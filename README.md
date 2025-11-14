@@ -5,7 +5,7 @@ Personal blog about software development, distributed systems, and technology.
 ## Technology Stack
 
 - **Static Site Generator**: [Hugo](https://gohugo.io/) v0.125+
-- **Theme**: [Hugo-Octopress](https://github.com/parsiya/hugo-octopress)
+- **Theme**: [PaperMod](https://github.com/adityatelange/hugo-PaperMod)
 - **Hosting**: GitHub Pages
 - **Domain**: nextdoorhacker.com
 - **CI/CD**: GitHub Actions
@@ -29,18 +29,23 @@ Personal blog about software development, distributed systems, and technology.
    sudo dpkg -i hugo_extended_0.125.0_linux-amd64.deb
    ```
 
-2. Clone the repository:
+2. Clone the repository with submodules:
    ```bash
-   git clone https://github.com/prasincs/prasincs.github.io.git
+   git clone --recursive https://github.com/prasincs/prasincs.github.io.git
    cd prasincs.github.io
    ```
 
-3. Run the development server:
+3. If you already cloned without `--recursive`, initialize submodules:
+   ```bash
+   git submodule update --init --recursive
+   ```
+
+4. Run the development server:
    ```bash
    hugo server -D
    ```
 
-4. Visit http://localhost:1313 in your browser
+5. Visit http://localhost:1313 in your browser
 
 ### Creating New Posts
 
@@ -58,6 +63,7 @@ title: "Your Post Title"
 date: 2025-11-14
 categories: ["category1", "category2"]
 tags: ["tag1", "tag2"]
+draft: false
 ---
 
 Your content here...
@@ -75,15 +81,12 @@ The generated site will be in the `public/` directory.
 
 ## Deployment
 
-The site automatically deploys to GitHub Pages via GitHub Actions when changes are pushed to the `main` branch.
+The site automatically deploys to GitHub Pages via GitHub Actions when changes are pushed to the `master` branch.
 
-### Manual Deployment
-
-If you need to deploy manually:
-
-1. Build the site: `hugo --minify`
-2. The `public/` directory contains the generated site
-3. Push to the `gh-pages` branch (or configure GitHub Pages settings)
+The workflow:
+1. Builds the site with Hugo v0.125.0
+2. Generates static files in the `public/` directory
+3. Deploys to GitHub Pages
 
 ## Project Structure
 
@@ -93,18 +96,34 @@ If you need to deploy manually:
 │   └── workflows/
 │       └── hugo.yml          # GitHub Actions workflow
 ├── content/
-│   ├── post/                 # Blog posts
-│   └── draft/                # Draft posts
+│   ├── post/                 # Blog posts (17 posts from 2012-2016)
+│   ├── draft/                # Draft posts
+│   ├── archives.md           # Archive page
+│   └── search.md             # Search page
 ├── static/
 │   ├── assets/
 │   │   └── images/           # Blog images
 │   ├── presentations/        # Presentation files
 │   └── CNAME                 # Custom domain configuration
 ├── themes/
-│   └── hugo-octopress/       # Theme files
+│   └── PaperMod/             # Theme (git submodule)
 ├── hugo.yaml                 # Hugo configuration
 └── README.md                 # This file
 ```
+
+## Features
+
+The blog includes modern features powered by PaperMod:
+
+- 🎨 **Clean Design**: Modern, responsive layout with dark mode support
+- 🔍 **Search**: Built-in search functionality
+- 📚 **Archive**: Chronological list of all posts
+- 🏷️ **Categories & Tags**: Organized content taxonomy
+- ⏱️ **Reading Time**: Estimated reading time for each post
+- 📋 **Table of Contents**: Auto-generated TOC for long posts
+- 💻 **Code Copy**: One-click copy buttons for code blocks
+- 🔗 **Post Navigation**: Previous/next post links
+- 📱 **Mobile Friendly**: Fully responsive design
 
 ## Modernization (2025)
 
@@ -113,23 +132,36 @@ This blog was modernized in January 2025 from a 2016-era setup:
 ### Changes Made
 
 - ✅ Upgraded from Hugo v0.18-DEV (2016) to v0.125.0 (2025)
-- ✅ Migrated configuration from deprecated parameters to modern Hugo syntax
+- ✅ Replaced outdated Hugo-Octopress theme with modern PaperMod
 - ✅ Set up automated builds with GitHub Actions
 - ✅ Implemented proper source/build separation
 - ✅ Cleaned up legacy Jekyll/Bootstrap assets
 - ✅ Updated .gitignore for modern Hugo
 - ✅ Changed from manual builds to automated CI/CD
 - ✅ Updated baseURL to HTTPS
+- ✅ Added search and archive functionality
+- ✅ Restored 17 blog posts from 2012-2016
+
+### Why PaperMod?
+
+The original Hugo-Octopress theme from 2016 had extensive deprecated syntax that required multiple fixes for modern Hugo compatibility. PaperMod offers:
+
+- Active maintenance and regular updates
+- Full Hugo v0.125+ compatibility out of the box
+- Modern features (search, dark mode, TOC)
+- Clean, fast, and accessible design
+- Large community and excellent documentation
 
 ### Migration Details
 
-- Configuration converted from YAML with deprecated keys to modern `hugo.yaml`
+- Configuration converted to modern `hugo.yaml` syntax
 - Removed built HTML files from repository (now generated by CI/CD)
 - Recovered original source files from git history (commit e510140)
-- Updated syntax highlighting from deprecated Pygments to modern markup configuration
+- Updated syntax highlighting to modern markup configuration
 - Changed `indexes` to `taxonomies`
-- Updated `publishdir` to `publishDir`
+- Fixed malformed shortcodes in legacy posts
+- Theme installed as git submodule for easy updates
 
 ## License
 
-Blog content is © NextDoorHacker. Theme is licensed under MIT (see theme directory for details).
+Blog content is © NextDoorHacker. Theme is licensed under MIT (see [theme license](https://github.com/adityatelange/hugo-PaperMod/blob/master/LICENSE)).
