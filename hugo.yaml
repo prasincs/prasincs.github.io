@@ -35,6 +35,9 @@ enableEmoji: true
 # Menu
 menu:
   main:
+    - name: About
+      url: /about/
+      weight: 1
     - name: Archive
       url: /archives/
       weight: 5
@@ -63,8 +66,14 @@ params:
 
   # Social links
   socialIcons:
+    - name: linkedin
+      url: "https://www.linkedin.com/in/prasannagautam"
     - name: github
       url: "https://github.com/prasincs"
+    - name: rss
+      url: "https://hardwaresecurity.substack.com/"
+    - name: medium
+      url: "https://medium.com/@prasincs"
 
   # Show reading time
   ShowReadingTime: true
