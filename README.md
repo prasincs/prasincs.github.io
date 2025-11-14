@@ -4,7 +4,7 @@ Personal blog about software development, distributed systems, and technology.
 
 ## Technology Stack
 
-- **Static Site Generator**: [Hugo](https://gohugo.io/) v0.125+
+- **Static Site Generator**: [Hugo](https://gohugo.io/) v0.146+
 - **Theme**: [PaperMod](https://github.com/adityatelange/hugo-PaperMod)
 - **Hosting**: GitHub Pages
 - **Domain**: nextdoorhacker.com
@@ -14,7 +14,7 @@ Personal blog about software development, distributed systems, and technology.
 
 ### Prerequisites
 
-- Hugo Extended v0.125.0 or later
+- Hugo Extended v0.146.0 or later
 - Git
 
 ### Local Development
@@ -25,8 +25,8 @@ Personal blog about software development, distributed systems, and technology.
    brew install hugo
 
    # Linux
-   wget https://github.com/gohugoio/hugo/releases/download/v0.125.0/hugo_extended_0.125.0_linux-amd64.deb
-   sudo dpkg -i hugo_extended_0.125.0_linux-amd64.deb
+   wget https://github.com/gohugoio/hugo/releases/download/v0.146.0/hugo_extended_0.146.0_linux-amd64.deb
+   sudo dpkg -i hugo_extended_0.146.0_linux-amd64.deb
    ```
 
 2. Clone the repository with submodules:
@@ -84,7 +84,7 @@ The generated site will be in the `public/` directory.
 The site automatically deploys to GitHub Pages via GitHub Actions when changes are pushed to the `master` branch.
 
 The workflow:
-1. Builds the site with Hugo v0.125.0
+1. Builds the site with Hugo v0.146.0
 2. Generates static files in the `public/` directory
 3. Deploys to GitHub Pages
 
@@ -131,7 +131,7 @@ This blog was modernized in January 2025 from a 2016-era setup:
 
 ### Changes Made
 
-- ✅ Upgraded from Hugo v0.18-DEV (2016) to v0.125.0 (2025)
+- ✅ Upgraded from Hugo v0.18-DEV (2016) to v0.146.0 (2025)
 - ✅ Replaced outdated Hugo-Octopress theme with modern PaperMod
 - ✅ Set up automated builds with GitHub Actions
 - ✅ Implemented proper source/build separation
@@ -147,7 +147,7 @@ This blog was modernized in January 2025 from a 2016-era setup:
 The original Hugo-Octopress theme from 2016 had extensive deprecated syntax that required multiple fixes for modern Hugo compatibility. PaperMod offers:
 
 - Active maintenance and regular updates
-- Full Hugo v0.125+ compatibility out of the box
+- Full Hugo v0.146+ compatibility out of the box
 - Modern features (search, dark mode, TOC)
 - Clean, fast, and accessible design
 - Large community and excellent documentation

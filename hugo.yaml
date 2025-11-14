@@ -3,8 +3,9 @@ languageCode: en-us
 title: NextDoorHacker
 theme: PaperMod
 
-# Pagination
-paginate: 10
+# Pagination (updated for Hugo v0.128.0+)
+pagination:
+  pagerSize: 10
 
 # Output directory for GitHub Pages
 publishDir: public
