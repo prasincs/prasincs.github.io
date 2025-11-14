@@ -38,6 +38,9 @@ menu:
     - name: About
       url: /about/
       weight: 1
+    - name: Speaking
+      url: /speaking/
+      weight: 2
     - name: Archive
       url: /archives/
       weight: 5

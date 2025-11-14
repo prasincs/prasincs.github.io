@@ -36,6 +36,10 @@ SSH Certificate Authority service written in Go.
 ### Apache Kafka - Zookeeper Maintainer
 Maintainer for the Zookeeper components of Apache Kafka. Contributions can be found in the [Apache Kafka JIRA](https://issues.apache.org/jira/browse/KAFKA).
 
+## Speaking Engagements
+
+Prasanna speaks at conferences and events on blockchain infrastructure, hardware security, and distributed systems. [View past talks and speaking request information →](/speaking/)
+
 ## Connect
 
 - [LinkedIn](https://www.linkedin.com/in/prasannagautam?utm_source=share_via&utm_content=profile&utm_medium=member_ios)
