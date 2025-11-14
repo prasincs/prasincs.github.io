@@ -11,12 +11,12 @@ I wont try to justify PHP hacking but I was working on a project that's based on
 
 {{< highlight php >}}
 isset("variable_name");
-{{< / highlight >}}
+{{< /highlight >}}
 
 similar to  python
 {{< highlight python >}}
 "variable_name" in globals() 
-{{< / highlight >}}
+{{< /highlight >}}
 
 Same idea with locals() in python.
 
@@ -32,7 +32,7 @@ $test= "test";
 var_dump(isset_varname("test")); // should print bool(true)
 var_dump(isset_varname("test2")); // should print bool(false)
 ?>
-{{< / highlight >}}
+{{< /highlight >}}
 
 you'd probably need to check for the variable name regex and store output from get_defined_vars() in another place too. Of course, if there's some other similar function that anyone else knows about, I'd be happy to find out.
 
