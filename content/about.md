@@ -31,7 +31,7 @@ Lightweight container runtime and orchestration framework.
 Go client library for the Tenable API.
 
 ### [Accord](https://github.com/mistsys/accord)
-SSH Certificate Authority service.
+SSH Certificate Authority service written in Go. 
 
 ### Apache Kafka - Zookeeper Maintainer
 Maintainer for the Zookeeper components of Apache Kafka. Contributions can be found in the [Apache Kafka JIRA](https://issues.apache.org/jira/browse/KAFKA).
@@ -42,3 +42,4 @@ Maintainer for the Zookeeper components of Apache Kafka. Contributions can be fo
 - [GitHub](http://github.com/prasincs)
 - [Hardware Security Newsletter](https://hardwaresecurity.substack.com/)
 - [Medium](https://medium.com/@prasincs)
+- [X](https://x.com/prasincs)
