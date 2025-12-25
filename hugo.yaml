@@ -3,6 +3,11 @@ languageCode: en-us
 title: NextDoorHacker
 theme: PaperMod
 
+# Google Analytics (GA4)
+services:
+  googleAnalytics:
+    ID: G-YQ8ZLMXXF9
+
 # Pagination (updated for Hugo v0.128.0+)
 pagination:
   pagerSize: 10
