@@ -1,7 +1,7 @@
 ---
 title: "Don't Unwrap in Production: A Formal Verification Guide"
 date: 2025-12-24T22:13:04-08:00
-draft: true
+draft: false
 TocOpen: true
 ---
 
