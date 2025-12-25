@@ -3,6 +3,15 @@ title: "Don't Unwrap in Production: A Formal Verification Guide"
 date: 2025-12-24T22:13:04-08:00
 draft: false
 TocOpen: true
+categories:
+- rust
+- software-engineering
+tags:
+- rust
+- formal-verification
+- verus
+- safety
+- production
 ---
 
 **TL;DR**: On November 18, 2025, a single `.unwrap()` call caused a 3-hour global Cloudflare outage. Formal verification tools like Verus could have caught this at compile time—before it reached production. This post shows how Verus's built-in specifications for `Option::unwrap()` and `Result::unwrap()` can mathematically prove panic-freedom, with working examples you can run today.
