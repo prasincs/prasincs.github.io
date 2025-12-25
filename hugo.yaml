@@ -19,12 +19,11 @@ taxonomies:
 permalinks:
   post: /:year/:month/:day/:title/
 
-# Syntax highlighting
+# Syntax highlighting (using highlight.js instead of Hugo's built-in)
 markup:
   highlight:
-    codeFences: true
-    style: monokai
-    lineNos: false
+    codeFences: false
+    noClasses: true
   goldmark:
     renderer:
       unsafe: true

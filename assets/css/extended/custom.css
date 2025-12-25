@@ -1,0 +1,147 @@
+/* ==========================================
+   Sticky Sidebar TOC with Scrollspy
+   ========================================== */
+
+/* Wrapper for content + sidebar TOC */
+.post-content-wrapper {
+  display: block;
+}
+
+/* On large screens, use grid layout for sidebar TOC */
+@media screen and (min-width: 1280px) {
+  .post-content-wrapper {
+    display: grid;
+    grid-template-columns: 1fr 280px;
+    gap: 3rem;
+    align-items: start;
+  }
+
+  .toc-sidebar {
+    order: 2;
+  }
+
+  .toc-sidebar .toc {
+    position: sticky;
+    top: 80px;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    margin: 0;
+    font-size: 0.8rem;
+    border: none;
+    background: transparent;
+    padding: 0;
+  }
+
+  /* Ensure details is always open on large screens */
+  .toc-sidebar .toc details[open] {
+    display: block;
+  }
+
+  .toc-sidebar .toc .inner {
+    max-height: calc(100vh - 160px);
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+
+  .toc-sidebar .toc details {
+    display: block;
+  }
+
+  /* Force details open and hide toggle on large screens */
+  .toc-sidebar .toc details summary {
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: var(--primary);
+    font-size: 0.9rem;
+    pointer-events: none;
+    list-style: none;
+  }
+
+  .toc-sidebar .toc details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .toc-sidebar .toc details summary::marker {
+    display: none;
+  }
+}
+
+/* Hide TOC on smaller screens (or show at top) */
+@media screen and (max-width: 1279px) {
+  .toc-sidebar .toc {
+    margin-bottom: 1.5rem;
+  }
+}
+
+/* TOC link styling */
+.toc a {
+  display: block;
+  padding: 0.25rem 0;
+  color: var(--secondary);
+  transition: color 0.2s, border-color 0.2s;
+  border-left: 2px solid transparent;
+  padding-left: 0.75rem;
+  margin-left: -0.75rem;
+}
+
+.toc a:hover {
+  color: var(--primary);
+}
+
+/* Active TOC item (scrollspy) */
+.toc a.active {
+  color: var(--primary);
+  border-left-color: var(--primary);
+  font-weight: 500;
+}
+
+/* Nested TOC items */
+.toc li ul {
+  margin-left: 1rem;
+}
+
+.toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.toc li {
+  margin: 0;
+}
+
+/* ==========================================
+   Code Blocks
+   ========================================== */
+
+/* Make code blocks use more width on large screens */
+@media screen and (min-width: 1024px) {
+  .post-content pre,
+  .post-content .highlight {
+    max-width: 100%;
+    width: 100%;
+    margin-left: 0;
+    margin-right: 0;
+  }
+
+  /* Allow code blocks to break out of content width */
+  .post-content pre code {
+    max-width: none;
+    width: 100%;
+  }
+}
+
+/* Ensure code blocks have proper styling */
+.post-content pre {
+  padding: 1rem;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+
+/* highlight.js styling adjustments */
+.post-content pre code.hljs {
+  padding: 1rem;
+  border-radius: 8px;
+  display: block;
+  overflow-x: auto;
+}
