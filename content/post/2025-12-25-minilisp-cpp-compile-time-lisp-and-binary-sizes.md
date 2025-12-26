@@ -15,63 +15,14 @@ tags:
 - macos
 - linux
 - wasm
+wasm: https://nextdoorhacker.com/minilisp-cpp/lisp.wasm
 ---
 
 **TL;DR**: I built a Lisp interpreter that evaluates expressions at **compile-time** using C++20 `constexpr`. The same code works at runtime too—no duplication needed. Along the way, I discovered that macOS adds ~28KB of constant overhead to all C++ binaries, and that Mach-O is surprisingly more efficient than Linux ELF for small programs.
 
 **Try it right now** — this runs the same interpreter compiled to WebAssembly (27KB):
 
-<div id="lisp-repl" style="background: var(--code-bg, #1a1a2e); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; font-family: monospace;">
-  <div style="margin-bottom: 1rem;">
-    <label for="lisp-input" style="display: block; margin-bottom: 0.5rem; color: var(--primary, #6c9); font-weight: 600;">Lisp Expression:</label>
-    <div style="display: flex; gap: 0.5rem;">
-      <input type="text" id="lisp-input" value="(+ 1 2 (* 3 4))" style="flex: 1; padding: 0.75rem; background: var(--tertiary, #2a2a3e); color: var(--content, #e0e0e0); border: 1px solid var(--border, #444); border-radius: 4px; font-family: monospace; font-size: 1rem;">
-      <button onclick="evalLisp()" style="padding: 0.75rem 1.5rem; background: var(--primary, #6c9); color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Eval</button>
-    </div>
-  </div>
-  <div style="margin-bottom: 0.5rem; color: var(--secondary, #888); font-size: 0.875rem;">Result:</div>
-  <pre id="lisp-output" style="background: var(--tertiary, #2a2a3e); padding: 1rem; border-radius: 4px; margin: 0; color: var(--content, #e0e0e0); min-height: 1.5em;">Loading WASM...</pre>
-  <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--secondary, #666);">
-    Try: <code style="cursor: pointer; color: var(--primary, #6c9);" onclick="document.getElementById('lisp-input').value=this.textContent; evalLisp()">(* 6 7)</code> ·
-    <code style="cursor: pointer; color: var(--primary, #6c9);" onclick="document.getElementById('lisp-input').value=this.textContent; evalLisp()">(car '(10 20 30))</code> ·
-    <code style="cursor: pointer; color: var(--primary, #6c9);" onclick="document.getElementById('lisp-input').value=this.textContent; evalLisp()">(cdr '(1 2 3))</code>
-  </div>
-</div>
-
-<script>
-(async function() {
-  const output = document.getElementById('lisp-output');
-  try {
-    const wasi = {
-      args_get: () => 0, args_sizes_get: () => 0, proc_exit: () => {},
-      fd_write: () => 0, fd_read: () => 0, fd_close: () => 0,
-      fd_seek: () => 0, fd_fdstat_get: () => 0,
-      environ_sizes_get: () => 0, environ_get: () => 0, clock_time_get: () => 0,
-    };
-    const response = await fetch('https://nextdoorhacker.com/minilisp-cpp/lisp.wasm');
-    const bytes = await response.arrayBuffer();
-    const { instance } = await WebAssembly.instantiate(bytes, { wasi_snapshot_preview1: wasi });
-    window.wasmMemory = instance.exports.memory;
-    window.wasmEval = instance.exports.eval;
-    output.textContent = 'Ready! Enter an expression and click Eval.';
-  } catch (e) {
-    output.textContent = 'Failed to load WASM: ' + e.message;
-  }
-})();
-
-function evalLisp() {
-  const input = document.getElementById('lisp-input').value;
-  const output = document.getElementById('lisp-output');
-  if (!window.wasmEval) { output.textContent = 'WASM not loaded yet...'; return; }
-  try {
-    const bytes = new TextEncoder().encode(input + '\0');
-    new Uint8Array(window.wasmMemory.buffer, 1024, bytes.length).set(bytes);
-    output.textContent = window.wasmEval(1024);
-  } catch (e) {
-    output.textContent = 'Error: ' + e.message;
-  }
-}
-</script>
+{{< lisp-repl >}}
 
 Some weeks back I saw that [Dan Lemire](https://x.com/lemire) had a PR open on [simdjson](https://github.com/simdjson/simdjson) that added an expression to parse whole JSON. That intrigued me and took the challenge to see if I could write a LISP Interpreter. Here's a minimal [godbolt](https://godbolt.org/z/jqb3jK4ad) playground if you're interested to play around. I don't have this problem as much anymore but I used to need a little DSLs in programs all the time. Maybe long term Lua is right choice but I can see something like this to be useful in a very small form factor like some kind of verified binary that you want to minimize your dependencies and adding a whole new lib will add more complexity.
 
@@ -259,6 +210,7 @@ Segment __LINKEDIT: varies      (symbols, code signature)
 
 <details>
 <summary>Full output of <code>size -m lisp_repl</code></summary>
+
 ```
 Segment __PAGEZERO: 4294967296 (zero fill)
 Segment __TEXT: 16384
@@ -274,6 +226,7 @@ Segment __DATA_CONST: 16384
 Segment __LINKEDIT: 16384
 total 4295016448
 ```
+
 </details>
 
 **The key insight**: Mach-O uses **16KB segment alignment**. Each segment must start on a 16KB boundary, so even tiny segments consume 16KB of disk space.
@@ -438,6 +391,7 @@ readelf -S lisp_repl
 3. **iostream is expensive** - Removing it saved 32% of actual executable code. If size matters, use POSIX I/O.
 
 **On C++20:**
+
 4. **constexpr is powerful** - A full Lisp interpreter at compile time in readable code
 5. **Same code, dual modes** - No template metaprogramming gymnastics required
 
@@ -445,6 +399,6 @@ readelf -S lisp_repl
 
 Building a compile-time Lisp interpreter turned out to be a journey through modern C++ and binary format archaeology. The compile-time evaluation is genuinely useful for catching errors early, but the binary size investigation taught me more about platform-specific behavior than I expected.
 
-The source code is available at [github.com/prasincs/minilisp-cpp](https://github.com/prasincs/minilisp-cpp). Try adding new operations—they'll automatically work at both compile-time and runtime.
+The source code is available at [github.com/prasincs/minilisp-cpp](https://github.com/prasincs/minilisp-cpp), as well as a standalone [playground](https://nextdoorhacker.com/minilisp-cpp/). Try adding new operations—they'll automatically work at both compile-time and runtime.
 
 Sometimes the journey of optimization teaches more than the destination.

@@ -121,3 +121,9 @@ document.addEventListener('DOMContentLoaded', function() {
 <script src="/js/chart.js"></script>
 <script src="/js/music-post.js"></script>
 {{- end -}}
+
+{{- /* Load WASM module for posts that need them */ -}}
+{{- if .Params.wasm -}}
+<script>window.WASM_URL = "{{ .Params.wasm }}";</script>
+<script src="/js/wasm-loader.js"></script>
+{{- end -}}
