@@ -14,9 +14,66 @@ tags:
 - binary-size
 - macos
 - linux
+- wasm
 ---
 
 **TL;DR**: I built a Lisp interpreter that evaluates expressions at **compile-time** using C++20 `constexpr`. The same code works at runtime too—no duplication needed. Along the way, I discovered that macOS adds ~28KB of constant overhead to all C++ binaries, and that Mach-O is surprisingly more efficient than Linux ELF for small programs.
+
+**Try it right now** — this runs the same interpreter compiled to WebAssembly (27KB):
+
+<div id="lisp-repl" style="background: var(--code-bg, #1a1a2e); border-radius: 8px; padding: 1.5rem; margin: 1.5rem 0; font-family: monospace;">
+  <div style="margin-bottom: 1rem;">
+    <label for="lisp-input" style="display: block; margin-bottom: 0.5rem; color: var(--primary, #6c9); font-weight: 600;">Lisp Expression:</label>
+    <div style="display: flex; gap: 0.5rem;">
+      <input type="text" id="lisp-input" value="(+ 1 2 (* 3 4))" style="flex: 1; padding: 0.75rem; background: var(--tertiary, #2a2a3e); color: var(--content, #e0e0e0); border: 1px solid var(--border, #444); border-radius: 4px; font-family: monospace; font-size: 1rem;">
+      <button onclick="evalLisp()" style="padding: 0.75rem 1.5rem; background: var(--primary, #6c9); color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: 600;">Eval</button>
+    </div>
+  </div>
+  <div style="margin-bottom: 0.5rem; color: var(--secondary, #888); font-size: 0.875rem;">Result:</div>
+  <pre id="lisp-output" style="background: var(--tertiary, #2a2a3e); padding: 1rem; border-radius: 4px; margin: 0; color: var(--content, #e0e0e0); min-height: 1.5em;">Loading WASM...</pre>
+  <div style="margin-top: 1rem; font-size: 0.75rem; color: var(--secondary, #666);">
+    Try: <code style="cursor: pointer; color: var(--primary, #6c9);" onclick="document.getElementById('lisp-input').value=this.textContent; evalLisp()">(* 6 7)</code> ·
+    <code style="cursor: pointer; color: var(--primary, #6c9);" onclick="document.getElementById('lisp-input').value=this.textContent; evalLisp()">(car '(10 20 30))</code> ·
+    <code style="cursor: pointer; color: var(--primary, #6c9);" onclick="document.getElementById('lisp-input').value=this.textContent; evalLisp()">(cdr '(1 2 3))</code>
+  </div>
+</div>
+
+<script>
+(async function() {
+  const output = document.getElementById('lisp-output');
+  try {
+    const wasi = {
+      args_get: () => 0, args_sizes_get: () => 0, proc_exit: () => {},
+      fd_write: () => 0, fd_read: () => 0, fd_close: () => 0,
+      fd_seek: () => 0, fd_fdstat_get: () => 0,
+      environ_sizes_get: () => 0, environ_get: () => 0, clock_time_get: () => 0,
+    };
+    const response = await fetch('https://nextdoorhacker.com/minilisp-cpp/lisp.wasm');
+    const bytes = await response.arrayBuffer();
+    const { instance } = await WebAssembly.instantiate(bytes, { wasi_snapshot_preview1: wasi });
+    window.wasmMemory = instance.exports.memory;
+    window.wasmEval = instance.exports.eval;
+    output.textContent = 'Ready! Enter an expression and click Eval.';
+  } catch (e) {
+    output.textContent = 'Failed to load WASM: ' + e.message;
+  }
+})();
+
+function evalLisp() {
+  const input = document.getElementById('lisp-input').value;
+  const output = document.getElementById('lisp-output');
+  if (!window.wasmEval) { output.textContent = 'WASM not loaded yet...'; return; }
+  try {
+    const bytes = new TextEncoder().encode(input + '\0');
+    new Uint8Array(window.wasmMemory.buffer, 1024, bytes.length).set(bytes);
+    output.textContent = window.wasmEval(1024);
+  } catch (e) {
+    output.textContent = 'Error: ' + e.message;
+  }
+}
+</script>
+
+Some weeks back I saw that [Dan Lemire](https://x.com/lemire) had a PR open on [simdjson](https://github.com/simdjson/simdjson) that added an expression to parse whole JSON. That intrigued me and took the challenge to see if I could write a LISP Interpreter. Here's a minimal [godbolt](https://godbolt.org/z/jqb3jK4ad) playground if you're interested to play around. I don't have this problem as much anymore but I used to need a little DSLs in programs all the time. Maybe long term Lua is right choice but I can see something like this to be useful in a very small form factor like some kind of verified binary that you want to minimize your dependencies and adding a whole new lib will add more complexity.
 
 ---
 
@@ -155,11 +212,11 @@ File size (`ls -l`) is misleading—it's dominated by format overhead you can't 
 
 ### Build Configurations
 
-| Build | macOS | Linux | Techniques |
-|-------|-------|-------|------------|
-| Default | 39KB | - | `-O2` |
-| Small | 36KB | - | `-Os`, LTO, strip |
-| Ultra-small | 34KB | 66KB (10KB compressed) | POSIX I/O, no iostream |
+| Build | macOS | Linux | WASM | Techniques |
+|-------|-------|-------|------|------------|
+| Default | 39KB | - | - | `-O2` |
+| Small | 36KB | - | - | `-Os`, LTO, strip |
+| Ultra-small | 34KB | 66KB (10KB UPX) | 27KB | POSIX I/O, no iostream, wasm-opt |
 
 ### What We Actually Removed
 
@@ -274,6 +331,47 @@ Why not macOS?
 - UPX is officially unsupported for Mach-O
 - Code signing conflicts with compressed binaries
 - `--force-macos` often causes segfaults
+
+## WebAssembly Build
+
+The interpreter also compiles to WebAssembly, producing a **27KB** binary after optimization.
+
+### wasi-sdk vs Emscripten
+
+I chose wasi-sdk over Emscripten for one reason: **no JavaScript bloat**.
+
+| Toolchain | Output Size | What You Get |
+|-----------|-------------|--------------|
+| wasi-sdk + wasm-opt | 27KB | Single `.wasm` file |
+| Emscripten | 100KB+ | `.wasm` + JavaScript runtime |
+
+Emscripten provides a full POSIX-like environment with filesystem emulation. For a simple eval function, that's overkill. wasi-sdk produces a minimal WASI-compliant binary that only needs stub implementations for a handful of syscalls.
+
+### Build Flags
+
+```bash
+# Compile with wasi-sdk
+clang++ -std=c++20 -Os -fno-exceptions -Wl,--no-entry -Wl,--export-dynamic
+
+# Optimize with wasm-opt (from Binaryen)
+wasm-opt -Oz --strip-debug --strip-producers lisp.wasm -o lisp.wasm
+```
+
+Key choices:
+- `-fno-exceptions` - Errors via `__builtin_trap()`, reduces binary size
+- `-Wl,--export-dynamic` - Export the `eval` function for JS access
+- `-Wl,--no-entry` - Library mode, no `main()`
+
+### wasm-opt Optimization
+
+| Stage | Size | Reduction |
+|-------|------|-----------|
+| After wasi-sdk compile | 33KB | — |
+| After wasm-opt -Oz | 33KB | ~0% (already optimized) |
+| After --strip-debug | 28KB | 15% |
+| After --strip-producers | **27KB** | **18% total** |
+
+The `-Oz` flag alone doesn't help much since wasi-sdk already optimizes well, but stripping debug info and producer metadata saves ~6KB.
 
 ## Try It Yourself
 
