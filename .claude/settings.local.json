@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(hugo version:*)",
+      "Bash(grep:*)",
+      "WebSearch",
+      "Bash(hugo:*)",
+      "Bash(curl:*)",
+      "Bash(pgrep:*)",
+      "Bash(gh run list:*)",
+      "Bash(mkdir:*)",
+      "Bash(xmllint:*)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "WebFetch(domain:gist.github.com)"
+    ]
+  }
+}

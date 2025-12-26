@@ -1,6 +1,6 @@
 ---
 title: "MiniLisp C++: A Compile-Time Lisp Interpreter in C++20"
-date: 2025-12-25T12:00:00-08:00
+date: 2025-12-26T06:10:00-08:00
 draft: false
 TocOpen: true
 categories:
