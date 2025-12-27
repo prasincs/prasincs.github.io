@@ -2,6 +2,7 @@
 public/
 resources/
 .hugo_build.lock
+hugo_stats.json
 
 # Old Jekyll artifacts
 _site/**
