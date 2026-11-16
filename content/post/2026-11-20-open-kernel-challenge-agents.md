@@ -19,6 +19,8 @@ For twelve days in October I entered a GPU kernel competition, and I didn't writ
 
 Writing kernels wasn't the point. Competitions are one of the fastest ways I know to learn something new: the scoreboard tells you every day whether you understood it or only thought you did. I wanted to use this one to learn two things. How far can one person get by directing AI agents instead of writing the code? And how much of the work can I offload to open models running locally on a Mac mini?
 
+There was a third question underneath both: how far could I get with the life I actually have? I have a day job and kids. I didn't take time off, and I couldn't watch a GPU queue all evening. So the setup was designed around my time rather than the contest's. `[TODO: a line or two in your words: when you worked on it, how many hours a day, what the evenings looked like.]`
+
 So I ran the contest as a small organization: several Claude sessions working in parallel, ChatGPT as an adversarial reviewer, Grok and Gemini as outside researchers, and two Qwen models running locally for the reading. I set the budgets, approved every scored run, and decided which ideas to chase and when to stop. The agents wrote the kernels, built the tools to measure them, merged each other's work and kept the tickets.
 
 I finished around the top quarter on the main board, for about $500 of GPU time. This post is about how the setup worked: which model did what, how I kept spending under control, what the process caught, and what it missed. The logs are in collapsible tables for anyone who wants to check my work.
@@ -75,6 +77,15 @@ Two lessons from mixing models:
 
 - **Disagreement is the feature.** The reviewer caught claims the lanes were sure of: a test that would have accepted the wrong kind of failure, a "novel" fix that upstream had already rejected, wording that overstated a measurement. A model checking its own work rarely finds those.
 - **Local models are for reading, not editing.** Qwen3-Coder failed twice on a 12-line kernel edit. As a reader of logs and source trees it was fine, and free.
+
+### Built around a day job and kids
+
+Every part of the setup had to work when I wasn't there:
+
+- **The agents worked while I didn't.** Lanes ran in the background in their own worktrees. When I came back, the state of every lane was in Linear and the repo, not in my head.
+- **My part was decisions, and decisions are small.** A scored run needed one line from me ("Send the winner"). A budget change was one line. Most of my time on the contest was reading a summary and saying yes, no, or stop.
+- **Nothing important depended on me watching.** Scouts swept public code on a schedule. GPU work was packed into long batches that ran unattended. Caps were enforced in code, so a forgotten job couldn't run up a bill while I was at work or putting kids to bed.
+- **Stopping was a decision I made on purpose.** On Nov 1 I stopped the kernel push short of the top 100, rather than let it eat more evenings for a few tenths of a percent.
 
 ## Cost controls
 
@@ -390,3 +401,4 @@ The second track opened on Nov 12 and works completely differently: you submit a
 - CPU first, packed GPU jobs second, judged runs last. Most ideas should die before they cost anything.
 - Write the kill criteria before the run.
 - Watch for rules you invented. The most expensive mistake was one the judge never asked for.
+- Design for the time you have. A setup that needs you watching only works for people with nothing else to do.
