@@ -1,0 +1,7 @@
+{{- /* Embed a standalone interactive page from static/ (e.g. a 3D figure).
+     Usage: {{< interactive src="/okc/kernel-climb.html" height="1100" title="Kernel Climb" caption="..." >}} */ -}}
+<figure class="interactive" style="margin:1.5rem 0">
+  <iframe src="{{ .Get "src" }}" title="{{ .Get "title" | default "Interactive figure" }}" loading="lazy"
+    style="width:100%;height:{{ .Get "height" | default "720" }}px;border:1px solid var(--border,#ddd);border-radius:8px"></iframe>
+  {{- with .Get "caption" }}<figcaption style="font-size:.85rem;color:var(--secondary,#666)">{{ . }} <a href="{{ $.Get "src" }}">Open full screen</a></figcaption>{{ end }}
+</figure>
