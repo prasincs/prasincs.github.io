@@ -84,6 +84,8 @@ The budget was the constraint I cared about most, so I enforced it in code inste
 - **Kill criteria written before the run.** Every experiment said in advance what result would end it.
 - **Judged runs as a budget.** Five scored runs a day, each needing my approval in chat.
 
+**When there were no H200s.** On day 2, Modal ran out of H200s for about 2.8 hours. At first it looked like a hung batch; it was waiting for a GPU that didn't exist. Rather than lose the afternoon, a second session set up Runpod as a second backend, and the same A/B on both clouds agreed (1.036× vs 1.034×) before I trusted it. From then on, Runpod was a standing second backend. Modal also caps an account at 10 concurrent GPUs, so the launcher handed out slots and queued the rest instead of letting parallel lanes collide.
+
 The whole kernel track cost **$508 of Modal GPU time** over twelve days. `[TODO: Runpod spend and token cost.]`
 
 <details>
@@ -133,17 +135,37 @@ Nobody got close. The winners finished at 50–85% of their board's limit, and I
 
 ![Figure 1. Share of each board's hardware limit, me vs #1](/assets/images/okc/hardware-limit.svg)
 
-### The climb, drawn as a map
+## Hill climbing, literally
 
-The scoring rule has a property I didn't appreciate until after the close. Because the score is a geometric mean over loads, it splits *exactly* into two halves: the geomean of the three decode loads (call it D) and of the three verify loads (V). The score is √(D × V). So every scored run is a point on a real two-dimensional map, and lines of equal score are curves you can draw.
+People describe optimization as hill climbing all the time. In this contest it isn't a metaphor, and drawing it that way explains most of what happened.
 
-That makes the classic hill-climbing picture literal. Each of my runs is a step on the map. The black dashed curve is the hardware limit. Switch to "With the field" to see where the leaders finished.
+**The map is real.** Because a board's score is a geometric mean over its loads, it splits *exactly* into two halves: the geomean of the three decode loads (call it D) and of the three verify loads (V). The score is √(D × V). So every candidate kernel is a point on a two-dimensional map, its height is its judged score, and the lines of equal height are curves you can draw. Here is my decode-layer climb on that map, from the first scored run to the last.
 
-{{< interactive src="/okc/kernel-climb.html" height="1100" title="Kernel Climb" caption="Figure 2. Every passed scored run on each board's exact score map, with the hardware limit as the ceiling. Drag to rotate, switch modes, or scrub the runs to watch each shape's bar rise." >}}
+{{< interactive src="/okc/kernel-climb.html?embed&view=climb&board=muse_decode_layer&mode=ours" height="560" title="Decode-layer climb" caption="Figure 2. My 40 scored decode-layer runs on the board's exact score map, from 1.05× to 2.24×. The white curves are lines of equal score; the black dashed curve is the hardware limit." >}}
 
-![Figure 3. The same climb, flat: each board's map with my path, #1, the top-100 cutoff and the hardware limit](/assets/images/okc/kernel-climb-field.svg)
+**A step is one change.** Each move on the map was one change, measured against the version before it. If it went up, I kept it; if not, I stepped back. That's the "one change at a time" rule, and it's why the path is a staircase of small steps. Most of the height came from a handful of big ones.
 
-The surface is a ramp, not a hill: scores only rise with speed, so there's no peak in the middle. The ceiling that mattered wasn't the hardware's. It was the field's, and it moved every day.
+**The fog is the judge's noise.** A judged run is accurate to about ±2%, and late in the contest most single steps were smaller than that. In fog, you can't tell up from flat by looking. That's what the control copy in every benchmark batch was for, and why every prediction was written down before the judge saw the run: twelve judged runs in one afternoon all landed within 2% of their predictions.
+
+**Feel the slope before you step.** A judged run is expensive (five a day), so every step was tested on the way: the CPU pre-flight first, then a one-GPU A/B with a control, and only then the judge. Most bad steps were caught at the first stage, for free.
+
+**The ground doesn't rise evenly.** The map shows one number per run, but each run is twelve shapes, and they didn't move together. Press Play to watch every shape's bar across all 40 runs.
+
+{{< interactive src="/okc/kernel-climb.html?embed&view=terrain&board=muse_decode_layer&run=first" height="600" title="Decode-layer shapes, run by run" caption="Figure 3. One bar per scored shape: decode and verify loads left to right, sliding and full-attention layers front to back. The grid at 1.0× is SGLang; the small diamonds mark the first run. Press Play, or switch the height to each shape's share of its hardware limit." >}}
+
+**The biggest steps were jumps, not climbs.** Two kinds of moves gave most of the height. One was moving to someone else's position: porting a piece of public code. The other was taking down a fence I had built myself. My bit-identical rule kept me off a better public base for two weeks; the day I removed it, one run moved me from 1.896× to 2.163×.
+
+**I climbed the slope I knew, not the steep one.** In the last days the agents kept working on the MoE kernel, which was already within 1.1–1.8× of its floor: a slope that had nearly flattened out. The attention had far more room, and I didn't see it until after the close.
+
+**There's no summit, just a ceiling.** The score only rises with speed, so the surface is a ramp. Its top is the hardware limit, where every shape runs at its floor. Nobody reached it. The ceiling that mattered was the field's, and it moved every day.
+
+{{< interactive src="/okc/kernel-climb.html?embed&view=climb&board=muse_decode_layer&mode=field" height="560" title="Decode-layer climb with the field" caption="Figure 4. The same map with where the contest finished: #1 (solid), the top-10 and top-100 cutoffs, and the hardware limit." >}}
+
+All four boards that score decode and verify loads share the same surface, so their paths can be drawn together. Drag to rotate.
+
+{{< interactive src="/okc/kernel-climb.html?embed&view=climb&mode=ours&cam=over" height="600" title="Four boards, one surface" caption="Figure 5. Decode layer, attention decode, MoE and BF16 projections on one √(D × V) surface, each with its own hardware limit. Use the buttons to focus on one board or switch to the field." >}}
+
+![Figure 6. Every board, flat: my path, #1, the top-100 cutoff and the hardware limit](/assets/images/okc/kernel-climb-field.svg)
 
 <details>
 <summary><b>Run ledger: every passed scored run, by board</b></summary>
@@ -331,7 +353,7 @@ The best example: a **time lapse** of every version of the decode layer, replaye
 | Top-100 plan | Each remaining lever's estimated gain against a #100 line rising ~0.03×/day | Most levers measured +0.3% or less, which is how I knew to stop on Nov 1. |
 | Roadmap Monte Carlo | The odds of each target if every lever landed with its estimated probability | Said "~0% for top 100 on the known levers" on day 2. Right, until public code changed the base. |
 | Explainer films | One layer's memory traffic on a drawn H200; one prompt followed to the bytes of a weight block | Explaining, not steering. Every narrated number comes from a facts file under test. |
-| Kernel Climb (figure 2) | Built after the close: each board's exact score map with every run, and the hardware limit | Showed the climb was many small steps plus a few big jumps, and how far below the hardware the field stopped. |
+| Kernel Climb (figures 2–5) | Built after the close: each board's exact score map with every run, and the hardware limit | Showed the climb was many small steps plus a few big jumps, and how far below the hardware the field stopped. |
 
 </details>
 
@@ -353,7 +375,7 @@ The best example: a **time lapse** of every version of the decode layer, replaye
 
 ## The serving track
 
-The second track opened on Nov 12 and works completely differently: you submit a patch to SGLang and the judge serves the whole model on a full 8×H200 node. It closes on Nov 19, and I'll write it up separately. The cost controls got stricter there, because an 8×H200 node costs about $30 an hour: one long packed run per day at most, and actual billing pulled every few hours instead of estimates.
+The second track opened on Nov 12 and works completely differently: you submit a patch to SGLang and the judge serves the whole model on a full 8×H200 node. It closes on Nov 19, and I'll write it up separately. The H200 shortage was much worse there: no cloud would give me an 8×H200 node on demand, a Modal request sat in a queue for 45 minutes without one, and getting a working box on AWS took most of the first day. The cost controls got stricter there, because an 8×H200 node costs about $30 an hour: one long packed run per day at most, and actual billing pulled every few hours instead of estimates.
 
 ## What I'd keep
 

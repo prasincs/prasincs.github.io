@@ -20,6 +20,7 @@
 --b0:#f08a4b;--b1:#5aa9ec;--b2:#3ccfa2;--b3:#b08cf0;--b4:#e2bd3b;--good:#3ccfa2;--bad:#f97066;--warn:#e2bd3b;
 --low:#1b2f4a;--mid:#2f7d73;--high:#d9a93a;--peak:#f08a4b;color-scheme:dark}
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font:15px/1.55 var(--body);margin:0;
 padding-block:28px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 main{max-width:1080px;margin:0 auto;display:grid;gap:22px}
@@ -52,6 +53,17 @@ td.up{color:var(--good)}td.down{color:var(--bad)}
 tbody tr{cursor:pointer}tr.sel td{background:var(--panel);box-shadow:inset 3px 0 0 var(--c,var(--ink))}
 ul{margin:0;padding-left:20px;display:grid;gap:4px}li{max-width:80ch}
 footer{color:var(--muted);font-size:12.5px}
+/* Embed mode (?embed&view=climb|terrain&board=…&mode=ours|field&cam=top|over): one figure, no page chrome, blog colours. */
+:root.embed{--bg:#ffffff;--panel:#ffffff}
+@media (prefers-color-scheme:dark){:root.embed:not([data-theme="light"]){--bg:#1d1e20;--panel:#1d1e20}}
+:root.embed body{padding-block:6px;padding-left:max(4px,env(safe-area-inset-left,0px));padding-right:max(4px,env(safe-area-inset-right,0px))}
+:root.embed main{gap:0;max-width:none}
+:root.embed header,:root.embed footer,:root.embed section{display:none}
+:root.embed section.shown{display:grid;border:0;padding:0;gap:8px;background:transparent}
+:root.embed section.shown>h2,:root.embed section.shown>.note{display:none}
+:root.embed .plot{height:calc(100vh - 96px);min-height:300px;border:0}
+:root.embed .seg button{font-size:11.5px;padding:4px 8px}
+:root.embed #s-terrain .plot{height:calc(100vh - 140px)}
 </style>
 </head>
 <body>
@@ -66,7 +78,7 @@ footer{color:var(--muted);font-size:12.5px}
 <div class="stats" id="stats"></div>
 </header>
 
-<section aria-labelledby="h-climb">
+<section aria-labelledby="h-climb" id="s-climb">
 <h2 id="h-climb">The climb</h2>
 <p class="note" id="climb-note"></p>
 <div class="controls">
@@ -81,7 +93,7 @@ footer{color:var(--muted);font-size:12.5px}
 <p class="note"><b>The hardware limit, in one example.</b> On the decode layer's batch-1 sliding-window shape, SGLang takes about 173 µs. Just reading that step's weights and KV cache once, at the H200's full 4.8 TB/s, takes 40 µs. So no kernel can beat SGLang there by more than about 4.3×. The judge publishes this floor for every shape: the time to move the data at 4.8 TB/s or do the math at 989 TFLOP/s, whichever is longer. Putting every shape on its floor gives each board's limit.</p>
 </section>
 
-<section aria-labelledby="h-terrain">
+<section aria-labelledby="h-terrain" id="s-terrain">
 <h2 id="h-terrain">Per-shape terrain</h2>
 <p class="note">One bar per scored shape, for the run on the scrubber. Loads run left to right and the shapes inside each load front to back. The grid at 1.0× is SGLang. The small diamonds mark the board's first scored run. Switch the height to see how close each shape gets to its hardware limit (100% would be the H200 at full memory speed).</p>
 <div class="controls">
@@ -142,7 +154,7 @@ function renderStats(){document.getElementById("stats").innerHTML=BOARDS.map(b=>
 
 // ---- climb ----
 const st={ext:false,focus:"dv",cam:"top",tb:BOARDS[0],metric:"sp",i:0,timer:null};
-const CAM={over:{eye:{x:-1.5,y:-1.7,z:0.9},up:{x:0,y:0,z:1}},top:{eye:{x:0,y:0,z:2.5},up:{x:0,y:1,z:0}}};
+const CAM={over:{eye:{x:-1.5,y:-1.7,z:0.9},up:{x:0,y:0,z:1},projection:{type:"perspective"}},top:{eye:{x:0,y:0,z:2.5},up:{x:0,y:1,z:0},projection:{type:"orthographic"}}};
 const FOC=[{id:"dv",n:"All decode-style boards",bs:DV},...DV.map(b=>({id:b.k,n:b.n,bs:[b],c:b.c})),...PF.map(b=>({id:b.k,n:b.n,bs:[b],c:b.c}))];
 document.getElementById("focus").innerHTML=FOC.map(f=>`<button type="button" id="f-${f.id}" ${f.c?`style="--c:var(${f.c})"`:""} aria-pressed="${f.id==="dv"}">${esc(f.n)}</button>`).join("");
 FOC.forEach(f=>document.getElementById("f-"+f.id).onclick=()=>{st.focus=f.id;press(FOC.map(g=>"f-"+g.id),"f-"+f.id);drawClimb();});
@@ -155,26 +167,26 @@ function ring(L,z,lift){const xs=[],ys=[],zs=[];for(let i=0;i<=160;i++){const a=
 function climbTraces(t){const L=land(),gx=[],gy=[],gz=[],N=56;
  for(let i=0;i<=N;i++)gx.push(L.xr[0]+(L.xr[1]-L.xr[0])*i/N);for(let j=0;j<=N;j++)gy.push(L.yr[0]+(L.yr[1]-L.yr[0])*j/N);
  for(const y of gy)gz.push(gx.map(x=>L.f(x,y)));
- const zlo=L.f(L.xr[0],L.yr[0]),zhi=L.f(L.xr[1],L.yr[1]),step=[0.1,0.25,0.5,1].find(v=>(zhi-zlo)/v<=24)||1,lift=(zhi-zlo)*0.006;
+ const zlo=L.f(L.xr[0],L.yr[0]),zhi=L.f(L.xr[1],L.yr[1]),LZ=z=>st.cam==="top"?zhi*1.02:z,step=[0.1,0.25,0.5,1].find(v=>(zhi-zlo)/v<=24)||1,lift=(zhi-zlo)*0.006;
  const out=[{type:"surface",x:gx,y:gy,z:gz,cmin:zlo,cmax:zhi,opacity:1,showscale:true,colorscale:scale(t),
   colorbar:{title:{text:"score ×",font:{color:t.muted}},tickfont:{color:t.muted,family:t.mono,size:10},len:0.6,thickness:12,outlinewidth:0},
   contours:{z:{show:true,color:t.panel,width:1,start:Math.ceil(zlo/step)*step,end:zhi,size:step,project:{z:true}}},
   lighting:{ambient:0.75,diffuse:0.5,specular:0.03,roughness:1},hovertemplate:"%{x:.2f}× · %{y:.2f}×<br>score %{z:.3f}×<extra></extra>"}];
  for(const b of L.bs){const D=DATA[b.k],rs=R(b),c=col(t,b),fin=D.final||{},bi=rs.indexOf(best(b));
   const rings=!st.ext?[]:L.single?[["#1",fin.top1,6,"solid"],["top 10",fin.top10,3,"dash"],["top 100",fin.top100,3,"dot"]]:[["#1",fin.top1,4,"solid"]];
-  rings.forEach(([nm,r,wd,dash])=>{if(!r)return;const g=ring(L,r.s,lift*2);if(!g.xs.length)return;const m=Math.floor(g.xs.length*(L.single?0.5:0.35));
+  rings.forEach(([nm,r,wd,dash])=>{if(!r)return;const g=ring(L,r.s,lift*2);if(!g.xs.length)return;const m=Math.min(g.xs.length-1,Math.floor(g.xs.length*(L.single?({"#1":0.1,"top 10":0.9,"top 100":0.97}[nm]??0.5):0.35)));
    out.push({type:"scatter3d",mode:"lines",x:g.xs,y:g.ys,z:g.zs,line:{color:c,width:wd,dash},hoverinfo:"skip",showlegend:false});
-   out.push({type:"scatter3d",mode:"text",x:[g.xs[m]],y:[g.ys[m]],z:[g.zs[m]+lift*3],text:[`${nm} ${r.team} ${r.s.toFixed(2)}×`],textfont:{color:t.ink,family:t.mono,size:10.5},hoverinfo:"skip",showlegend:false});});
+   out.push({type:"scatter3d",mode:"text",x:[g.xs[m]],y:[g.ys[m]],z:[LZ(g.zs[m]+lift*3)],text:[`${nm} ${r.team} ${r.s.toFixed(2)}×`],textfont:{color:t.ink,family:t.mono,size:10.5},hoverinfo:"skip",showlegend:false});});
   out.push({type:"scatter3d",mode:"lines+markers",x:rs.map(r=>r.A),y:rs.map(r=>r.B),z:rs.map(r=>r.s+lift*2),line:{color:c,width:7},marker:{size:3,color:c},
    customdata:rs.map(r=>[r.l,r.d,r.id]),hovertemplate:"<b>%{customdata[0]}</b> · %{customdata[2]}<br>%{customdata[1]}<br>score %{z:.3f}×<extra>"+esc(b.n)+"</extra>",showlegend:false});
   const ours=st.ext&&fin.ours?` · ours #${fin.ours.rank} of ${fin.n}`:"";
-  out.push({type:"scatter3d",mode:"markers+text",x:[rs[0].A,rs[bi].A],y:[rs[0].B,rs[bi].B],z:[rs[0].s+lift*3,rs[bi].s+lift*3],
+  out.push({type:"scatter3d",mode:"markers+text",x:[rs[0].A,rs[bi].A],y:[rs[0].B,rs[bi].B],z:[LZ(rs[0].s+lift*3),LZ(rs[bi].s+lift*3)],
    text:[rs[0].s.toFixed(2),(L.single?"":b.n+" ")+rs[bi].s.toFixed(2)+ours],textposition:["bottom center","middle right"],textfont:{color:t.ink,family:t.mono,size:10.5},
    marker:{size:6,color:c,line:{color:t.ink,width:1}},hoverinfo:"skip",showlegend:false});
   const S=D.sol,g=ring(L,S.s,lift*2);if(g.xs.length){const m=Math.floor(g.xs.length*(L.single?0.62:0.7));
    out.push({type:"scatter3d",mode:"lines",x:g.xs,y:g.ys,z:g.zs,line:{color:t.ink,width:L.single?7:4,dash:"longdash"},
     hovertemplate:"<b>hardware limit</b>: "+S.s.toFixed(2)+"×<br>every shape as fast as an H200 can<br>move its data (4.8 TB/s) or do its math<extra>"+esc(b.n)+"</extra>",showlegend:false});
-   out.push({type:"scatter3d",mode:"text",x:[g.xs[m]],y:[g.ys[m]],z:[g.zs[m]+lift*3],text:[(L.single?"":b.n+" ")+"hardware limit "+S.s.toFixed(2)+"×"],textfont:{color:t.ink,family:t.mono,size:10.5},hoverinfo:"skip",showlegend:false});}}
+   out.push({type:"scatter3d",mode:"text",x:[g.xs[m]],y:[g.ys[m]],z:[LZ(g.zs[m]+lift*3)],text:[(L.single?"":b.n+" ")+"hardware limit "+S.s.toFixed(2)+"×"],textfont:{color:t.ink,family:t.mono,size:10.5},hoverinfo:"skip",showlegend:false});}}
  return out;}
 function climbLayout(t){const L=land();return Object.assign(base(t),{uirevision:st.focus+st.cam,scene:{xaxis:ax(t,L.xt,{range:L.xr}),yaxis:ax(t,L.yt,{range:L.yr}),
  zaxis:ax(t,"score (×)"),aspectmode:"manual",aspectratio:{x:1.2,y:1.2,z:0.55},camera:CAM[st.cam]}});}
@@ -254,7 +266,17 @@ function setMode(ext){st.ext=ext;press(["m-ours","m-field"],ext?"m-field":"m-our
 document.getElementById("m-ours").onclick=()=>setMode(false);
 document.getElementById("m-field").onclick=()=>setMode(true);
 
-setBoard(0);setMode(location.hash==="#field");
+// Embed mode, driven by the query string (the blog embeds this same file; the artifact ignores it).
+const Q=new URLSearchParams(location.search),EMBED=Q.has("embed");
+const qb=BOARDS.findIndex(b=>b.k===Q.get("board"));
+if(EMBED){document.documentElement.classList.add("embed");
+ const view=Q.get("view")==="terrain"?"terrain":"climb",sec=document.getElementById("s-"+view);sec.classList.add("shown");
+ const ctl=sec.querySelector(".controls"),modes=document.querySelector('[aria-label="Mode"]');if(view==="climb"&&modes)ctl.prepend(modes);
+ if(qb>=0&&view==="climb"){const f=FOC.find(x=>x.id===BOARDS[qb].k);if(f){st.focus=f.id;}document.getElementById("focus").hidden=true;}
+ if(Q.get("cam")==="over"){st.cam="over";press(["c-over","c-top"],"c-over");}
+ if(qb>=0&&view==="terrain")document.getElementById("tb").hidden=true;}
+setBoard(qb>=0?qb:0);setMode(location.hash==="#field"||Q.get("mode")==="field");
+if(EMBED&&Q.get("run")==="first"){st.i=0;slider.value=0;drawTerr();}
 const redraw=()=>{drawClimb();drawTerr();};
 const mq=matchMedia("(prefers-color-scheme: dark)");if(mq.addEventListener)mq.addEventListener("change",redraw);
 new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
