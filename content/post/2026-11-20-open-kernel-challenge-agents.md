@@ -15,7 +15,11 @@ tags:
 
 *How I ran a GPU kernel competition as a team of AI agents from different labs, on a budget I enforced in code.*
 
-For twelve days in October I entered a GPU kernel competition without writing kernels. I ran it as a small organization: several Claude sessions working in parallel, ChatGPT as an adversarial reviewer, Grok and Gemini as outside researchers, and two open models running locally on my Mac for the reading. I set the budgets, approved every scored run, and decided which ideas to chase and when to stop. The agents wrote the kernels, built the tools to measure them, merged each other's work and kept the tickets.
+For twelve days in October I entered a GPU kernel competition, and I didn't write a single kernel.
+
+Writing kernels wasn't the point. Competitions are one of the fastest ways I know to learn something new: the scoreboard tells you every day whether you understood it or only thought you did. I wanted to use this one to learn two things. How far can one person get by directing AI agents instead of writing the code? And how much of the work can I offload to open models running locally on a Mac mini?
+
+So I ran the contest as a small organization: several Claude sessions working in parallel, ChatGPT as an adversarial reviewer, Grok and Gemini as outside researchers, and two Qwen models running locally for the reading. I set the budgets, approved every scored run, and decided which ideas to chase and when to stop. The agents wrote the kernels, built the tools to measure them, merged each other's work and kept the tickets.
 
 I finished around the top quarter on the main board, for about $500 of GPU time. This post is about how the setup worked: which model did what, how I kept spending under control, what the process caught, and what it missed. The logs are in collapsible tables for anyone who wants to check my work.
 
