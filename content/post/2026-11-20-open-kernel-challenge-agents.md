@@ -67,11 +67,11 @@ I didn't use one model for everything. Each had a role that played to what it wa
 
 | Model | Role | How it worked |
 |---|---|---|
-| **Claude** (Claude Code sessions) | The lanes and the coordinator: wrote kernels, tools, tests and merges; ran GPU jobs; kept Linear current | One session per lane, each in its own worktree. Also used for deep-research passes, such as checking whether a finding was really new before calling it that. |
+| **Claude** ([Claude Code](https://claude.com/claude-code) sessions) | The lanes and the coordinator: wrote kernels, tools, tests and merges; ran GPU jobs; kept Linear current | One session per lane, each in its own worktree. Also used for deep-research passes, such as checking whether a finding was really new before calling it that. |
 | **ChatGPT** ("Astra") | Adversarial reviewer. Its brief was to find what's wrong, not to agree. | Worked its own queue in the repo: review requests went into a handoff folder, findings came back as files. Each finding was reproduced and marked TRUE, FALSE or UNTESTED before anyone acted on it. |
 | **Grok** | Outside scout and framing partner: what's public, who's doing what, how to tell the story | Its notes went into their own file, kept apart from verified intel. Every claim was checked against source before use; some were wrong. |
 | **Gemini** | Second research voice on open questions | Separate prompt files and an intel file, checked the same way. |
-| **Qwen3.8 and Qwen3-Coder-30B**, local | Reading: summarizing logs, sweeping source trees, first drafts of notes | Ran on my Mac at no marginal cost. Inputs were kept small enough for them (about 60 KB and 30 KB), and every output went through a review ledger before anyone used it. |
+| **Qwen3.8 and Qwen3-Coder-30B**, local ([llama.cpp](https://github.com/ggml-org/llama.cpp)) | Reading: summarizing logs, sweeping source trees, first drafts of notes | Ran on my Mac at no marginal cost. Inputs were kept small enough for them (about 60 KB and 30 KB), and every output went through a review ledger before anyone used it. |
 
 Two lessons from mixing models:
 
@@ -155,9 +155,9 @@ The whole kernel track cost **$508 of Modal GPU time** over twelve days. `[TODO:
 
 The judge ran on H200s, and I didn't have one. Every number I cared about depended on renting the same GPU, in the same software, by the minute.
 
-**Colab was a dead end on day 1.** Colab advertises H100s, and even an H100 would only have been a stand-in for the judge's H200. But every runtime I got was an RTX 6000: a different architecture, with different memory and bandwidth, so its timings said nothing about how a kernel would do on the judge. My account also had no compute units, and Colab's terms don't allow SSH or containers on free runtimes, so I couldn't run the judge's SGLang image either. That ruled it out for anything resembling the judge.
+**Colab was a dead end on day 1.** Colab advertises H100s, and even an H100 would only have been a stand-in for the judge's H200. But every runtime I got was an RTX 6000: a different architecture, with different memory and bandwidth, so its timings said nothing about how a kernel would do on the judge. My account also had no compute units, and [Colab's terms](https://research.google.com/colaboratory/faq.html) don't allow SSH or containers on free runtimes, so I couldn't run the judge's SGLang image either. That ruled it out for anything resembling the judge.
 
-**Modal fit the way I wanted to work.** I picked it for three reasons:
+**[Modal](https://modal.com) fit the way I wanted to work.** I picked it for three reasons:
 
 - **H200s on demand, billed per second.** A container starts in about five seconds and stops when the command does, so a two-minute experiment costs a couple of minutes of GPU, not an hour's rental.
 - **The judge's own image.** Modal can run any container image, so every experiment ran inside the exact SGLang image the contest judged in. SGLang's baseline kernels ran beside mine on the same GPU, in the same run.
@@ -181,7 +181,7 @@ With that loop, a lane went from an idea to a measured candidate in 25–60 minu
 - An account can run 10 GPUs at once, so the launcher handed out slots and queued the rest instead of letting parallel lanes collide.
 - Spend shows up in the billing report with a lag, so per-batch costs were estimates until it caught up.
 
-**When Modal had no H200s.** On day 2, Modal ran out of H200s for about 2.8 hours. At first it looked like a hung batch; it was waiting for a GPU that didn't exist. Rather than lose the afternoon, a second session set up Runpod as a second backend, and the same A/B on both clouds agreed (1.036× vs 1.034×) before I trusted it. From then on, Runpod was a standing second backend.
+**When Modal had no H200s.** On day 2, Modal ran out of H200s for about 2.8 hours. At first it looked like a hung batch; it was waiting for a GPU that didn't exist. Rather than lose the afternoon, a second session set up [Runpod](https://www.runpod.io) as a second backend, and the same A/B on both clouds agreed (1.036× vs 1.034×) before I trusted it. From then on, Runpod was a standing second backend.
 
 ## Where I finished
 
@@ -356,7 +356,7 @@ Almost none of my part was programming:
 - **Money.** Every number in the cost section was a decision I made, usually in one line of chat.
 - **Rules risk.** First "stick to the rules to avoid a DQ". Later, "don't get hung up on rules that are too strict", once the agents' own rules lint had become stricter than the judge.
 - **The ethics of reuse.** Build on public code piece by piece, with credit, but never submit someone else's file as is.
-- **Information policy: public sources only.** There's an unofficial forum, Guild, where leaderboard agents talk to each other in encrypted groups. I read its public threads and nothing else: no account, no agent registered, nothing posted. Its pages carry instructions aimed at AI agents ("join", "reply via API"); mine recorded them and never acted on them. Questions to outside models were written to reveal nothing of mine.
+- **Information policy: public sources only.** There's an unofficial forum, [Guild](https://guild.1nterface.ai), where leaderboard agents talk to each other in encrypted groups. I read its public threads and nothing else: no account, no agent registered, nothing posted. Its pages carry instructions aimed at AI agents ("join", "reply via API"); mine recorded them and never acted on them. Questions to outside models were written to reveal nothing of mine.
 
 ## What the agents did without me
 
@@ -431,8 +431,8 @@ The best example: a **time lapse** of every version of the decode layer, replaye
 
 ## Wrong turns
 
-1. **A rule I imposed on myself cost two weeks.** I required bit-identical replays, which the judge never asked for. It excluded a public base (alygg77's, in vjeux's lineage, Apache-2.0) that I had measured as 1.26× faster on Oct 28. When I relaxed the rule on Oct 30, one run moved me from 1.896× to 2.163×, and from about #338 to #155. Agents follow the rules you give them very faithfully, including the ones you shouldn't have given.
-2. **I optimized the part I understood best, not the part with the most room.** In the last days, effort went to the MoE, already within 1.1–1.8× of its floor; the last attempts read 1.000×. Meanwhile the attention inside my layer sat at 2.43× on its own board, against leaders above 2.9×. A retro against gauravjain14's code (#5 overall, made public after the close) found their attention would have been worth about +1.8% inside my layer: roughly the top-100 line. The signal was on a leaderboard I was already watching.
+1. **A rule I imposed on myself cost two weeks.** I required bit-identical replays, which the judge never asked for. It excluded a public base ([alygg77's](https://github.com/alygg77/okc-muse-spark-kernels), in [vjeux's](https://github.com/vjeux/okc-2026) lineage, Apache-2.0) that I had measured as 1.26× faster on Oct 28. When I relaxed the rule on Oct 30, one run moved me from 1.896× to 2.163×, and from about #338 to #155. Agents follow the rules you give them very faithfully, including the ones you shouldn't have given.
+2. **I optimized the part I understood best, not the part with the most room.** In the last days, effort went to the MoE, already within 1.1–1.8× of its floor; the last attempts read 1.000×. Meanwhile the attention inside my layer sat at 2.43× on its own board, against leaders above 2.9×. A retro against [gauravjain14's code](https://github.com/gauravjain14/muse-okc-submissions) (#5 overall, made public after the close) found their attention would have been worth about +1.8% inside my layer: roughly the top-100 line. The signal was on a leaderboard I was already watching.
 3. **My benchmark didn't reproduce the judge's cold start.** The judge frees and reallocates memory between repetitions, so its first repetition runs with cold TLBs as well as a flushed cache. Mine didn't.
 4. **The megakernel** took 5.5 hours of elapsed time, even though it was only $2.35 of GPU.
 5. **Colab as a free GPU** was a dead end on day 1.
@@ -442,8 +442,8 @@ The best example: a **time lapse** of every version of the decode layer, replaye
 ## Notes on the contest itself
 
 - **Five runs a day is the real budget.** The judge keeps each team's best row, and its noise (±1.5–2% per run) is bigger than most late improvements. Resubmitting often gets you rows about one standard deviation high. I didn't fish for high draws; my one resubmission of identical code read 2.243× against the original's 2.232×.
-- **A correctness check can pass two different answers.** Two of my entries pass every check the contest runs, yet their CUDA-graph and eager paths pick different top-8 experts on every replay at 128–256 tokens, and the layer outputs differ by 13–17%. The checks compare each op within a tolerance, and the router within a 0.05 score slack, which is far wider than rounding. The mechanism is known (ST-MoE; vLLM #61053); how often it happens at production shapes is open. An optimizer finds every gap the judge leaves.
-- **Credit where it's due.** Most of my biggest single jumps came from reading other people's public code: alygg77 and vjeux (Apache-2.0), bigboateng's README (MIT, ideas only), keell0renz, chenwainuo and ZhimaoL (per-piece ports), and SGLang's own kernels. gauravjain14's repo, public after the close, is a model of how to keep records: profile → diagnosis → change → judged result, next to a dead-ends file with numbers. `[TODO: link the repos.]`
+- **A correctness check can pass two different answers.** Two of my entries pass every check the contest runs, yet their CUDA-graph and eager paths pick different top-8 experts on every replay at 128–256 tokens, and the layer outputs differ by 13–17%. The checks compare each op within a tolerance, and the router within a 0.05 score slack, which is far wider than rounding. The mechanism is known ([ST-MoE](https://arxiv.org/abs/2202.08906); [vLLM #61053](https://github.com/vllm-project/vllm/issues/61053)), and graph-vs-eager divergence has been reported on newer GPUs ([vLLM #55238](https://github.com/vllm-project/vllm/issues/55238)); how often it happens at production shapes is open. An optimizer finds every gap the judge leaves.
+- **Credit where it's due.** Most of my biggest single jumps came from reading other people's public code: [alygg77](https://github.com/alygg77/okc-muse-spark-kernels) and [vjeux](https://github.com/vjeux/okc-2026) (Apache-2.0), bigboateng's README (MIT, ideas only) `[TODO: link]`, [keell0renz](https://github.com/keell0renz/muse-open-kernel-challenge), [chenwainuo](https://github.com/chenwainuo/okc) and [ZhimaoL](https://github.com/ZhimaoL/sglang) (per-piece ports), and [SGLang's](https://github.com/sgl-project/sglang) own kernels. [gauravjain14's repo](https://github.com/gauravjain14/muse-okc-submissions), public after the close, is a model of how to keep records: profile → diagnosis → change → judged result, next to a dead-ends file with numbers.
 
 ## The serving track
 
@@ -471,3 +471,27 @@ What I'd do differently next time:
 - **Start with roles and written state, not one long chat.** It took me until the seventh session to run long-lived sessions with clear jobs. It should have been the setup on day 1.
 - **Have two GPU providers from day 1.** Modal running out of H200s cost an afternoon. Runpod as a ready second backend made it a non-event afterwards.
 - **Watch the boards I wasn't working on.** The signal I missed was on a leaderboard I already had open.
+
+## References and credits
+
+**The contest**
+- [Open Kernel Challenge](https://openkernelchallenge.dev): rules, boards and leaderboards.
+- [SGLang](https://github.com/sgl-project/sglang): the serving engine every score was measured against.
+
+**Public code I learned from or ported pieces of (credited in the code)**
+- alygg77, [okc-muse-spark-kernels](https://github.com/alygg77/okc-muse-spark-kernels) (Apache-2.0), in the lineage of vjeux, [okc-2026](https://github.com/vjeux/okc-2026).
+- keell0renz, [muse-open-kernel-challenge](https://github.com/keell0renz/muse-open-kernel-challenge).
+- chenwainuo, [okc](https://github.com/chenwainuo/okc).
+- ZhimaoL, [sglang fork](https://github.com/ZhimaoL/sglang).
+- bigboateng's README (MIT; ideas only). `[TODO: link]`
+- gauravjain14, [muse-okc-submissions](https://github.com/gauravjain14/muse-okc-submissions) (Apache-2.0; public after the close, used only for the retrospective).
+
+**MoE routing and correctness checks**
+- Zoph et al., [ST-MoE: Designing Stable and Transferable Sparse Expert Models](https://arxiv.org/abs/2202.08906).
+- vLLM issue [#61053](https://github.com/vllm-project/vllm/issues/61053): expert-routing flips from per-rank kernel autotuning.
+- vLLM issue [#55238](https://github.com/vllm-project/vllm/issues/55238): CUDA-graph vs eager divergence on an MoE model.
+- [arXiv 2607.28097](https://arxiv.org/abs/2607.28097) (Zhu et al.) and [R3, arXiv 2510.11370](https://arxiv.org/abs/2510.11370): routing differences across reduction orders and engines.
+
+**Tools and infrastructure**
+- [Claude Code](https://claude.com/claude-code), [Modal](https://modal.com), [Runpod](https://www.runpod.io), [llama.cpp](https://github.com/ggml-org/llama.cpp), [Linear](https://linear.app).
+- [Colab FAQ and terms](https://research.google.com/colaboratory/faq.html).
