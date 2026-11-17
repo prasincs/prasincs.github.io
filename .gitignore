@@ -34,3 +34,4 @@ node_modules/
 tools/draft-review/target/
 review/agents.conf
 review/comments/
+review/history/
