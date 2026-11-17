@@ -33,3 +33,4 @@ node_modules/
 # Rust build output
 tools/draft-review/target/
 review/agents.conf
+review/comments/
