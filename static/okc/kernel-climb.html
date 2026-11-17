@@ -285,13 +285,18 @@ const mq=matchMedia("(prefers-color-scheme: dark)");if(mq.addEventListener)mq.ad
 new MutationObserver(redraw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
 if(!window.Plotly||NOGL){
  const why=NOGL?"This figure is interactive in browsers with WebGL. Open the page in a WebGL-capable browser for the full 3D view.":"The 3D view needs the plotting library, which did not load.";
+ // The same images live at /assets/images/okc/ on the blog and at assets/images/okc/ next to the artifact; try both.
+ const snap=(plot,file,extra)=>{plot.style.height="auto";plot.style.minHeight="0";
+  plot.innerHTML=`<figure style="margin:0;padding:8px;display:grid;gap:8px;justify-items:center"><img alt="Static version of this figure" style="max-width:100%;height:auto;max-height:${EMBED?"calc(100vh - 70px)":"none"}"><figcaption class="note" style="text-align:center;padding:0 8px">${why}${extra||""}</figcaption></figure>`;
+  const img=plot.querySelector("img"),srcs=["/assets/images/okc/"+file,"assets/images/okc/"+file];let i=0;
+  img.onerror=()=>{if(++i<srcs.length)img.src=srcs[i];else img.remove();};img.src=srcs[0];};
+ const mode=(Q.get("mode")==="field"||location.hash==="#field")?"field":"ours";
  if(EMBED){const view=Q.get("view")==="terrain"?"terrain":"climb",sec=document.getElementById("s-"+view),b=qb>=0?BOARDS[qb].k.replace("muse_",""):null;
-  const mode=view==="terrain"?"ours":(Q.get("mode")==="field"?"field":"ours");
-  const img=b?`/assets/images/okc/climb-${b}-${mode}.svg`:`/assets/images/okc/kernel-climb-${mode}.svg`;
   sec.querySelectorAll(".controls,.scrub,.now,.legend").forEach(e=>e.hidden=true);
-  const plot=sec.querySelector(".plot");plot.style.height="auto";plot.style.minHeight="0";
-  plot.innerHTML=`<figure style="margin:0;display:grid;gap:8px;justify-items:center"><img src="${img}" alt="Static version of this figure" style="max-width:100%;height:auto;max-height:calc(100vh - 70px)"><figcaption class="note" style="text-align:center;padding:0 8px">${why}</figcaption></figure>`;}
- else document.querySelectorAll(".plot").forEach(e=>e.insertAdjacentHTML("afterbegin",`<p class="note" style="padding:12px">${why} The run ledger below has the same data.</p>`));}
+  snap(sec.querySelector(".plot"),b?`climb-${b}-${view==="terrain"?"ours":mode}.svg`:`kernel-climb-${mode}.svg`);}
+ else{document.querySelectorAll("#s-climb .controls,#s-terrain .controls,#s-terrain .scrub,#legend").forEach(e=>e.hidden=true);
+  snap(document.getElementById("climb"),`kernel-climb-${mode}.svg`);
+  snap(document.getElementById("terrain"),"hardware-limit.svg"," The run ledger below has every run's numbers.");}}
 })();
 </script>
 </body>
