@@ -99,7 +99,6 @@ The budget was the constraint I cared about most, so I enforced it in code inste
 - **Kill criteria written before the run.** Every experiment said in advance what result would end it.
 - **Judged runs as a budget.** Five scored runs a day, each needing my approval in chat.
 
-**When there were no H200s.** On day 2, Modal ran out of H200s for about 2.8 hours. At first it looked like a hung batch; it was waiting for a GPU that didn't exist. Rather than lose the afternoon, a second session set up Runpod as a second backend, and the same A/B on both clouds agreed (1.036× vs 1.034×) before I trusted it. From then on, Runpod was a standing second backend. Modal also caps an account at 10 concurrent GPUs, so the launcher handed out slots and queued the rest instead of letting parallel lanes collide.
 
 The whole kernel track cost **$508 of Modal GPU time** over twelve days. `[TODO: Runpod spend and token cost.]`
 
@@ -125,6 +124,38 @@ The whole kernel track cost **$508 of Modal GPU time** over twelve days. `[TODO:
 *Source: Modal billing report, Oct 22 – Nov 5.*
 
 </details>
+
+## Finding H200s: Colab, Modal, Runpod
+
+The judge ran on H200s, and I didn't have one. Every number I cared about depended on renting the same GPU, in the same software, by the minute.
+
+**Colab was a dead end on day 1.** My account had no compute units, and Colab's terms don't allow SSH or containers on free runtimes. That ruled it out for anything resembling the judge.
+
+**Modal fit the way I wanted to work.** I picked it for three reasons:
+
+- **H200s on demand, billed per second.** A container starts in about five seconds and stops when the command does, so a two-minute experiment costs a couple of minutes of GPU, not an hour's rental.
+- **The judge's own image.** Modal can run any container image, so every experiment ran inside the exact SGLang image the contest judged in. SGLang's baseline kernels ran beside mine on the same GPU, in the same run.
+- **Scriptable from my Mac.** One launcher script took a list of jobs, ran each in its own container on its own H200 in parallel, and copied logs and profiler traces back. The agents could drive it without me.
+
+**How it changed the iteration loop.** Modal's absolute times read about 7% faster than the judge's, with a wide spread, so I never trusted a single number from it. What I trusted was an A/B *inside one run*: my version and the baseline, timed side by side on the same GPU, with a control copy to catch drift. That gave a three-stage loop, each stage about ten times more expensive than the last:
+
+| Stage | Time per check | Cost | What it catches |
+|---|---|---|---|
+| CPU pre-flight on my Mac | ~5 s | free | build errors, wrong results, obviously bad register use |
+| A/B on a Modal H200, in the judge's image | a few minutes | cents to under a dollar per batch | whether it's actually faster, and by how much |
+| The judge | 5 per day, sometimes hours in the queue | the scarcest thing I had | the real score |
+
+With that loop, a lane went from an idea to a measured candidate in 25–60 minutes, and twelve judged runs in one afternoon all landed within 2% of their Modal-based predictions.
+
+**Where Modal got in the way.** I kept a running list:
+
+- Each container starts cold, so I shared a compile cache between containers to skip minutes of JIT builds. That cache then hid how long setup took: one entry passed every Modal check and failed the judge's 300-second setup limit at 355 seconds, costing a scored run. After that, every candidate got a cold-start check before sending.
+- Nsight Compute couldn't lock GPU clocks inside Modal's containers, so profiler timings drifted more than on a dedicated box.
+- A hung job ran to the 30-minute timeout and lost everything it hadn't printed.
+- An account can run 10 GPUs at once, so the launcher handed out slots and queued the rest instead of letting parallel lanes collide.
+- Spend shows up in the billing report with a lag, so per-batch costs were estimates until it caught up.
+
+**When Modal had no H200s.** On day 2, Modal ran out of H200s for about 2.8 hours. At first it looked like a hung batch; it was waiting for a GPU that didn't exist. Rather than lose the afternoon, a second session set up Runpod as a second backend, and the same A/B on both clouds agreed (1.036× vs 1.034×) before I trusted it. From then on, Runpod was a standing second backend.
 
 ## Where I finished
 
@@ -392,13 +423,23 @@ The best example: a **time lapse** of every version of the decode layer, replaye
 
 The second track opened on Nov 12 and works completely differently: you submit a patch to SGLang and the judge serves the whole model on a full 8×H200 node. It closes on Nov 19, and I'll write it up separately. The H200 shortage was much worse there: no cloud would give me an 8×H200 node on demand, a Modal request sat in a queue for 45 minutes without one, and getting a working box on AWS took most of the first day. The cost controls got stricter there, because an 8×H200 node costs about $30 an hour: one long packed run per day at most, and actual billing pulled every few hours instead of estimates.
 
-## What I'd keep
+## What I learned
 
-`[TODO: your closing, in your words.]` Notes toward it:
+`[TODO: your closing, in your words.]` What I'd say from here:
 
-- Give each model one job, and make the hand-offs files in git. The reviewer from a different lab was worth more than another lane.
-- Put the budget in the launcher, not in a promise. Every cap I set was enforced by a script, and every exception was written down with its reason.
-- CPU first, packed GPU jobs second, judged runs last. Most ideas should die before they cost anything.
-- Write the kill criteria before the run.
-- Watch for rules you invented. The most expensive mistake was one the judge never asked for.
-- Design for the time you have. A setup that needs you watching only works for people with nothing else to do.
+- **Agents changed what my time was worth.** My hours went to budgets, rules, priorities and stopping, not code. That's what made it possible with a day job and kids.
+- **Different models catch different things.** The reviewer from another lab was worth more than another lane. Local models earned their place as readers, and only as readers.
+- **Cheap feedback beats good predictions.** Three models priced the megakernel; a $1.40 probe settled it in 17 minutes. The CPU pre-flight and same-run A/Bs on Modal did more for the score than any estimate.
+- **Put the budget in the launcher.** Every cap I set was enforced by a script, and every exception was written down with its reason.
+- **Agents are faithful to the rules you give them, including bad ones.** The most expensive mistake of the contest was a rule I invented that the judge never asked for.
+
+## In retrospect
+
+What I'd do differently next time:
+
+- **Compute the hardware limit on day 1, for every component.** The share of each limit already reached tells you where the room is. It would have pointed at attention (36% of its limit, against the MoE near its floor) long before the close.
+- **Audit my own rules against the judge's in the first week.** The bit-identical rule cost two weeks and about 180 places. A one-hour comparison of my rules with the contest's would have caught it.
+- **Test setup the way the judge does.** Cold caches, cold memory, fresh compile. Two of my measurement gaps were about warm state the judge never had.
+- **Pack GPU work from the start.** Packed jobs with a control copy came after a day of paying for idle GPUs. They should have been the default.
+- **Have two GPU providers from day 1.** Modal running out of H200s cost an afternoon. Runpod as a ready second backend made it a non-event afterwards.
+- **Watch the boards I wasn't working on.** The signal I missed was on a leaderboard I already had open.
