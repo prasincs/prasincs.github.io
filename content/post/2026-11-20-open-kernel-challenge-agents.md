@@ -87,10 +87,10 @@ At first I treated that as the end of a session. When one got long and started l
 What made restarts cheap was moving the state out of the conversation and into files:
 
 - **A handoff file** (CLAUDE.md, from day 1): the rules, the budgets, every standing decision with my exact words and the date.
-- **Decision and learning logs**, a run log, and Linear, so "what did we decide and why" had one answer outside anyone's memory.
+- **Decision and learning logs**, a run log, and Linear, so "what did I decide and why" had one answer outside anyone's memory.
 - **A handoff queue in the repo** for work between models: requests in one folder, claimed work in another, results in a third.
 
-Files carry mistakes too. Once, a handoff note carried a wrong belief about an accuracy margin from one session to the next, and it nearly made us drop a precision that was actually fine. A scripted re-measurement caught it for $0.84. Since then, any number that matters gets re-measured, not just copied forward.
+Files carry mistakes too. Once, a handoff note carried a wrong belief about an accuracy margin from one session to the next, and it nearly made me drop a precision that was actually fine. A scripted re-measurement caught it for $0.84. Since then, any number that matters gets re-measured, not just copied forward.
 
 By the seventh session, OKC7, I'd stopped thinking of sessions as disposable and started thinking of them as **staff with roles**. A session with a narrow job and its rules written down survives many context resets, because the summary only has to keep a little and the files hold the rest. By the serving track, the setup looked like this:
 
