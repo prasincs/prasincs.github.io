@@ -78,6 +78,32 @@ Two lessons from mixing models:
 - **Disagreement is the feature.** The reviewer caught claims the lanes were sure of: a test that would have accepted the wrong kind of failure, a "novel" fix that upstream had already rejected, wording that overstated a measurement. A model checking its own work rarely finds those.
 - **Local models are for reading, not editing.** Qwen3-Coder failed twice on a 12-line kernel edit. As a reader of logs and source trees it was fine, and free.
 
+### Sessions, context resets, and roles
+
+The thing I understood least at the start was the context window. A Claude session can only hold so much conversation. When it fills up, the session summarizes itself and carries on from the summary, and details that didn't make the summary are gone.
+
+At first I treated that as the end of a session. When one got long and started losing track, I opened a new one: the first session, then one I started by pasting in the project's handoff file, then OKC2, OKC3, and so on. Each restart cost time while the new session re-learned where things stood.
+
+What made restarts cheap was moving the state out of the conversation and into files:
+
+- **A handoff file** (CLAUDE.md, from day 1): the rules, the budgets, every standing decision with my exact words and the date.
+- **Decision and learning logs**, a run log, and Linear, so "what did we decide and why" had one answer outside anyone's memory.
+- **A handoff queue in the repo** for work between models: requests in one folder, claimed work in another, results in a third.
+
+Files carry mistakes too. Once, a handoff note carried a wrong belief about an accuracy margin from one session to the next, and it nearly made us drop a precision that was actually fine. A scripted re-measurement caught it for $0.84. Since then, any number that matters gets re-measured, not just copied forward.
+
+By the seventh session, OKC7, I'd stopped thinking of sessions as disposable and started thinking of them as **staff with roles**. A session with a narrow job and its rules written down survives many context resets, because the summary only has to keep a little and the files hold the rest. By the serving track, the setup looked like this:
+
+| Session | Role |
+|---|---|
+| OKC7 | Serving lead: patches, one-GPU tests, scored runs (with my approval) |
+| AWS session | GPU infrastructure: spot capacity, boxes, weights, cost reports |
+| Research and writing | Visualizations, the follow-up log, this post. Read-only on GPUs and the judge. |
+| Astra (ChatGPT) | Adversarial review, through the handoff queue |
+| Scheduled sessions | One narrow job each: send approved runs right after the daily reset, post the rank to Linear twice a day, sweep public kernel work twice a day, scout other competitions |
+
+A context reset stopped being an emergency and became a shift change. And because I could open any of these sessions from my phone, approving a run or redirecting a lane didn't need me at my desk.
+
 ### Built around a day job and kids
 
 Every part of the setup had to work when I wasn't there:
@@ -129,7 +155,7 @@ The whole kernel track cost **$508 of Modal GPU time** over twelve days. `[TODO:
 
 The judge ran on H200s, and I didn't have one. Every number I cared about depended on renting the same GPU, in the same software, by the minute.
 
-**Colab was a dead end on day 1.** My account had no compute units, and Colab's terms don't allow SSH or containers on free runtimes. That ruled it out for anything resembling the judge.
+**Colab was a dead end on day 1.** Colab advertises H100s, and even an H100 would only have been a stand-in for the judge's H200. But every runtime I got was an RTX 6000: a different architecture, with different memory and bandwidth, so its timings said nothing about how a kernel would do on the judge. My account also had no compute units, and Colab's terms don't allow SSH or containers on free runtimes, so I couldn't run the judge's SGLang image either. That ruled it out for anything resembling the judge.
 
 **Modal fit the way I wanted to work.** I picked it for three reasons:
 
@@ -431,6 +457,7 @@ The second track opened on Nov 12 and works completely differently: you submit a
 - **Different models catch different things.** The reviewer from another lab was worth more than another lane. Local models earned their place as readers, and only as readers.
 - **Cheap feedback beats good predictions.** Three models priced the megakernel; a $1.40 probe settled it in 17 minutes. The CPU pre-flight and same-run A/Bs on Modal did more for the score than any estimate.
 - **Put the budget in the launcher.** Every cap I set was enforced by a script, and every exception was written down with its reason.
+- **Sessions are staff, not chats.** Give each one a narrow role, put its rules and state in files, and context resets turn into shift changes.
 - **Agents are faithful to the rules you give them, including bad ones.** The most expensive mistake of the contest was a rule I invented that the judge never asked for.
 
 ## In retrospect
@@ -441,5 +468,6 @@ What I'd do differently next time:
 - **Audit my own rules against the judge's in the first week.** The bit-identical rule cost two weeks and about 180 places. A one-hour comparison of my rules with the contest's would have caught it.
 - **Test setup the way the judge does.** Cold caches, cold memory, fresh compile. Two of my measurement gaps were about warm state the judge never had.
 - **Pack GPU work from the start.** Packed jobs with a control copy came after a day of paying for idle GPUs. They should have been the default.
+- **Start with roles and written state, not one long chat.** It took me until the seventh session to run long-lived sessions with clear jobs. It should have been the setup on day 1.
 - **Have two GPU providers from day 1.** Modal running out of H200s cost an afternoon. Runpod as a ready second backend made it a non-event afterwards.
 - **Watch the boards I wasn't working on.** The signal I missed was on a leaderboard I already had open.
