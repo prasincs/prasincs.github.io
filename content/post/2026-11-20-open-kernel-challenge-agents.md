@@ -407,11 +407,17 @@ Seventeen minutes after the estimate, a $1.40 probe tested its central assumptio
 
 </details>
 
+The megakernel was one node on a bigger map. On Oct 25 the agents drew every lever they could see, with odds and a multiplier for each. Most of it shipped, for 0–6% a step. The two biggest jumps, +10.5% and +14%, came from public kernels the map didn't have.
+
+{{< interactive src="/okc/plan-dag.html?embed" height="900" title="The plan, and what happened" caption="Figure 7. The Oct 25 experiment map: odds each lever works, the layer multiplier if it does, and days of work. Switch to What happened to colour each node by its fate and show the five wins that weren't on the map. Click any node for details." >}}
+
 ## Seeing the work
 
 With a dozen lanes and hundreds of GPU batches, I couldn't read every log. I steered by pictures the agents generated from the repo's own data, rebuilt as the data changed. Their numbers come from data files and scripts, never typed in, and tests fail when a picture and its source disagree.
 
 The best example: a **time lapse** of every version of the decode layer, replayed the way the judge times it. On day 2 it changed two beliefs at once. The gaps between kernel launches were 0.1–0.6 µs, not ~25 µs, so "fewer kernels" wasn't a lever by itself. And cuBLAS was running the 8-token router as an FP32 matrix multiply that took 34 µs alone. Fixing that took the verify-1 load from 1.27× to 1.48×. I found it by looking, not by planning.
+
+{{< interactive src="/okc/timelapse.html?embed&frame=SGLang" height="900" title="Layer time lapse" caption="Figure 8. Every decode-layer version from SGLang to a3, replayed as a CUDA graph on one H200. The bars split each load's time per layer into five kinds of work, on SGLang's scale; the timeline below shows every kernel in one replay of the chosen shape. Press Play, or pick v8 and verify 1 to see the router fix." >}}
 
 <details>
 <summary><b>All the instruments, and what each one changed</b></summary>
