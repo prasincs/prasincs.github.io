@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Plan Versus Outcome</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap">
+<style>
+/* Layout: the Oct 25 experiment DAG as an SVG (top to bottom), a Plan / What happened switch, and a detail panel for the clicked node. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --ink: #1b2230; --muted: #5b6577; --rule: #dde1e8; --edge: #9aa3b2;
+  --accent: #0d6b86; --accent-soft: #e2f0f4;
+  --done-bg: #e3f2e8; --done: #2f7d4f;
+  --next-bg: #fff7e0; --next: #9a6b00;
+  --risky-bg: #fbf1d9; --risky: #b13a26;
+  --later-bg: #eceef2; --later: #6b7486;
+  --key-bg: #e2f0f4; --key: #0d6b86;
+  --ship-bg: #dff1e5; --ship: #23804a;
+  --drop-bg: #f8e3df; --drop: #b13a26;
+  --super-bg: #e6ebf5; --super: #4a63a8;
+  --none-bg: transparent; --none: #8a93a3;
+  --win-bg: #fff2cc; --win: #9a6b00;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --ink: #e4e8ef; --muted: #9aa4b5; --rule: #2c3442; --edge: #5d6778;
+    --accent: #5cc0db; --accent-soft: #15323c;
+    --done-bg: #173325; --done: #5cc48a; --next-bg: #33290f; --next: #e0b23c; --risky-bg: #3a2216; --risky: #e8826b;
+    --later-bg: #232a35; --later: #9aa4b5; --key-bg: #15323c; --key: #5cc0db;
+    --ship-bg: #173325; --ship: #5cc48a; --drop-bg: #3a1d19; --drop: #e8826b; --super-bg: #1f2840; --super: #8ea4e6;
+    --none: #6f7888; --win-bg: #33290f; --win: #e0b23c; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --ink: #e4e8ef; --muted: #9aa4b5; --rule: #2c3442; --edge: #5d6778;
+  --accent: #5cc0db; --accent-soft: #15323c;
+  --done-bg: #173325; --done: #5cc48a; --next-bg: #33290f; --next: #e0b23c; --risky-bg: #3a2216; --risky: #e8826b;
+  --later-bg: #232a35; --later: #9aa4b5; --key-bg: #15323c; --key: #5cc0db;
+  --ship-bg: #173325; --ship: #5cc48a; --drop-bg: #3a1d19; --drop: #e8826b; --super-bg: #1f2840; --super: #8ea4e6;
+  --none: #6f7888; --win-bg: #33290f; --win: #e0b23c; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+}
+main { max-width: 860px; margin: 0 auto; display: grid; gap: 18px; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(26px, 5vw, 36px); line-height: 1.1; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 70ch; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.lede { color: var(--muted); }
+header { display: grid; gap: 10px; }
+.bar { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; }
+.seg { display: inline-flex; border: 1px solid var(--accent); border-radius: 999px; overflow: hidden; }
+.seg button { font: 500 14px var(--f-body); color: var(--ink); background: transparent; border: 0; padding: 6px 16px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+.seg button:focus-visible { outline: 2px solid var(--accent); outline-offset: -3px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; color: var(--muted); }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; border: 1.5px solid; }
+.graph { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; }
+svg { display: block; width: 100%; min-width: 560px; height: auto; font-family: var(--f-body); }
+.node { cursor: pointer; }
+.node rect { stroke-width: 1.5; transition: fill .25s, stroke .25s; }
+.node.sel rect { stroke-width: 3; }
+.node:focus-visible rect { stroke-width: 3; stroke-dasharray: 4 2; }
+.node:focus { outline: none; }
+.node .t1 { font: 600 12px var(--f-body); fill: var(--ink); }
+.node .t2 { font: 400 10.5px var(--f-mono); fill: var(--muted); }
+.edge { fill: none; stroke: var(--edge); stroke-width: 1.4; }
+.edge.dash { stroke-dasharray: 4 3; }
+.wins { opacity: 0; transition: opacity .3s; pointer-events: none; }
+.show-out .wins { opacity: 1; pointer-events: auto; }
+.lane-label { font: 500 11px var(--f-mono); fill: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+.detail { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; display: grid; gap: 6px; min-height: 108px; }
+.detail h2 { font: 600 17px var(--f-display); margin: 0; }
+.detail .row { display: grid; grid-template-columns: 7.5em 1fr; gap: 10px; font-size: 14px; }
+.detail .row b { font-weight: 500; color: var(--muted); }
+.detail .src { font: 400 12px var(--f-mono); color: var(--muted); }
+footer { color: var(--muted); font-size: 12.5px; }
+/* Embed mode (?embed&mode=plan|out): no page chrome, blog colours. */
+:root.embed { --bg: #ffffff; --surface: #ffffff; }
+@media (prefers-color-scheme: dark) { :root.embed:not([data-theme="light"]) { --bg: #1d1e20; --surface: #1d1e20; } }
+:root.embed[data-theme="dark"] { --bg: #1d1e20; --surface: #1d1e20; }
+:root.embed body { padding-block: 6px; padding-left: max(6px, env(safe-area-inset-left, 0px)); padding-right: max(6px, env(safe-area-inset-right, 0px)); }
+:root.embed main { max-width: none; gap: 10px; }
+:root.embed header, :root.embed footer { display: none; }
+:root.embed .graph { border: 0; }
+</style>
+</head>
+<body>
+<main id="app">
+  <header>
+    <div class="eyebrow">Muse Spark Open Kernel Challenge · decode layer · Oct 25 → Nov 4, 2026</div>
+    <h1>The plan, and what happened</h1>
+    <p class="lede">On Oct 25 my decode layer was ranked at 1.188×. The agents drew this map of every lever they could see: odds it works, the layer multiplier if it does, and days of work. Switch to <em>What happened</em> to colour each node by its fate, and to see the wins that weren't on the map at all.</p>
+  </header>
+  <div class="bar">
+    <div class="seg" role="group" aria-label="View">
+      <button type="button" data-mode="plan" aria-pressed="true">The plan (Oct 25)</button>
+      <button type="button" data-mode="out" aria-pressed="false">What happened</button>
+    </div>
+    <div class="legend" id="legend"></div>
+  </div>
+  <div class="graph"><svg id="dag" role="img" aria-label="Experiment DAG"></svg></div>
+  <div class="detail" id="detail" aria-live="polite"></div>
+  <footer id="foot"></footer>
+</main>
+<script>
+// Plan nodes: copied from the Oct 25 game plan's mermaid DAG. Outcomes: sourced from the repo's ledger and judged runs.
+const NODES = [{"id": "NOW", "c": 2.5, "r": 0, "plan": "now", "label": "v6 ranked", "odds": "1.188×", "name": "Start: v6, ranked 1.188× (Oct 25)", "outText": "The layer I had when the map was drawn: SGLang plus glue fusion and a capped Marlin block."}, {"id": "X0", "c": 0, "r": 1, "plan": "key", "out": "untried", "label": "X0 · discovery", "odds": "p ? · 0.5–1 d", "short": "never run", "name": "X0 · What cheap win gives #1 2.1× on day 1?", "planText": "Odds unknown · 0.5–1 day. Rated the highest-value item on the map.", "outText": "Never run as a task. The answer arrived anyway, as public code: a competitor's cluster norm and GEMMs (Oct 26–27), then the alygg77/vjeux kernels (Oct 28–30)."}, {"id": "A", "c": 1, "r": 1, "plan": "next", "out": "shipped", "label": "A · full attention", "odds": "p .60 · ×1.06–1.10", "short": "v7b · 1.225×", "name": "A · Own pipelined full-context attention", "planText": "60% odds · ×1.06–1.10 · 1–2 days", "outText": "Shipped in v7b (own Triton split-KV attention): 1.188× → 1.225× judged, together with H. The CUDA rewrite (v9) added only 0.2%."}, {"id": "H", "c": 2, "r": 1, "plan": "next", "out": "shipped", "label": "H · QK-norm fold", "odds": "p .80 · ×1.01–1.02", "short": "in v7b", "name": "H · Fold QK-norm and RoPE into the FP8 store", "planText": "80% odds · ×1.01–1.02 · 0.5–1 day", "outText": "Shipped inside v7b: 1.005× on Modal, part of v7b's +3.1% judged."}, {"id": "D", "c": 3, "r": 1, "plan": "next", "out": "shipped", "label": "D · PDL chain", "odds": "p .60 · ×1.03–1.06", "short": "+0.8%, +0.5%", "name": "D · Programmatic dependent launch along the kernel chain", "planText": "60% odds · ×1.03–1.06 · 1–2 days", "outText": "Shipped, but small: c8_pdl +0.8% (1.560×), later PDL edges +0.5% (c28, 1.896×). A full PDL chain read as noise."}, {"id": "E", "c": 4, "r": 1, "plan": "later", "out": "superseded", "label": "E · skinny GEMM", "odds": "p .35 · ×1.02–1.04", "short": "replaced", "name": "E · My own skinny bf16 GEMM", "planText": "35% odds · ×1.02–1.04 · 1–2 days", "outText": "Small-batch GEMVs gave 1.013× on Modal; my own 16-row GEMM lost (0.932×). Replaced by swap-AB split-K GEMMs from a competitor's public README: +4% (c15b, 1.671×)."}, {"id": "K0", "c": 5, "r": 1, "plan": "done", "out": "shipped", "label": "K1 stage 0b", "odds": "3.53 instr/w", "short": "in v12", "name": "K1 stage 0b · MoE scales on the A side", "planText": "Done before the map: 4.92 → 3.53 instructions per weight, 2.75 TB/s.", "outText": "Reached the ranked layer in v12 (1.287×) as part of my own MoE kernel, K1."}, {"id": "B", "c": 1, "r": 2, "plan": "later", "out": "shipped", "label": "B · sliding attention", "odds": "p .45 · ×1.03–1.06", "short": "c1 · +2.6%", "name": "B · Own fused sliding-window attention", "planText": "45% odds · ×1.03–1.06 · 1.5–3 days", "outText": "Shipped in c1: 1.367× → 1.402× judged (+2.6%), within 0.3% of the prediction."}, {"id": "L", "c": 3, "r": 2, "plan": "risky", "out": "dropped", "label": "L · fewer launches", "odds": "p .40 · ×1.06–1.12", "short": "no lever", "name": "L · Cut kernel launches from 23 to about 8", "planText": "40% odds · ×1.06–1.12 · 2–3 days", "outText": "Dropped. The time lapse showed launch gaps of 0.1–0.6 µs under graph replay, so fewer launches saved nothing by themselves; a fusion attempt (c14n) read 0.954×."}, {"id": "C2", "c": 4, "r": 2, "plan": "next", "out": "shipped", "label": "C2 · address hoist", "odds": "slope ×0.86–0.90", "short": "3.01 TB/s", "name": "C2 · Hoist K1's address math", "planText": "75% odds · weight-stream slope ×0.86–0.90 · 0.5–1 day", "outText": "Shipped: 3.01 TB/s, the first time K1 streamed faster than Marlin (2.95). In v12."}, {"id": "C4", "c": 5, "r": 2, "plan": "risky", "out": "shipped", "label": "C4 · fixed cost", "odds": "fixed ×0.35–0.55", "short": "21 → 14 µs", "name": "C4 · Cut K1's fixed cost per launch", "planText": "50% odds · intercept ×0.35–0.55 · 1–2 days (planned as a persistent kernel)", "outText": "Shipped, but not as planned: a split-K and warp-count sweep took the fixed cost from 21.2 to 14.1 µs, without a persistent kernel. In v12."}, {"id": "C3", "c": 4, "r": 3, "plan": "risky", "out": "shipped", "label": "C3 · dequant", "odds": "slope ×0.78–0.85", "short": "c6 · +6.4%", "name": "C3 · Cheaper dequant, more bytes in flight", "planText": "45% odds · slope ×0.78–0.85 · 1–2 days", "outText": "Shipped big: dequant from 15 to 9 instructions per word. c6 1.434× → 1.526× judged (+6.4%), then c7 1.548×."}, {"id": "C5", "c": 4.5, "r": 4, "plan": "risky", "out": "shipped", "label": "C5 · K1 in the layer", "odds": "p .70 · 2–3 d", "short": "v12 · 1.287×", "name": "C5 · Integrate K1 (w13 + w2) into the layer", "planText": "70% odds · 2–3 days · ×1.00 now, ×1.11 if C2+C3+C4 land", "outText": "K1 went into the layer at ≤32 tokens in v12: 1.287× judged (+1.7%). Fusing w13 and w2 into one launch lost (0.947×) and was dropped."}, {"id": "G", "c": 3, "r": 5, "plan": "later", "out": "shipped", "label": "G · in-kernel finalize", "odds": "p .60 · ×1.02", "short": "≈ neutral", "name": "G · Finalize the MoE inside the kernel", "planText": "60% odds · ×1.02 · 0.5–1 day", "outText": "Shipped in c2: 1.399× judged against c1's 1.402×, inside the judge's noise."}, {"id": "F", "c": 4, "r": 5, "plan": "later", "out": "shipped", "label": "F · K1 at 128–256", "odds": "p .30 · ×1.05–1.08", "short": "v15 · +6.2%", "name": "F · K1 at 128–256 tokens (verify 16/32)", "planText": "30% odds · ×1.05–1.08 · 3–4 days", "outText": "Shipped in v15 with verify attention: 1.287× → 1.367× judged (+6.2%). Later extended down to 5 tokens (1.449×)."}, {"id": "M", "c": 5, "r": 5, "plan": "risky", "out": "dropped", "label": "M · megakernel", "odds": "p .35 · ×1.12–1.25", "short": "killed, $2.35", "name": "M · MoE megakernel at ≤ 32 tokens", "planText": "35% odds · ×1.12–1.25 · 3–4 days", "outText": "Killed in a day for $2.35, no judged run: four GEMVs took 49.1 µs inside one persistent kernel against 45.5 µs separately, and the first fused piece was slower too."}, {"id": "T100", "c": 3.5, "r": 6, "plan": "goal", "out": "goal", "label": "top 100", "odds": "≈ 1.95× at close", "short": "2.288× at close", "name": "Goal: top 100 at the close", "planText": "Projected line ≈ 1.95× at close (needed ×1.64 on v6).", "outText": "The real line at the close was 2.288×, about 17% above the projection. My best, 2.243×, finished #251 on Nov 4 (best rank #144 on Nov 2)."}, {"id": "T50", "c": 5, "r": 6, "plan": "goal", "out": "goal", "label": "top 50", "odds": "≈ 2.08× at close", "short": "2.344× at close", "name": "Goal: top 50 at the close", "planText": "Projected line ≈ 2.08× at close (needed ×1.75 on v6).", "outText": "The real line was 2.344×. The whole field moved faster than the map assumed."}];
+const EDGES = [["NOW", "X0"], ["NOW", "A"], ["NOW", "H"], ["NOW", "D"], ["NOW", "E"], ["NOW", "K0"], ["A", "B"], ["D", "L"], ["K0", "C2"], ["K0", "C4"], ["C2", "C3"], ["C2", "C5"], ["C3", "C5", 1], ["C4", "C5", 1], ["C5", "G"], ["C5", "F"], ["C5", "M"], ["M", "T100"], ["L", "T100"], ["F", "T50"], ["X0", "T100", 1], ["T100", "T50"]];
+const WINS = [{"id": "w_v8", "label": "v8 · router", "short": "+3.1% · 1.263×", "name": "v8 · The router as a split-K tensor-core kernel (Oct 25)", "outText": "Not on the map. The time lapse showed cuBLAS running the 8-token FP32 router as a 34 µs FFMA GEMM; a 3xTF32 split-K kernel took verify 1 from 1.27× to 1.48×."}, {"id": "w_c15", "label": "c14z–c15b", "short": "1.594 → 1.671×", "name": "c14z → c15b · A competitor's public norm and GEMMs (Oct 26–27)", "outText": "bigboateng's public code and README: SGLang's cluster norm turned on for H200, then swap-AB split-K GEMMs. Ported one piece at a time, with credit."}, {"id": "w_c19", "label": "c19 · new MoE", "short": "+10.5% · 1.868×", "name": "c19 · vjeux's persistent MoE kernel, made deterministic (Oct 28)", "outText": "Replaced my own K1 at 17+ tokens: 1.690× → 1.868× judged."}, {"id": "w_a1", "label": "a1 · public base", "short": "+14% · 2.163×", "name": "a1 · The alygg77/vjeux kernels as the base (Oct 30)", "outText": "The biggest single jump: 1.896× → 2.163×. It became usable only after I relaxed my own bit-identical rule, which had blocked it since Oct 28."}, {"id": "w_a22", "label": "a3 → a22d", "short": "2.206 → 2.243×", "name": "a3 → a22d · Ported pieces, one at a time (Oct 31 – Nov 2)", "outText": "fp16 PV as async wgmma (a3), FP8 P (a19), GEMVs from chenwainuo and finalize pieces from keell0renz (a21–a22). a22d, a resubmit of identical code, set my best: 2.243×."}];
+const FOOT = "Plan: the experiment DAG in my game plan, committed Oct 25, 2026 (UTC), with odds from a Monte Carlo over orderings and a 20% haircut on every gain. Outcomes: judged scores from the contest's own runs; Modal figures are my own H200 runs. Gains that shipped together (A with H, F with verify attention) can't be separated in the judged score.";
+
+const QS = new URLSearchParams(location.search);
+if (QS.has("embed")) document.documentElement.classList.add("embed");
+let mode = QS.get("mode") === "out" ? "out" : "plan";
+let selected = null;
+
+const PLAN_STYLE = { done: "done", next: "next", risky: "risky", later: "later", key: "key", goal: "goal", now: "done" };
+const OUT_STYLE = { shipped: "ship", dropped: "drop", superseded: "super", untried: "none", goal: "goal", now: "done", win: "win" };
+const PLAN_LEGEND = [["done", "done before Oct 25"], ["next", "next up"], ["risky", "risky"], ["later", "later"], ["key", "discovery"]];
+const OUT_LEGEND = [["ship", "shipped"], ["drop", "tried, dropped"], ["super", "superseded"], ["none", "never tried"], ["win", "not on the map"]];
+
+const W = 820, NW = 136, NH = 50, COLS = 6, ROWH = 82, TOP = 22;
+const colX = c => 14 + c * ((W - 28 - NW) / (COLS - 1));
+const pos = n => ({ x: colX(n.c), y: TOP + n.r * ROWH });
+const byId = Object.fromEntries(NODES.map(n => [n.id, n]));
+const esc = s => String(s).replace(/[&<>"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[ch]));
+
+function style(n) {
+  const k = mode === "plan" ? PLAN_STYLE[n.plan] : OUT_STYLE[n.out || n.plan];
+  if (k === "goal") return { fill: "var(--surface)", stroke: "var(--ink)", dash: "" };
+  if (k === "none") return { fill: "var(--surface)", stroke: "var(--none)", dash: "4 3" };
+  return { fill: `var(--${k}-bg)`, stroke: `var(--${k})`, dash: "" };
+}
+function line2(n) { return mode === "plan" ? n.odds : (n.short || n.odds); }
+
+function draw() {
+  const svg = document.getElementById("dag");
+  const winsY = TOP + 7 * ROWH + 18;
+  const H = winsY + (WINS.length ? 30 + NH + 16 : 0);
+  svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  let out = `<defs><marker id="ah" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="var(--edge)"/></marker></defs>`;
+  for (const [a, b, dash] of EDGES) {
+    const p = pos(byId[a]), q = pos(byId[b]);
+    const x1 = p.x + NW / 2, y1 = p.y + NH, x2 = q.x + NW / 2, y2 = q.y - 2;
+    const my = (y1 + y2) / 2;
+    out += `<path class="edge${dash ? " dash" : ""}" d="M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}" marker-end="url(#ah)"/>`;
+  }
+  for (const n of NODES) {
+    const p = pos(n), s = style(n), rx = n.plan === "goal" ? NH / 2 : 6;
+    out += `<g class="node${selected === n.id ? " sel" : ""}" tabindex="0" role="button" aria-label="${esc(n.name)}" data-id="${n.id}">` +
+      `<rect x="${p.x}" y="${p.y}" width="${NW}" height="${NH}" rx="${rx}" fill="${s.fill}" stroke="${s.stroke}" stroke-dasharray="${s.dash}"/>` +
+      `<text class="t1" x="${p.x + NW / 2}" y="${p.y + 20}" text-anchor="middle">${esc(n.label)}</text>` +
+      `<text class="t2" x="${p.x + NW / 2}" y="${p.y + 37}" text-anchor="middle">${esc(line2(n))}</text></g>`;
+  }
+  if (WINS.length) {
+    out += `<g class="wins"><text class="lane-label" x="14" y="${winsY + 14}">Not on the map: where the score actually came from</text>`;
+    const pitch = (W - 28 - NW) / Math.max(1, WINS.length - 1);
+    WINS.forEach((w, i) => {
+      const x = 14 + i * pitch, y = winsY + 26, s = { fill: "var(--win-bg)", stroke: "var(--win)" };
+      out += `<g class="node${selected === w.id ? " sel" : ""}" tabindex="0" role="button" aria-label="${esc(w.name)}" data-id="${w.id}">` +
+        `<rect x="${x}" y="${y}" width="${NW}" height="${NH}" rx="6" fill="${s.fill}" stroke="${s.stroke}"/>` +
+        `<text class="t1" x="${x + NW / 2}" y="${y + 20}" text-anchor="middle">${esc(w.label)}</text>` +
+        `<text class="t2" x="${x + NW / 2}" y="${y + 37}" text-anchor="middle">${esc(w.short)}</text></g>`;
+    });
+    out += `</g>`;
+  }
+  svg.innerHTML = out;
+  document.getElementById("app").classList.toggle("show-out", mode === "out");
+  document.querySelectorAll(".seg button").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
+  document.getElementById("legend").innerHTML = (mode === "plan" ? PLAN_LEGEND : OUT_LEGEND).map(([k, l]) =>
+    `<span><i style="background:var(--${k}-bg);border-color:var(--${k})${k === "none" ? ";border-style:dashed" : ""}"></i>${l}</span>`).join("");
+  showDetail();
+}
+
+function showDetail() {
+  const el = document.getElementById("detail");
+  const n = byId[selected] || WINS.find(w => w.id === selected);
+  if (!n) {
+    el.innerHTML = `<h2>${mode === "plan" ? "Click a node" : "Click a node to see what became of it"}</h2>` +
+      `<p class="lede">${mode === "plan" ? "Each node: odds it works · layer multiplier if it does · days of work. Goals were the projected top-100 and top-50 lines at the close." : "Green shipped in a ranked version, red was tried and dropped, blue was overtaken by something better, dashed was never tried. The gold row underneath wasn't on the plan."}</p>`;
+    return;
+  }
+  el.innerHTML = `<h2>${esc(n.name)}</h2>` +
+    (n.odds && n.plan !== "goal" && n.plan !== "now" ? `<div class="row"><b>Planned</b><span>${esc(n.planText || n.odds)}</span></div>` : "") +
+    (n.plan === "goal" ? `<div class="row"><b>Planned</b><span>${esc(n.planText)}</span></div>` : "") +
+    (n.outText ? `<div class="row"><b>What happened</b><span>${esc(n.outText)}</span></div>` : "");
+}
+
+document.getElementById("dag").addEventListener("click", e => {
+  const g = e.target.closest(".node"); if (!g) return;
+  selected = selected === g.dataset.id ? null : g.dataset.id; draw();
+});
+document.getElementById("dag").addEventListener("keydown", e => {
+  if (e.key !== "Enter" && e.key !== " ") return;
+  const g = e.target.closest(".node"); if (!g) return;
+  e.preventDefault(); selected = g.dataset.id; draw();
+  document.querySelector(`.node[data-id="${g.dataset.id}"]`)?.focus();
+});
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => { mode = b.dataset.mode; draw(); }));
+document.getElementById("foot").textContent = FOOT;
+draw();
+</script>
+</body>
+</html>
