@@ -1,0 +1,197 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Serving Run by Run</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap">
+<style>
+/* Layout: controls row (run stepper, metric switch), one bar chart of the four loads with the previous run as a ghost,
+   then a detail strip for the chosen run. Data are the judge's scored results, copied from runs/serving/. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --ink: #1b2230; --muted: #5b6577; --rule: #dde1e8;
+  --accent: #0d6b86; --accent-soft: #e2f0f4;
+  --ours: #c2410c; --ghost: #c9ced8; --stock: #6b7486;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --ink: #e4e8ef; --muted: #9aa4b5; --rule: #2c3442;
+    --accent: #5cc0db; --accent-soft: #15323c; --ours: #f08a5d; --ghost: #3a4352; --stock: #8f99ab; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --ink: #e4e8ef; --muted: #9aa4b5; --rule: #2c3442;
+  --accent: #5cc0db; --accent-soft: #15323c; --ours: #f08a5d; --ghost: #3a4352; --stock: #8f99ab; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-block: 24px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 920px; margin: 0 auto; display: grid; gap: 16px; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(26px, 4vw, 34px); margin: 0; }
+header p { margin: 4px 0 0; color: var(--muted); max-width: 70ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { font: 500 13px var(--f-body); color: var(--muted); background: transparent; border: 0; padding: 6px 10px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+.seg button:focus-visible, .play:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.play { font: 600 13px var(--f-body); border: 1px solid var(--accent); color: var(--accent); background: var(--surface); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.stepper { display: flex; align-items: center; gap: 10px; flex: 1 1 260px; }
+.stepper input { flex: 1; accent-color: var(--ours); }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { font-family: var(--f-mono); font-size: 12px; fill: var(--muted); }
+.chart text.lbl { font-family: var(--f-body); font-size: 13px; fill: var(--ink); font-weight: 500; }
+.chart text.val { fill: var(--ink); font-weight: 500; }
+.chart .grid { stroke: var(--rule); }
+.chart .ref { stroke: var(--stock); stroke-dasharray: 5 4; stroke-width: 1.5; }
+.chart .bar { fill: var(--ours); transition: y .35s ease, height .35s ease; }
+.chart .ghost { fill: var(--ghost); transition: y .35s ease, height .35s ease; }
+.chart .hit { fill: transparent; cursor: default; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); margin-top: 6px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.run h2 { font-family: var(--f-display); font-size: 22px; margin: 0; }
+.run .sub { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+.run p { margin: 8px 0 0; max-width: 72ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+.fact { border-top: 1px solid var(--rule); padding-top: 6px; }
+.fact .k { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.fact .v { font-family: var(--f-mono); font-size: 15px; }
+#tip { position: fixed; pointer-events: none; background: var(--ink); color: var(--bg); font: 12.5px var(--f-body); padding: 6px 8px; border-radius: 5px; opacity: 0; transition: opacity .1s; max-width: 260px; }
+details { font-size: 13.5px; } table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+th, td { padding: 5px 8px; border-bottom: 1px solid var(--rule); text-align: right; } th:first-child, td:first-child { text-align: left; }
+th { font-size: 11.5px; color: var(--muted); font-weight: 500; text-transform: uppercase; }
+.scroll { overflow-x: auto; }
+footer { color: var(--muted); font-size: 12.5px; }
+/* Embed mode (?embed): no page chrome, blog colours. */
+:root.embed { --bg: #ffffff; --surface: #ffffff; }
+@media (prefers-color-scheme: dark) { :root.embed:not([data-theme="light"]) { --bg: #1d1e20; --surface: #1d1e20; } }
+:root.embed[data-theme="dark"] { --bg: #1d1e20; --surface: #1d1e20; }
+:root.embed body { padding-block: 6px; padding-left: max(6px, env(safe-area-inset-left, 0px)); padding-right: max(6px, env(safe-area-inset-right, 0px)); }
+:root.embed main { max-width: none; gap: 12px; }
+:root.embed header, :root.embed footer { display: none; }
+@media (max-width: 560px) { .chart text.lbl { font-size: 11px; } }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Serving Run by Run</h1>
+    <p>Each judged run of our SGLang patch on one 8×H200 node, against stock SGLang. Step through the runs, or switch what the bars show. The grey bar is the run before.</p>
+  </header>
+  <div class="controls">
+    <div class="stepper"><button class="play" id="play" aria-label="Play through the runs">Play</button>
+      <input type="range" id="run" min="0" max="6" step="1" value="6" aria-label="Judged run"></div>
+    <div class="seg" role="group" aria-label="What the bars show">
+      <button data-m="ratio" aria-pressed="true">Score per load</button>
+      <button data-m="tok" aria-pressed="false">Tokens/s per GPU</button>
+      <button data-m="first" aria-pressed="false">First-turn TTFT</button>
+      <button data-m="later" aria-pressed="false">Later-turn TTFT</button>
+    </div>
+  </div>
+  <div class="card chart"><svg id="svg" viewBox="0 0 860 330" role="img" aria-labelledby="svgTitle"><title id="svgTitle">Per-load bars for the chosen run</title></svg>
+    <div class="legend"><span><i style="background:var(--ours)"></i><span id="lgOurs">this run</span></span><span><i style="background:var(--ghost)"></i>previous run</span><span><i style="background:transparent;border-top:2px dashed var(--stock);height:0;margin-top:5px"></i><span id="lgRef">stock SGLang</span></span></div>
+  </div>
+  <div class="card run" aria-live="polite">
+    <h2 id="rName"></h2><div class="sub" id="rSub"></div><p id="rText"></p>
+    <div class="facts" id="rFacts"></div>
+  </div>
+  <details class="card"><summary>All runs as a table</summary><div class="scroll"><table id="tbl"></table></div></details>
+  <footer>Source: the judge's scored-run reports (runs/serving/scored-*), Nov 15–20, 2026. Ratios are at stock's per-user speed; TTFT is the p90 time to first token.</footer>
+</main>
+<div id="tip" role="tooltip"></div>
+<script>
+const QS = new URLSearchParams(location.search);
+if (QS.has("embed")) document.documentElement.classList.add("embed");
+const LOADS = ["1 user", "4 users", "16 users", "32 users"];
+const STOCK = { tok: [6503.9, 9964.1, 12317.8, 12695.9], kv: 1.89 };
+const RUNS = [
+  { id: "p13", date: "Nov 15", score: 1.070, change: "First judged patch",
+    text: "Our decode kernels from the kernel track, ported into SGLang: a fused verify attention and a new NVFP4 expert kernel. Fixing a startup hang that only appeared on all eight GPUs took a day of CUDA core dumps. The patch's weights quietly took 13 GB of what should have been KV cache, so long conversations spilled at 16 and 32 users, and 16 users failed the latency gate.",
+    ratio: [1.155, 1.091, 0.999, 1.040], tok: [7203, 10676, 13022, 13150], first: [9.29, 22.22, 87.39, 191.58], later: [0.21, 0.24, 1.57, 5.25], kv: 1.12, queue: "11 h 30", ran: "49 min" },
+  { id: "p15", date: "Nov 15", score: 1.104, change: "Weight-memory fix",
+    text: "Each layer's repacked weights were carved out of a freed temporary buffer, stranding the rest of that block. Allocating them before any temporary existed gave the 13 GB back, byte-identical weights, found for about $0.60 on one GPU.",
+    ratio: [1.137, 1.108, 1.095, 1.077], tok: [7128, 10805, 13476, 13622], first: [9.24, 22.15, 85.75, 190.19], later: [0.21, 0.24, 0.32, 2.49], kv: 1.86, queue: "2 min", ran: "48 min" },
+  { id: "p16", date: "Nov 16", score: 1.218, change: "Grouped expert GEMMs for prefill",
+    text: "For big prefill chunks, decode four experts at a time into reused bf16 scratch and run grouped matrix multiplies. The packed 4-bit weights stay resident; no second copy.",
+    ratio: [1.232, 1.218, 1.217, 1.207], tok: [7536, 11683, 14876, 15268], first: [8.00, 19.00, 74.88, 163.23], later: [0.21, 0.23, 0.37, 2.61], kv: 1.84, queue: "6 h 42", ran: "45 min" },
+  { id: "p19", date: "Nov 17", score: 1.457, change: "Upstream MoE op (sglang#50800)",
+    text: "An open upstream pull request with a Hopper grouped NVFP4 expert op, opened the same day we went looking. We read the rules first, then the code, sized it on one H200 (2.4–3.3× our expert kernel at prefill sizes) and ported it with credit, replacing our own 137 KB kernel.",
+    ratio: [1.431, 1.464, 1.480, 1.455], tok: [8105, 13208, 17839, 18474], first: [6.41, 15.19, 60.03, 132.07], later: [0.16, 0.19, 0.24, 2.11], kv: 1.89, queue: "3 h 51", ran: "40 min" },
+  { id: "p21", date: "Nov 18", score: 2.208, change: "Sequence-parallel prefill on H200",
+    text: "SGLang ships a sequence-parallel prefill path for this model, behind a launch flag, with no Hopper path. Adding one splits each prefill chunk's replicated work across the eight GPUs. The biggest step of the track: 74K-token prefill went from 6.4 s to 2.7 s on our rig.",
+    ratio: [2.042, 2.264, 2.302, 2.233], tok: [9649, 17871, 26263, 28351], first: [3.92, 9.06, 35.46, 77.19], later: [0.14, 0.18, 0.24, 1.44], kv: 2.03, queue: "6 h 44", ran: "33 min" },
+  { id: "p24", date: "Nov 19", score: 2.222, change: "Static expert swaps",
+    text: "Routing traces from a real-weight run showed the busiest GPU doing 1.5× the mean expert work. Eight swaps per layer, fitted on held-out traces, cut that to 1.13×. Our rig said +3–5%; the judge said +0.6%.",
+    ratio: [2.062, 2.254, 2.321, 2.261], tok: [9370, 17290, 26500, 28546], first: [3.85, 8.87, 34.61, 75.49], later: [0.14, 0.17, 0.23, 1.45], kv: 2.03, queue: "3 h 15", ran: "33 min" },
+  { id: "p24 + SWA", date: "Nov 20", score: 2.315, change: "A bigger full-attention KV pool (one flag)",
+    text: "46 of the model's 62 layers use a 2,048-token sliding window, so they need far less cache than the 16 full-attention layers. Lowering --swa-full-tokens-ratio from 0.8 to 0.25 regroups the same memory: full-attention capacity 2.03M → 3.39M tokens. At 32 users the conversations finally fit, and later turns stopped waiting on host memory.",
+    ratio: [2.104, 2.316, 2.460, 2.394], tok: [9791, 18012, 26821, 30253], first: [3.84, 8.83, 34.57, 75.21], later: [0.14, 0.17, 0.24, 0.54], kv: 3.39, queue: "3 h 35", ran: "34 min" },
+];
+const METRICS = {
+  ratio: { label: "score vs stock", fmt: v => v.toFixed(3) + "×", max: () => 2.6, ref: () => [1, 1, 1, 1], refLbl: "stock = 1.0×", ticks: [0, 0.5, 1, 1.5, 2, 2.5], tfmt: v => v.toFixed(1) + "×" },
+  tok: { label: "tokens/s per GPU", fmt: v => Math.round(v).toLocaleString("en-US"), max: () => 32000, ref: () => STOCK.tok, refLbl: "stock SGLang", ticks: [0, 8000, 16000, 24000, 32000], tfmt: v => (v / 1000) + "K" },
+  first: { label: "first-turn TTFT p90, seconds", fmt: v => v.toFixed(2) + " s", max: () => 200, ref: () => null, refLbl: "", ticks: [0, 50, 100, 150, 200], tfmt: v => v + " s", log: false },
+  later: { label: "later-turn TTFT p90, seconds", fmt: v => v.toFixed(2) + " s", max: () => 5.5, ref: () => null, refLbl: "", ticks: [0, 1, 2, 3, 4, 5], tfmt: v => v + " s" },
+};
+let metric = "ratio", idx = RUNS.length - 1, timer = null;
+const svg = document.getElementById("svg"), NS = "http://www.w3.org/2000/svg";
+let W = 860; const H = 330, L = 56, R = 12, T = 26, B = 46;
+function el(tag, attrs, parent) { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); (parent || svg).appendChild(e); return e; }
+const tip = document.getElementById("tip");
+function showTip(ev, html) { tip.innerHTML = html; tip.style.opacity = 1; const x = Math.min(ev.clientX + 12, innerWidth - 270); tip.style.left = x + "px"; tip.style.top = (ev.clientY + 12) + "px"; }
+function hideTip() { tip.style.opacity = 0; }
+function draw() {
+  W = svg.parentNode.clientWidth < 560 ? 480 : 860; svg.setAttribute("viewBox", `0 0 ${W} ${H}`);
+  const m = METRICS[metric], run = RUNS[idx], prev = idx > 0 ? RUNS[idx - 1] : null, max = m.max();
+  while (svg.lastChild && svg.lastChild.tagName !== "title") svg.removeChild(svg.lastChild);
+  const y = v => T + (1 - Math.min(v, max) / max) * (H - T - B);
+  m.ticks.forEach(t => { el("line", { class: "grid", x1: L, x2: W - R, y1: y(t), y2: y(t) }); const tx = el("text", { x: L - 8, y: y(t) + 4, "text-anchor": "end" }); tx.textContent = m.tfmt(t); });
+  const gw = (W - L - R) / 4, bw = Math.min(56, gw * 0.3);
+  const ref = m.ref();
+  LOADS.forEach((name, k) => {
+    const cx = L + gw * k + gw / 2;
+    if (prev) el("rect", { class: "ghost", x: cx - bw - 3, width: bw, y: y(prev[metric][k]), height: y(0) - y(prev[metric][k]), rx: 3 });
+    el("rect", { class: "bar", x: cx + 3, width: bw, y: y(run[metric][k]), height: y(0) - y(run[metric][k]), rx: 3 });
+    const v = el("text", { class: "val", x: cx + 3 + bw / 2, y: y(run[metric][k]) - 6, "text-anchor": "middle" }); v.textContent = m.fmt(run[metric][k]);
+    if (ref) el("line", { class: "ref", x1: cx - bw - 12, x2: cx + bw + 12, y1: y(ref[k]), y2: y(ref[k]) });
+    const lb = el("text", { class: "lbl", x: cx, y: H - B + 22, "text-anchor": "middle" }); lb.textContent = name;
+    const hit = el("rect", { class: "hit", x: cx - gw / 2 + 4, width: gw - 8, y: T, height: H - T - B });
+    const d = prev ? (run[metric][k] / prev[metric][k] - 1) * 100 : null;
+    const html = `<b>${name}</b><br>${run.id}: ${m.fmt(run[metric][k])}` + (prev ? `<br>${prev.id}: ${m.fmt(prev[metric][k])} (${d >= 0 ? "+" : ""}${d.toFixed(1)}%)` : "") + (ref ? `<br>stock: ${m.fmt(ref[k])}` : "");
+    hit.addEventListener("mousemove", ev => showTip(ev, html)); hit.addEventListener("mouseleave", hideTip);
+  });
+  const cap = el("text", { x: L, y: 14 }); cap.textContent = m.label + (metric === "first" || metric === "later" ? " (lower is better)" : " (higher is better)");
+  document.getElementById("lgOurs").textContent = run.id;
+  document.getElementById("lgRef").textContent = ref ? m.refLbl : "stock: not shown for this view";
+  document.getElementById("rName").textContent = `${run.id}: ${run.score.toFixed(3)}×`;
+  document.getElementById("rSub").textContent = `${run.date} · ${run.change}` + (prev ? ` · ${run.score >= prev.score ? "+" : ""}${((run.score / prev.score - 1) * 100).toFixed(1)}% over ${prev.id}` : "");
+  document.getElementById("rText").textContent = run.text;
+  const facts = [["Score", run.score.toFixed(3) + "×"], ["KV capacity", run.kv.toFixed(2) + "M tokens"], ["32-user later TTFT", run.later[3].toFixed(2) + " s"], ["Waited for a node", run.queue], ["Ran for", run.ran]];
+  document.getElementById("rFacts").innerHTML = facts.map(([k, v]) => `<div class="fact"><div class="k">${k}</div><div class="v">${v}</div></div>`).join("");
+}
+function table() {
+  const head = "<tr><th>Run</th><th>Date</th><th>Score</th>" + LOADS.map(l => `<th>${l}</th>`).join("") + "<th>KV tokens</th><th>Queue</th></tr>";
+  document.getElementById("tbl").innerHTML = head + RUNS.map(r => `<tr><td>${r.id}</td><td>${r.date}</td><td>${r.score.toFixed(3)}×</td>` + r.ratio.map(v => `<td>${v.toFixed(3)}×</td>`).join("") + `<td>${r.kv.toFixed(2)}M</td><td>${r.queue}</td></tr>`).join("");
+}
+const slider = document.getElementById("run");
+slider.addEventListener("input", () => { idx = +slider.value; stop(); draw(); });
+document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => {
+  metric = b.dataset.m; document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x === b)); draw();
+}));
+const play = document.getElementById("play");
+function stop() { if (timer) { clearInterval(timer); timer = null; play.textContent = "Play"; } }
+play.addEventListener("click", () => {
+  if (timer) return stop();
+  idx = 0; slider.value = 0; draw(); play.textContent = "Pause";
+  timer = setInterval(() => { if (idx >= RUNS.length - 1) return stop(); idx++; slider.value = idx; draw(); }, 1600);
+});
+if (QS.has("run")) { const r = RUNS.findIndex(x => x.id === QS.get("run")); if (r >= 0) { idx = r; slider.value = r; } }
+if (QS.has("m") && METRICS[QS.get("m")]) { metric = QS.get("m"); document.querySelectorAll(".seg button").forEach(x => x.setAttribute("aria-pressed", x.dataset.m === metric)); }
+table(); draw(); addEventListener("resize", () => { clearTimeout(window._rz); window._rz = setTimeout(draw, 150); });
+</script>
+</body>
+</html>
