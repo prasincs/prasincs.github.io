@@ -15,11 +15,11 @@ tags:
 
 *How I ran a GPU kernel competition as a team of AI agents from different labs, on a budget I enforced in code.*
 
-For twelve days in October I entered a GPU kernel competition, and I didn't write a single kernel.
+For twelve days in October I entered a GPU kernel competition, and I didn't write a single kernel. I'd written CUDA a long time ago, but modern kernels with tensor cores and NVFP4 were not my world. I'd written CUDA a long time ago, but modern kernels with tensor cores and NVFP4 were not my world.
 
 Writing kernels wasn't the point. Competitions are one of the fastest ways I know to learn something new: the scoreboard tells you every day whether you understood it or only thought you did. I wanted to use this one to learn two things. How far can one person get by directing AI agents instead of writing the code? And how much of the work can I offload to open models running locally on a Mac mini?
 
-There was a third question underneath both: how far could I get with the life I actually have? I have a day job and kids. I didn't take time off, and I couldn't watch a GPU queue all evening. So the setup was designed around my time rather than the contest's. `[TODO: a line or two in your words: when you worked on it, how many hours a day, what the evenings looked like.]`
+There was a third question underneath both: how far could I get with the life I actually have? I have a day job and kids. I didn't take time off, and I couldn't watch a GPU queue all evening like I would have in my 20s. So the setup was designed around my time rather than the contest's.
 
 So I ran the contest as a small organization: several Claude sessions working in parallel, ChatGPT as an adversarial reviewer, Grok and Gemini as outside researchers, and two Qwen models running locally for the reading. I set the budgets, approved every scored run, and decided which ideas to chase and when to stop. The agents wrote the kernels, built the tools to measure them, merged each other's work and kept the tickets.
 
@@ -34,7 +34,7 @@ A few ideas make the rest of this post easier to follow:
 - **Mixture of experts (MoE).** Muse Spark doesn't run all 816B parameters for every token. Each layer has 256 small "expert" networks, and a router picks 8 of them per token, so only about 42B parameters do work for any one token. That makes the model cheap to run but awkward to make fast: every token reads a different set of weights.
 - **NVFP4.** The weights are 4-bit floating-point numbers, with a shared scale for every block of 16. Four bits per weight means less memory to read, but the H200's tensor cores can't multiply FP4 directly, so every kernel unpacks the weights first. That unpacking turned out to be one of the main costs.
 - **Decode and verify.** When a model generates text, each step produces one token per user: a *decode* step. SGLang's default recipe also has a small draft model guess 8 tokens ahead, then checks all 8 in one step: a *verify* step. The contest timed both, for 1, 16 and 32 users at once.
-- **The judge.** Each submission ran on one H200 against SGLang's own kernels on the same shapes. Your score on a board is your speedup over SGLang, as a geometric mean over its loads, so each load counts equally. Runs are noisy by about ±1.5–2%, and you get five scored runs a day.
+- **The judge.** Each submission ran on one H200 against SGLang's own kernels on the same shapes. Your score on a board is your speedup over SGLang, as a geometric mean over its loads, so each load counts equally. Runs are noisy by about ±1.5–2%, and each team gets ten scored runs a day.
 
 The kernel track ran from Oct 23 to Nov 4 and had five boards. The decode layer is one full layer of the model, and it set the overall ranking. The other four each time one slice of it.
 
@@ -59,7 +59,7 @@ I ran the contest as one person with a small organization of agents. Three ideas
 
 **One change at a time.** Every candidate was a chain of single changes, each measured against the one before it. When a score moved, there was exactly one cause. A small tool enforced it within an hour of my asking.
 
-**Linear as the source of truth.** One issue per workstream, every result posted as a comment, and every scored run approved by me in chat and quoted in the ticket ("Send S1", "You have my ok to send it", "Send the winner").
+**Linear as the source of truth.** One issue per workstream, every result posted as a comment, and every scored run past the agents' daily five approved by me in chat and quoted in the ticket ("Send S1", "You have my ok to send it", "Send the winner").
 
 ### Five models, each with one job
 
@@ -109,7 +109,7 @@ A context reset stopped being an emergency and became a shift change. And becaus
 Every part of the setup had to work when I wasn't there:
 
 - **The agents worked while I didn't.** Lanes ran in the background in their own worktrees. When I came back, the state of every lane was in Linear and the repo, not in my head.
-- **My part was decisions, and decisions are small.** A scored run needed one line from me ("Send the winner"). A budget change was one line. Most of my time on the contest was reading a summary and saying yes, no, or stop.
+- **My part was decisions, and decisions are small.** A scored run past the agents' five needed one line from me ("Send the winner"). A budget change was one line. Most of my time on the contest was reading a summary and saying yes, no, or stop.
 - **Nothing important depended on me watching.** Scouts swept public code on a schedule. GPU work was packed into long batches that ran unattended. Caps were enforced in code, so a forgotten job couldn't run up a bill while I was at work or putting kids to bed.
 - **Stopping was a decision I made on purpose.** On Nov 1 I stopped the kernel push short of the top 100, rather than let it eat more evenings for a few tenths of a percent.
 
@@ -123,10 +123,10 @@ The budget was the constraint I cared about most, so I enforced it in code inste
 - **CPU first.** A GPU-less pre-flight on my Mac checked each kernel in 5 seconds instead of ~50 on a GPU. Most bad ideas died there for free.
 - **Packed jobs.** Instead of one GPU container per experiment, one container ran many variants back to back: one setup, many measurements, plus a byte-identical control copy to catch drift. This came out of a day where only ~20% of the paid time was GPU-busy.
 - **Kill criteria written before the run.** Every experiment said in advance what result would end it.
-- **Judged runs as a budget.** Five scored runs a day, each needing my approval in chat.
+- **Judged runs as a budget.** The contest allowed ten scored runs a day. The agents could send five on their own; the rest needed my approval in chat, so I'd always have chances left.
 
 
-The whole kernel track cost **$508 of Modal GPU time** over twelve days. `[TODO: Runpod spend and token cost.]`
+The whole kernel track cost **$508 of Modal GPU time** over twelve days (Runpod and model subscriptions not included).
 
 <details>
 <summary><b>Modal spend by day, kernel track</b></summary>
@@ -139,7 +139,7 @@ The whole kernel track cost **$508 of Modal GPU time** over twelve days. `[TODO:
 | Oct 27 | $15.02 | |
 | Oct 28 | $51.32 | cycle limit raised to $500 spend / $470 usage |
 | Oct 29 | $70.56 | |
-| Oct 30 | $41.13 | the rule change that moved me ~180 places (below) |
+| Oct 30 | $41.13 | the rule change that moved me ~180 places ([below](#wrong-turns)) |
 | Oct 31 | $131.17 | the one day over $100, by approval: caps of $125, then $140 |
 | Nov 1 | $46.40 | stopped the kernel push short of the top 100 |
 | Nov 2 | $20.00 | |
@@ -219,7 +219,7 @@ People describe optimization as hill climbing all the time. In this contest it i
 
 **The fog is the judge's noise.** A judged run is accurate to about ±2%, and late in the contest most single steps were smaller than that. In fog, you can't tell up from flat by looking. That's what the control copy in every benchmark batch was for, and why every prediction was written down before the judge saw the run: twelve judged runs in one afternoon all landed within 2% of their predictions.
 
-**Feel the slope before you step.** A judged run is expensive (five a day), so every step was tested on the way: the CPU pre-flight first, then a one-GPU A/B with a control, and only then the judge. Most bad steps were caught at the first stage, for free.
+**Feel the slope before you step.** A judged run is expensive (ten a day, and the agents could only send five of them), so every step was tested on the way: the CPU pre-flight first, then a one-GPU A/B with a control, and only then the judge. Most bad steps were caught at the first stage, for free.
 
 **The ground doesn't rise evenly.** The map shows one number per run, but each run is twelve shapes, and they didn't move together. Press Play to watch every shape's bar across all 40 runs.
 
@@ -362,7 +362,7 @@ Almost none of my part was programming:
 
 - **Day 1:** the first wins were framework settings and glue, not kernels. A one-line change capping the MoE library's token block gave my first scored entry. Turning on SGLang's own kernels where SGLang had disabled them gave MoE 1.265× and the layer 1.115×. The agents' first hand-written MoE kernel lost to the vendor's by 3–8×.
 - **Day 2:** they built the GPU-less pre-flight, wrote a new NVFP4 MoE kernel that beat the vendor library's bandwidth, and with three lanes and a coordinator shipped 12 judged runs in one afternoon, every score within 2% of its prediction.
-- **Day 3:** they priced, probed and killed a megakernel design for $2.35 (below).
+- **Day 3:** they priced, probed and killed a megakernel design for $2.35 ([below](#the-megakernel-i-didnt-build)).
 - **Final week:** they ported pieces of public solutions one at a time, each measured and credited. They fitted the entry under the judge's 1,000,000-byte size limit by storing a 141 KB source file as 123 line edits against its near-twin, with a check that the rebuild was byte-identical.
 - **After the close:** a retrospective against the #5 team's newly public code found the lever I'd missed.
 
@@ -447,9 +447,9 @@ The best example: a **time lapse** of every version of the decode layer, replaye
 
 ## Notes on the contest itself
 
-- **Five runs a day is the real budget.** The judge keeps each team's best row, and its noise (±1.5–2% per run) is bigger than most late improvements. Resubmitting often gets you rows about one standard deviation high. I didn't fish for high draws; my one resubmission of identical code read 2.243× against the original's 2.232×.
+- **Ten runs a day, and I only let the agents use five.** The contest allowed ten scored runs a day. I didn't want to run out of chances to submit, so the agents could send five on their own and the rest needed my approval. The judge keeps each team's best row, and its noise (±1.5–2% per run) is bigger than most late improvements. Resubmitting often gets you rows about one standard deviation high. I didn't fish for high draws; my one resubmission of identical code read 2.243× against the original's 2.232×.
 - **A correctness check can pass two different answers.** Two of my own entries pass every check the contest runs, yet their CUDA-graph path and their eager path pick different top-8 experts at 128–256 tokens, because the graph path uses a different matrix-vector kernel for the router's input than the eager path does. The layer outputs differ by 13–17%. The contest allows routing to differ where scores nearly tie: "Each expert you pick must score (sigmoid + router_bias) within 0.05 of the reference's 8th best," plus a recall rule and count floors. Then, crucially, "the MoE output is then checked with the experts you picked." The allowance is far wider than rounding, and once a different set of experts is allowed, the output check compares against those same experts, so the change never counts as error. The mechanism isn't new ([ST-MoE](https://arxiv.org/abs/2202.08906); [vLLM #61053](https://github.com/vllm-project/vllm/issues/61053); graph-vs-eager divergence in [vLLM #55238](https://github.com/vllm-project/vllm/issues/55238)). What I'd argue is narrower: a tolerance-based check can't see top-k flips, and comparing an entry's graph and eager paths against each other is a cheap check that can. I haven't measured how often this happens in practice: that needs per-token rates, a trained model's router margins, and a control that pins the routes to see how much of the drift is routing.
-- **Credit where it's due.** Most of my biggest single jumps came from reading other people's public code: [alygg77](https://github.com/alygg77/okc-muse-spark-kernels) and [vjeux](https://github.com/vjeux/okc-2026) (Apache-2.0), bigboateng's README (MIT, ideas only) `[TODO: link]`, [keell0renz](https://github.com/keell0renz/muse-open-kernel-challenge), [chenwainuo](https://github.com/chenwainuo/okc) and [ZhimaoL](https://github.com/ZhimaoL/sglang) (per-piece ports), and [SGLang's](https://github.com/sgl-project/sglang) own kernels. [gauravjain14's repo](https://github.com/gauravjain14/muse-okc-submissions), public after the close, is a model of how to keep records: profile → diagnosis → change → judged result, next to a dead-ends file with numbers.
+- **Credit where it's due.** Most of my biggest single jumps came from reading other people's public code: [alygg77](https://github.com/alygg77/okc-muse-spark-kernels) and [vjeux](https://github.com/vjeux/okc-2026) (Apache-2.0), [bigboateng](https://github.com/operatorstack/open-kernel-challenge-solutions) (MIT, ideas only), [keell0renz](https://github.com/keell0renz/muse-open-kernel-challenge), [chenwainuo](https://github.com/chenwainuo/okc) and [ZhimaoL](https://github.com/ZhimaoL/sglang) (per-piece ports), and [SGLang's](https://github.com/sgl-project/sglang) own kernels. [gauravjain14's repo](https://github.com/gauravjain14/muse-okc-submissions), public after the close, is a model of how to keep records: profile → diagnosis → change → judged result, next to a dead-ends file with numbers.
 
 ## The serving track
 
@@ -457,7 +457,7 @@ The second track opened on Nov 12 and works completely differently: you submit a
 
 ## What I learned
 
-`[TODO: your closing, in your words.]` What I'd say from here:
+What I'd say from here:
 
 - **Agents changed what my time was worth.** My hours went to budgets, rules, priorities and stopping, not code. That's what made it possible with a day job and kids.
 - **Different models catch different things.** The reviewer from another lab was worth more than another lane. Local models earned their place as readers, and only as readers.
@@ -489,7 +489,7 @@ What I'd do differently next time:
 - keell0renz, [muse-open-kernel-challenge](https://github.com/keell0renz/muse-open-kernel-challenge).
 - chenwainuo, [okc](https://github.com/chenwainuo/okc).
 - ZhimaoL, [sglang fork](https://github.com/ZhimaoL/sglang).
-- bigboateng's README (MIT; ideas only). `[TODO: link]`
+- [bigboateng's README](https://github.com/operatorstack/open-kernel-challenge-solutions) (MIT; ideas only).
 - gauravjain14, [muse-okc-submissions](https://github.com/gauravjain14/muse-okc-submissions) (Apache-2.0; public after the close, used only for the retrospective).
 
 **MoE routing and correctness checks**
