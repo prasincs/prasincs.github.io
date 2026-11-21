@@ -78,7 +78,7 @@ I didn't use one model for everything. Each had a role that played to what it wa
 Two lessons from mixing models:
 
 - **Disagreement is the feature.** The reviewer caught claims the lanes were sure of. One test was meant to prove a hang was fixed, so the old code had to hang and the new code had to pass; Astra noticed it also counted the old code failing to build as a reproduced hang, so a broken setup would have looked like proof. Another time my own board audit treated the prefill score as an average over four loads. Astra pointed out there are three, and the cube root of the three load speedups (1.195, 1.359 and 1.483) is exactly the judged 1.340. Neither came from a model checking its own work.
-- **In my setup, local models were for reading, not editing.** Qwen3-Coder-30B failed twice on a 12-line kernel edit, so I stopped giving it edits. That's two tries with a 30B model on a Mac mini, not a verdict on local models: a larger one might have done better, and I didn't try one. As a reader of logs and source trees it was fine, with no extra provider charge.
+- **In my setup, local models were for reading, not editing.** Qwen3-Coder-30B failed twice on a 12-line kernel edit, so I stopped giving it edits. That's two tries with a 30B model on my Mac Studio, not a verdict on local models: a larger one might have done better, and I didn't try one. As a reader of logs and source trees it was fine, with no extra provider charge.
 
 ### Sessions, context resets, and roles
 
@@ -197,9 +197,9 @@ With that loop, a lane went from an idea to a measured candidate in 25–60 minu
 | Board | My best | Final rank | #1 at the close | Judge's modeled limit | Share of limit: me / #1 |
 |---|---|---|---|---|---|
 | Decode layer (sets the overall rank) | 2.243× | #302 of 1,297 | 2.614× | 3.88× | 58% / 67% |
-| MoE w4a16 | 2.403× | #193 of 1,423 | 2.844× | 4.39× | 55% / 65% |
+| MoE w4a16 | 2.403× | #193 of 1,423 | 2.844× | 4.35× | 55% / 65% |
 | Attention decode | 2.429× | #460 of 1,380 | 3.339× | 6.73× | 36% / 50% |
-| BF16 projections | 1.397× | #518 of 1,741 | 1.728× | 2.02× | 69% / 85% |
+| BF16 projections | 1.397× | #518 of 1,741 | 1.728× | 2.02× | 69% / 86% |
 | Prefill layer | 1.355× | #635 of 896 | 2.147× | 3.06× | 44% / 70% |
 
 I finished the decode layer at #302. On the morning of Nov 4 I was still #251, about 2% under that day's top-100 line of 2.288×, and my best rank was #123 on Oct 31. My first scored entry, on day 1, was 1.051×.
@@ -212,7 +212,7 @@ The judge publishes a *floor* for every shape it times: the time to move that sh
 
 One example is the decode layer's single-user, sliding-window shape, where SGLang takes about 173 µs. Just reading that step's weights and KV cache once, at full memory speed, takes 40 µs. So nothing can beat SGLang on that shape by more than about 4.3×. Put every shape on its floor and you get each board's limit under the judge's model, which I'll call the **hardware limit**: 3.88× for the decode layer.
 
-Nobody got close. The winners finished at 50–85% of their board's limit, and I finished at 36–69%. As a ratio, the gap between me and #1 was widest on prefill (44% vs 70%, so I reached about 63% of #1's share) and next widest on attention decode (36% vs 50%, about 72%). Attention was also the board where I reached the smallest share of the limit. Attention, it turned out, was the lever I missed.
+Nobody got close. The winners finished at 50–86% of their board's limit, and I finished at 36–69%. As a ratio, the gap between me and #1 was widest on prefill (44% vs 70%, so I reached about 63% of #1's share) and next widest on attention decode (36% vs 50%, about 72%). Attention was also the board where I reached the smallest share of the limit. Attention, it turned out, was the lever I missed.
 
 ![Figure 1. Share of each board's judge's modeled limit, me vs #1](/assets/images/okc/hardware-limit.svg)
 
@@ -222,7 +222,7 @@ People describe optimization as hill climbing all the time. In this contest it i
 
 **The map is real.** Four boards score decode and verify loads: the decode layer, attention decode, MoE and BF16 projections. Each of their scores is a geometric mean, so it splits *exactly* into two halves: the geomean of the decode shapes (call it D) and of the verify shapes (V). The prefill board scores first and later turns instead, so it doesn't split this way. The score is √(D × V). So every candidate kernel is a point on a two-dimensional map, its height is its judged score, and the lines of equal height are curves you can draw. Here is my decode-layer climb on that map, from the first scored run to the last.
 
-{{< interactive src="/okc/kernel-climb.html?embed&view=climb&board=muse_decode_layer&mode=ours" height="560" title="Decode-layer climb" caption="Figure 2. My 40 scored decode-layer runs on the board's exact score map, from 1.05× to 2.24×. The white curves are lines of equal score; the black dashed curve is the judge's modeled limit." >}}
+{{< interactive src="/okc/kernel-climb.html?embed&view=climb&board=muse_decode_layer&mode=ours" height="560" title="Decode-layer climb" caption="Figure 2. My 43 scored decode-layer runs on the board's exact score map, from 1.05× to 2.24×. The white curves are lines of equal score; the black dashed curve is the judge's modeled limit." >}}
 
 **A step is one change.** Each move on the map was meant to be one change, A/B'd against the version before it, though a few late steps bundled links I had already tested one at a time, and the judge's noise moved heights too. If it went up, I kept it; if not, I stepped back. That's the "one change at a time" rule, and it's why the path is a staircase of small steps. Most of the height came from a handful of big ones.
 
@@ -230,7 +230,7 @@ People describe optimization as hill climbing all the time. In this contest it i
 
 **Feel the slope before you step.** A judged run is expensive (ten per problem per day, and the agents could only send five of them), so every step was tested on the way: the CPU pre-flight first, then a one-GPU A/B with a control, and only then the judge. Plenty of bad steps were caught at the first stage, for free.
 
-**The ground doesn't rise evenly.** The map shows one number per run, but each run is twelve shapes, and they didn't move together. Press Play to watch every shape's bar across all 40 runs.
+**The ground doesn't rise evenly.** The map shows one number per run, but each run is twelve shapes, and they didn't move together. Press Play to watch every shape's bar across all 43 runs.
 
 {{< interactive src="/okc/kernel-climb.html?embed&view=terrain&board=muse_decode_layer&run=first" height="600" title="Decode-layer shapes, run by run" caption="Figure 3. One bar per scored shape: decode and verify loads left to right, sliding and full-attention layers front to back. The grid at 1.0× is SGLang; the small diamonds mark the first run. Press Play, or switch the height to each shape's share of the judge's modeled limit." >}}
 
@@ -251,7 +251,7 @@ All four boards that score decode and verify loads share the same surface, so th
 <details>
 <summary><b>Run ledger: passed scored runs with saved results, by board (dates are log times)</b></summary>
 
-**Decode layer** (40 runs)
+**Decode layer** (43 runs)
 
 | Date (UTC) | Step | Score | Change | Decode half (D) | Verify half (V) |
 |---|---|---:|---:|---:|---:|
@@ -282,7 +282,8 @@ All four boards that score decode and verify loads share the same surface, so th
 | 2026-10-27 01:02 | c15b | 1.671× | +0.026 | 1.665 | 1.676 |
 | 2026-10-27 23:51 | c16a | 1.663× | -0.008 | 1.658 | 1.669 |
 | 2026-10-28 00:31 | c16b | 1.690× | +0.026 | 1.693 | 1.686 |
-| 2026-10-28 23:26 | c19 | 1.868× | +0.179 | 1.826 | 1.911 |
+| 2026-10-28 13:13 | c17b | 1.710× | +0.020 | 1.730 | 1.690 |
+| 2026-10-28 23:26 | c19 | 1.868× | +0.158 | 1.826 | 1.911 |
 | 2026-10-29 00:04 | c21 | 1.877× | +0.009 | 1.833 | 1.923 |
 | 2026-10-29 02:53 | c24 | 1.864× | -0.013 | 1.811 | 1.919 |
 | 2026-10-29 03:26 | c25 | 1.887× | +0.023 | 1.847 | 1.927 |
@@ -290,7 +291,9 @@ All four boards that score decode and verify loads share the same surface, so th
 | 2026-10-30 19:58 | c30 | 1.891× | -0.005 | 1.870 | 1.912 |
 | 2026-10-30 19:55 | a1 | 2.163× | +0.272 | 2.111 | 2.216 |
 | 2026-10-31 02:12 | a3 | 2.206× | +0.043 | 2.145 | 2.269 |
-| 2026-10-31 19:38 | a19 | 2.215× | +0.009 | 2.129 | 2.304 |
+| 2026-10-31 10:4x | a11 | 2.192× | -0.014 | 2.125 | 2.261 |
+| 2026-10-31 11:2x | a18 | 2.187× | -0.004 | 2.137 | 2.239 |
+| 2026-10-31 19:38 | a19 | 2.215× | +0.028 | 2.129 | 2.304 |
 | 2026-11-01 15:17 | a21 | 2.225× | +0.010 | 2.135 | 2.319 |
 | 2026-11-01 16:15 | a22 | 2.232× | +0.006 | 2.158 | 2.309 |
 | 2026-11-01 19:30 | a23w | 2.196× | -0.036 | 2.124 | 2.270 |
@@ -311,7 +314,7 @@ All four boards that score decode and verify loads share the same surface, so th
 | 2026-10-28 07:21 | v7h | 1.893× | +0.038 | 2.164 | 1.655 |
 | 2026-10-31 04:54 | s1 | 2.429× | +0.536 | 2.814 | 2.096 |
 
-**MoE w4a16** (15 runs)
+**MoE w4a16** (16 runs)
 
 | Date (UTC) | Step | Score | Change | Decode half (D) | Verify half (V) |
 |---|---|---:|---:|---:|---:|
@@ -327,11 +330,12 @@ All four boards that score decode and verify loads share the same surface, so th
 | 2026-10-26 02:17 | v15b | 1.795× | +0.024 | 1.667 | 1.933 |
 | 2026-10-26 02:22 | v16 | 1.779× | -0.016 | 1.658 | 1.909 |
 | 2026-10-26 02:30 | v17 | 1.772× | -0.007 | 1.647 | 1.908 |
-| — | 9eb66c6d | 2.140× | +0.368 | 1.990 | 2.302 |
+| 2026-10-28 20:33 | w4 | 2.140× | +0.368 | 1.990 | 2.302 |
 | 2026-10-31 07:21 | s3 | 2.370× | +0.230 | 2.177 | 2.580 |
-| 2026-11-03 02:10 | s3f | 2.369× | -0.001 | 2.163 | 2.595 |
+| 2026-10-31 09:05 | s3e | 2.403× | +0.033 | 2.194 | 2.632 |
+| 2026-11-03 02:10 | s3f | 2.369× | -0.034 | 2.163 | 2.595 |
 
-**BF16 projections** (7 runs)
+**BF16 projections** (10 runs)
 
 | Date (UTC) | Step | Score | Change | Decode half (D) | Verify half (V) |
 |---|---|---:|---:|---:|---:|
@@ -342,6 +346,9 @@ All four boards that score decode and verify loads share the same surface, so th
 | 2026-10-27 02:30 | v7d_robust | 1.249× | -0.000 | 1.253 | 1.246 |
 | 2026-10-27 23:32 | v8b | 1.264× | +0.015 | 1.278 | 1.251 |
 | 2026-10-28 00:54 | v8c | 1.296× | +0.032 | 1.336 | 1.256 |
+| 2026-10-28 12:36 | v10e | 1.387× | +0.091 | 1.455 | 1.322 |
+| 2026-10-28 14:01 | v10h | 1.392× | +0.005 | 1.431 | 1.355 |
+| 2026-10-31 09:4x | s4 | 1.397× | +0.005 | 1.472 | 1.326 |
 
 **Prefill layer** (5 runs)
 
