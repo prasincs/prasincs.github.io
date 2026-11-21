@@ -29,3 +29,9 @@ node_modules/
 
 # Claude Code settings
 .claude/
+
+# Rust build output
+tools/draft-review/target/
+review/agents.conf
+review/comments/
+review/history/
