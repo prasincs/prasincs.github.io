@@ -1,7 +1,7 @@
 ---
 title: "I entered a GPU kernel contest and didn't write a kernel"
 date: 2026-11-20T09:00:00-08:00
-draft: true
+draft: false
 TocOpen: true
 categories:
 - ai
