@@ -80,7 +80,7 @@ A 22-check script (`setup/verify.sh`) proves all of this from scratch:
 
 ## Picking a model
 
-On day one I benchmarked seven models with llama.cpp's `llama-bench`. Every model got the same grid: a 2,048-token prompt and 128 generated tokens, at four context depths, three reps each, all layers on the GPU.
+On day one I benchmarked seven models with llama.cpp's `llama-bench`. Every model got the same grid: a 2,048-token prompt and 128 generated tokens, at four context depths, three reps each, all layers on the GPU. For calibration: the M5 Max's 40-core GPU has 614 GB/s of memory bandwidth, and where public llama.cpp numbers exist for these models on the same chip (gpt-oss-120b, Gemma 4), mine land within about 10%. Prompt reading is roughly 3× what older llama.cpp builds report on the M5 Max, because newer builds use the GPU's neural accelerators ([llama.cpp's Apple Silicon thread](https://github.com/ggml-org/llama.cpp/discussions/4167)).
 
 **Generation speed (tokens/s) as the context fills up:**
 
@@ -131,7 +131,7 @@ The status page shows all of it: who's present, what's running with a log tail, 
 
 ## Bigger than memory
 
-The question I most wanted answered was whether the SSD can stand in for memory. The internal SSD reads at up to ~12 GB/s, which is a lot less than unified memory's bandwidth but a lot more than nothing. A mixture-of-experts model only touches a few experts per token, so maybe the rest can live on disk.
+The question I most wanted answered was whether the SSD can stand in for memory. The internal 2 TB SSD reads at up to ~12.7 GB/s sequentially ([PetaPixel's Blackmagic test](https://petapixel.com/2026/03/13/macbook-pro-with-m5-max-review-this-is-better-than-your-desktop/) of the same capacity; smaller drives are about half that), and I saw up to 10.5 GB/s of scattered expert reads while streaming, which is a lot less than unified memory's bandwidth but a lot more than nothing. A mixture-of-experts model only touches a few experts per token, so maybe the rest can live on disk.
 
 {{< interactive src="/local-ai/models.html?embed&view=size" height="430" title="Size, speed and placement" caption="Figure 2. Every configuration in this post: size against generation speed on an empty context. Colour and shape say where the weights live. The dashed lines are Metal's GPU limit and physical RAM. Hover a point for details." >}}
 
