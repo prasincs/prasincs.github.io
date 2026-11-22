@@ -94,6 +94,8 @@ On day one I benchmarked seven models with llama.cpp's `llama-bench`. Every mode
 | **Qwen3.8-Flash-Next** | UD-Q3_K_XL (90 GB) | **47** | **46** | **44** | **43** |
 | Gemma 4 31B (dense) | Q4_K_M | 26 | | | 16 |
 
+{{< interactive src="/local-ai/models.html?embed&view=context" height="480" title="Speed as the context fills" caption="Figure 1. The same benchmark for eight models, including Inkling 2 Small from later in this post. Switch to Prompt reading for the other half of the grid (log scale). Hover a column for the numbers." >}}
+
 Qwen3.8-Flash-Next is the slowest of the mixture-of-experts models on an empty context, and by far the flattest: it loses 10% from an empty context to 64K, while the small models lose half or more. Prompt processing shows the same pattern: 1,033 → 852 tokens/s, while Qwen3-Coder-30B drops from 2,986 to 352.
 
 At 120K tokens of context, Qwen3.8 still generates 39 tokens/s; Coder-30B is down to 22. Since a personal assistant spends its time on long documents and long chats, Qwen3.8 became the chat model.
@@ -131,6 +133,8 @@ The status page shows all of it: who's present, what's running with a log tail, 
 
 The question I most wanted answered was whether the SSD can stand in for memory. The internal SSD reads at up to ~12 GB/s, which is a lot less than unified memory's bandwidth but a lot more than nothing. A mixture-of-experts model only touches a few experts per token, so maybe the rest can live on disk.
 
+{{< interactive src="/local-ai/models.html?embed&view=size" height="430" title="Size, speed and placement" caption="Figure 2. Every configuration in this post: size against generation speed on an empty context. Colour and shape say where the weights live. The dashed lines are Metal's GPU limit and physical RAM. Hover a point for details." >}}
+
 | Experiment | Size | Result |
 |---|---|---|
 | Qwen3.8 UD-Q4_K_XL, all on GPU | 111 GB, just under Metal's 115 GB limit | 46.0 tokens/s, −3% vs the 90 GB quant |
@@ -139,6 +143,8 @@ The question I most wanted answered was whether the SSD can stand in for memory.
 | DeepSeek-V4-Flash Q2 in DwarfStar, resident | 81 GB | 39–42 tokens/s |
 | Same, streaming experts from SSD | 81 GB | 19–28 tokens/s |
 | DeepSeek V4.1 Flash Q2 in DwarfStar, SSD streaming | **366 GB, ~3× RAM** | **16–20 tokens/s**, 6.3 GB/s average from the SSD, RAM peak 70 GB |
+
+{{< interactive src="/local-ai/models.html?embed&view=bytes" height="400" title="Where the bytes live" caption="Figure 3. Where each configuration keeps its bytes. Only the blue part (GPU memory: weights, KV cache, compute buffer) has to fit under Metal's limit; orange is experts the CPU computes from ordinary memory, green is read from the SSD on demand. Hover a segment for its size." >}}
 
 The first surprise was the 158 GB model. It ran at full speed because the experts it actually uses stay in the page cache, and llama.cpp's memory-mapped loading handles the rest. The first run was only 9 seconds long and the number looked too good, so I had it rerun longer; it held. For this model, the higher-quality quant was effectively free.
 
@@ -154,16 +160,18 @@ It turned out Hugging Face's CDN speed varies wildly *per connection*: 0.8 MB/s 
 
 It had one bug. After a restart, a preallocated file looked complete, so the fetcher counted holes as downloaded. The checksum would have caught it, but only at the very end.
 
-**Getting it to run.** It didn't fit. Metal lets the GPU use about 115 GB of the 128, and the weights alone are 118.7 GiB. I had two options:
+**Getting it to run.** It didn't fit. Metal lets the GPU use about 107.5 GiB of the 128, and the weights alone are 118.7 GiB. I had two options:
 
 - **Raise the cap** with `sudo sysctl iogpu.wired_limit_mb=…` so the GPU can pin ~120 GB. That's the fast way, but pinned memory can't be reclaimed, so macOS and everything else would live in the last few GB. The worst case is a frozen machine.
 - **Keep some experts on the CPU** (`--n-cpu-moe`): slower, but nothing extra is pinned, so memory pressure slows things down instead of locking up.
 
 I started with the second. Experts for 8 of the 48 layers on the CPU ran at 30 prompt / 15 generated tokens/s, until the 32K-context test ran out of GPU memory. The grid script swallowed the error and reported success; I only caught it by checking the rows.
 
-A verbose load showed why. At 124K context, the GPU needed 100.5 GB of weights, 4.2 GB of KV cache and **25.2 GB of compute buffer**. The KV cache is small because 40 of the 48 layers only look back 1,024 tokens. The compute buffer grows with the batch size.
+A verbose load showed why. At 124K context, the GPU needed 98.1 GiB of weights, 4.1 GiB of KV cache and **24.7 GiB of compute buffer**. The KV cache is small because 40 of the 48 layers only look back 1,024 tokens. The compute buffer grows with the batch size.
 
-So: experts for 10 layers on the CPU and batches of 128 tokens. That's 95.4 + 4.2 + 7.1 = 106.7 GB, which fits at 124K. It was also *faster* than the first setting, presumably because the smaller buffer relieves memory pressure more than two more CPU layers cost. llama.cpp's own auto-fit found a working setting too, at half the speed.
+So: experts for 10 layers on the CPU and batches of 128 tokens. That's 93.2 + 4.1 + 6.9 = 104.2 GiB, which fits at 124K. It was also *faster* than the first setting, presumably because the smaller buffer relieves memory pressure more than two more CPU layers cost. llama.cpp's own auto-fit found a working setting too, at half the speed.
+
+{{< interactive src="/local-ai/models.html?embed&view=layers" height="330" title="Inkling 2 Small, layer by layer" caption="Figure 4. Inkling's 48 layers: in each block of six, five look back only 1,024 tokens and one (ringed) sees the whole context. Orange layers keep their experts in ordinary memory, where the CPU computes them; attention stays on the GPU. Toggle between the two settings I tried." >}}
 
 | Context | Prompt tokens/s | Generated tokens/s |
 |---|---|---|

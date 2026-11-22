@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Local models on a Mac Studio</title>
+<style>
+:root{color-scheme:light;--bg:#fcfcfb;--ink:#0b0b0b;--ink2:#52514e;--muted:#8a8984;--rule:#e4e3df;--grid:#efeeea;
+--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;--s5:#e87ba4;--s6:#008300;--s7:#6250d6;--s8:#e34948;
+--g1:#184f95;--g2:#3987e5;--g3:#86b6ef;--lg:#2a78d6;--cpu:#eb6834;--ssd:#1baf7a;--bad:#c62828}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){color-scheme:dark;--bg:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#8f8e86;--rule:#33332f;--grid:#262624;
+--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#0ca30c;--s7:#9085e9;--s8:#e66767;
+--g1:#9ec5f4;--g2:#5598e7;--g3:#256abf;--lg:#2a78d6;--cpu:#d95926;--ssd:#199e70;--bad:#ef6c6c}}
+:root[data-theme="dark"]{color-scheme:dark;--bg:#1a1a19;--ink:#f0efec;--ink2:#c3c2b7;--muted:#8f8e86;--rule:#33332f;--grid:#262624;
+--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181;--s6:#0ca30c;--s7:#9085e9;--s8:#e66767;
+--g1:#9ec5f4;--g2:#5598e7;--g3:#256abf;--lg:#2a78d6;--cpu:#d95926;--ssd:#199e70;--bad:#ef6c6c}
+:root.embed{--bg:#fff}
+@media (prefers-color-scheme:dark){:root.embed:not([data-theme="light"]){--bg:#1d1e20}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;padding:16px}
+main{max-width:980px;margin:0 auto;display:grid;gap:28px}
+h1{font-size:20px;margin:0}
+h2{font-size:16px;margin:0 0 4px}
+.note{color:var(--ink2);font-size:13px;margin:0 0 8px}
+section{display:grid;gap:6px}
+.ctl{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.ctl button{font:inherit;font-size:12.5px;padding:4px 10px;border:1px solid var(--rule);background:transparent;color:var(--ink2);border-radius:6px;cursor:pointer}
+.ctl button[aria-pressed="true"]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12.5px;color:var(--ink2)}
+.legend span{display:inline-flex;align-items:center;gap:6px;cursor:default}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px}
+.legend i.line{height:3px;border-radius:2px}
+svg{display:block;width:100%;height:auto;overflow:visible}
+svg text{fill:var(--ink2);font-size:11.5px}
+svg .ax{stroke:var(--rule)}
+svg .gr{stroke:var(--grid)}
+svg .halo{paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+svg .lim{stroke:var(--ink2);stroke-dasharray:4 3;stroke-width:1.2}
+.tip{position:fixed;pointer-events:none;background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:8px;padding:8px 10px;font-size:12.5px;box-shadow:0 4px 16px rgba(0,0,0,.15);max-width:300px;display:none;z-index:9}
+.tip b{display:block;margin-bottom:2px}
+.tip .m{color:var(--ink2)}
+details{font-size:12.5px;color:var(--ink2)}
+table{border-collapse:collapse;font-size:12.5px;margin-top:6px}
+td,th{padding:3px 10px 3px 0;text-align:left;border-bottom:1px solid var(--rule)}
+td.n,th.n{text-align:right}
+:root.embed body{padding:6px 4px}
+:root.embed main{gap:0}
+:root.embed h1,:root.embed .intro,:root.embed section{display:none}
+:root.embed section.shown{display:grid}
+:root.embed section.shown>h2,:root.embed section.shown>.note{display:none}
+</style>
+</head>
+<body>
+<main>
+<header class="intro"><h1>Local models on a 128 GB Mac Studio (M5 Max)</h1>
+<p class="note">Measured with llama.cpp's llama-bench (flash attention on) and DwarfStar. Sizes in GiB (2<sup>30</sup> bytes). Hover any mark for details.</p></header>
+
+<section id="s-size">
+<h2>How big, how fast, and where it runs</h2>
+<p class="note">Generation speed at an empty context against model size. The dashed lines are the two walls: what Metal lets the GPU use (107.5 GiB) and physical RAM (128 GiB).</p>
+<div class="legend" id="lg-size"></div>
+<svg id="c-size" viewBox="0 0 900 430" role="img" aria-label="Scatter of model size against generation speed"></svg>
+<details><summary>Table</summary><table id="t-size"></table></details>
+</section>
+
+<section id="s-context">
+<h2>Speed as the context fills</h2>
+<p class="note">llama-bench at 0, 8K, 32K and 64K tokens already in context. Prompt speed is on a log scale: it spans 12 to 3,500 tokens/s.</p>
+<div class="ctl" role="group" aria-label="Measure"><button id="m-tg" aria-pressed="true">Generation</button><button id="m-pp" aria-pressed="false">Prompt reading</button></div>
+<div class="legend" id="lg-ctx"></div>
+<svg id="c-ctx" viewBox="0 0 900 400" role="img" aria-label="Speed against context depth for eight models"></svg>
+<details><summary>Table</summary><table id="t-ctx"></table></details>
+</section>
+
+<section id="s-bytes">
+<h2>Where the bytes live</h2>
+<p class="note">Each bar is one way of running a model. Blue is GPU memory (weights, KV cache, compute buffer), orange is experts the CPU computes from ordinary memory, green stays on the SSD. Only the blue part has to fit under Metal's limit.</p>
+<div class="legend" id="lg-bytes"></div>
+<svg id="c-bytes" viewBox="0 0 900 420" role="img" aria-label="Stacked bars of GPU, CPU and SSD bytes per configuration"></svg>
+<details><summary>Table</summary><table id="t-bytes"></table></details>
+</section>
+
+<section id="s-layers">
+<h2>Inkling 2 Small, layer by layer</h2>
+<p class="note">48 layers in blocks of six: five that look back only 1,024 tokens and one that sees the whole context. <code>--n-cpu-moe N</code> moves the experts of the first N layers to the CPU; attention stays on the GPU.</p>
+<div class="ctl" role="group" aria-label="Experts on CPU"><button id="n-8" aria-pressed="false">--n-cpu-moe 8</button><button id="n-10" aria-pressed="true">--n-cpu-moe 10</button></div>
+<div class="legend" id="lg-layers"></div>
+<svg id="c-layers" viewBox="0 0 900 300" role="img" aria-label="Grid of Inkling's 48 layers showing which experts run on the CPU"></svg>
+<p class="note" id="layers-sum"></p>
+</section>
+</main>
+<div class="tip" id="tip"></div>
+<script>
+const GiB=gb=>gb*1e9/2**30, NS="http://www.w3.org/2000/svg";
+const css=v=>getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const el=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const tip=document.getElementById("tip");
+function hover(node,html){node.addEventListener("pointerenter",()=>{tip.innerHTML=html;tip.style.display="block"});
+ node.addEventListener("pointermove",e=>{const w=tip.offsetWidth,h=tip.offsetHeight;let x=e.clientX+14,y=e.clientY+14;
+  if(x+w>innerWidth-8)x=e.clientX-w-14;if(y+h>innerHeight-8)y=e.clientY-h-14;tip.style.left=Math.max(4,x)+"px";tip.style.top=Math.max(4,y)+"px"});
+ node.addEventListener("pointerleave",()=>tip.style.display="none")}
+const fmt=x=>x>=100?Math.round(x).toLocaleString():x.toFixed(1);
+
+// ---------- data ----------
+// Speed v1 (llama-bench pp2048 / tg128, -fa on, all layers on GPU unless noted). Sizes are file sizes in GB.
+const MODELS=[
+ {k:"gptoss",n:"gpt-oss-120b",q:"MXFP4",gb:63.4,pp:[2013.0,1601.6,988.0,651.2],tg:[108.7,98.3,72.9,56.1]},
+ {k:"q36",n:"Qwen3.6-35B-A3B",q:"UD-Q5_K_M",gb:26.4,pp:[3048.5,2509.0,1632.4,1101.5],tg:[109.0,101.6,87.8,73.3]},
+ {k:"g26",n:"Gemma 4 26B-A4B",q:"UD-Q4_K_M",gb:16.9,pp:[3544.5,2904.2,1838.0,1205.7],tg:[106.5,92.6,76.5,61.4]},
+ {k:"qc30",n:"Qwen3-Coder-30B-A3B",q:"Q5_K_M",gb:21.7,pp:[2986.2,1549.3,630.7,352.4],tg:[140.2,103.9,57.3,37.1]},
+ {k:"qcn",n:"Qwen3-Coder-Next",q:"Q4_K_M",gb:48.5,pp:[2106.9,1809.2,1231.7,859.1],tg:[96.0,90.2,76.0,62.6]},
+ {k:"q38",n:"Qwen3.8-Flash-Next",q:"UD-Q3_K_XL",gb:90.0,pp:[1032.9,910.3,884.0,852.1],tg:[47.4,45.9,44.0,42.7]},
+ {k:"g31",n:"Gemma 4 31B (dense)",q:"Q4_K_M",gb:18.3,pp:[636.4,543.6,372.0,260.8],tg:[26.4,24.1,19.9,15.6]},
+ {k:"ink",n:"Inkling 2 Small",q:"IQ1_S, 10 layers' experts on CPU",gb:127.5,pp:[46.8,42.7,31.4,12.4],tg:[18.7,17.4,15.8,11.9]},
+];
+const DEPTHS=[0,8192,32768,65536];
+// Placement: gpu = all in GPU memory; cpu = some experts computed by the CPU; ssd = more than fits in RAM, read from the SSD.
+const PLACES=[{k:"gpu",n:"All in GPU memory",c:"--s1",shape:"circle"},{k:"cpu",n:"Some experts on the CPU",c:"--s2",shape:"square"},{k:"ssd",n:"Bigger than RAM, read from SSD",c:"--s3",shape:"diamond"}];
+const POINTS=[
+ ...MODELS.filter(m=>m.k!=="ink").map(m=>({n:m.n,q:m.q,gb:m.gb,tg:m.tg[0],p:"gpu",eng:"llama.cpp"})),
+ {n:"Qwen3.8-Flash-Next",q:"UD-Q4_K_XL",gb:111,tg:46.0,p:"gpu",eng:"llama.cpp",note:"just under Metal's limit"},
+ {n:"Qwen3.8-Flash-Next",q:"UD-Q5_K_XL, memory-mapped",gb:158,tg:44.3,p:"ssd",eng:"llama.cpp",note:"the experts in use stay in the page cache"},
+ {n:"Qwen3.8-Flash-Next",q:"UD-Q5_K_XL, --n-cpu-moe 8",gb:158,tg:31,p:"cpu",eng:"llama.cpp"},
+ {n:"Qwen3.8-Flash-Next",q:"UD-Q5_K_XL, --n-cpu-moe 16",gb:158,tg:20,p:"cpu",eng:"llama.cpp"},
+ {n:"Qwen3.8-Flash-Next",q:"UD-Q5_K_XL, --n-cpu-moe 24",gb:158,tg:19,p:"cpu",eng:"llama.cpp"},
+ {n:"DeepSeek-V4-Flash",q:"Q2, resident",gb:81,tg:40.5,lo:39,hi:42,p:"gpu",eng:"DwarfStar"},
+ {n:"DeepSeek-V4-Flash",q:"Q2, experts streamed from SSD",gb:81,tg:23.5,lo:19,hi:28,p:"ssd",eng:"DwarfStar"},
+ {n:"DeepSeek V4.1 Flash",q:"Q2, SSD streaming",gb:366,tg:18,lo:16,hi:20,p:"ssd",eng:"DwarfStar",note:"~3× RAM; 6.3 GB/s from the SSD, RAM peak 70 GB"},
+ {n:"Inkling 2 Small",q:"IQ1_S, --n-cpu-moe 10 -ub 128",gb:127.5,tg:18.7,p:"cpu",eng:"llama.cpp"},
+ {n:"Inkling 2 Small",q:"IQ1_S, --n-cpu-moe 8",gb:127.5,tg:14.8,p:"cpu",eng:"llama.cpp",note:"ran out of GPU memory at 32K context"},
+];
+const LIMIT=115448.73e6/2**20/1024, RAM=128; // Metal recommendedMaxWorkingSetSize (MiB) -> GiB; physical RAM
+// Device budgets from verbose llama-server loads at 124K context (MiB), and sizes for the rest.
+const MiB=x=>x/1024;
+const SEGS=[{k:"w",n:"GPU: weights",c:"--g1"},{k:"kv",n:"GPU: KV cache",c:"--g2"},{k:"cb",n:"GPU: compute buffer",c:"--g3"},{k:"cpu",n:"RAM: experts the CPU computes",c:"--cpu"},{k:"ssd",n:"SSD: read on demand",c:"--ssd"}];
+const INK=GiB(127.5);
+const BARS=[
+ {n:"gpt-oss-120b",s:"MXFP4, all on GPU",v:{w:GiB(63.4)}},
+ {n:"Qwen3.8-Flash-Next",s:"UD-Q3_K_XL, all on GPU",v:{w:GiB(90)}},
+ {n:"Qwen3.8-Flash-Next",s:"UD-Q4_K_XL, all on GPU",v:{w:GiB(111)}},
+ {n:"Inkling 2 Small",s:"--n-cpu-moe 8, batch 512, 124K ctx",v:{w:MiB(100489),kv:MiB(4214),cb:MiB(25244),cpu:INK-MiB(100489)},bad:"GPU part exceeds the limit: out of memory"},
+ {n:"Inkling 2 Small",s:"--n-cpu-moe 10, batch 128, 124K ctx",v:{w:MiB(95447),kv:MiB(4174),cb:MiB(7062),cpu:INK-MiB(95447)},good:"fits, 3.4 GB to spare"},
+ {n:"Qwen3.8-Flash-Next",s:"UD-Q5_K_XL, memory-mapped",v:{w:RAM-24,ssd:GiB(158)-(RAM-24)},approx:"The split moves: macOS keeps the experts in use in RAM (page cache) and leaves the rest on the SSD. Shown with ~24 GiB left for everything else."},
+ {n:"DeepSeek-V4-Flash",s:"Q2 in DwarfStar, resident",v:{w:GiB(81)}},
+ {n:"DeepSeek V4.1 Flash",s:"Q2 in DwarfStar, SSD streaming",v:{w:GiB(70),ssd:GiB(366)-GiB(70)},approx:"Memory shown is the measured RAM peak (70 GB); the rest streams from the SSD at 6.3 GB/s on average."},
+];
+
+// ---------- size scatter ----------
+function legend(id,items,line){const L=document.getElementById(id);L.innerHTML="";for(const it of items){const s=document.createElement("span");
+ s.innerHTML=`<i class="${line?"line":""}" style="background:var(${it.c})"></i>${it.n}`;if(it.key)s.dataset.key=it.key;L.appendChild(s)}return L}
+function marker(g,shape,x,y,r,fill){const ring=css("--bg");
+ if(shape==="circle")return el("circle",{cx:x,cy:y,r,fill,stroke:ring,"stroke-width":2},g);
+ if(shape==="square")return el("rect",{x:x-r*.9,y:y-r*.9,width:r*1.8,height:r*1.8,rx:2,fill,stroke:ring,"stroke-width":2},g);
+ return el("path",{d:`M${x},${y-r*1.25}L${x+r*1.25},${y}L${x},${y+r*1.25}L${x-r*1.25},${y}Z`,fill,stroke:ring,"stroke-width":2},g)}
+function drawSize(){const S=document.getElementById("c-size");S.innerHTML="";
+ const W=900,H=430,m={l:52,r:20,t:16,b:44},x0=m.l,x1=W-m.r,y0=H-m.b,y1=m.t;
+ const lx=v=>x0+(Math.log(v)-Math.log(12))/(Math.log(400)-Math.log(12))*(x1-x0), ly=v=>y0-(v/150)*(y0-y1);
+ for(const t of [16,32,64,128,256]){const X=lx(t);el("line",{x1:X,x2:X,y1:y1,y2:y0,class:"gr"},S);el("text",{x:X,y:y0+16,"text-anchor":"middle"},S).textContent=t}
+ for(let t=0;t<=150;t+=25){const Y=ly(t);el("line",{x1:x0,x2:x1,y1:Y,y2:Y,class:"gr"},S);el("text",{x:x0-8,y:Y+4,"text-anchor":"end"},S).textContent=t}
+ el("text",{x:(x0+x1)/2,y:H-6,"text-anchor":"middle"},S).textContent="model size, GiB (log scale)";
+ el("text",{x:14,y:(y0+y1)/2,"text-anchor":"middle",transform:`rotate(-90 14 ${(y0+y1)/2})`},S).textContent="generated tokens/s";
+ for(const [v,lab] of [[LIMIT,"Metal GPU limit 107.5"],[RAM,"RAM 128"]]){const X=lx(v);el("line",{x1:X,x2:X,y1:y1,y2:y0,class:"lim"},S);
+  el("text",{x:X+(v===RAM?5:-5),y:y1+12,"text-anchor":v===RAM?"start":"end"},S).textContent=lab}
+const LAB={"gpt-oss-120b|MXFP4":[11,4,"start","gpt-oss-120b"],"Qwen3-Coder-30B-A3B|Q5_K_M":[11,4,"start","Qwen3-Coder-30B"],"Qwen3.8-Flash-Next|UD-Q3_K_XL":[-11,4,"end","Qwen3.8 Q3"],"Qwen3.8-Flash-Next|UD-Q4_K_XL":[0,-12,"middle","Q4"],"Gemma 4 31B (dense)|Q4_K_M":[11,4,"start","Gemma 4 31B (dense)"],"DeepSeek V4.1 Flash|Q2, SSD streaming":[6,24,"end","DeepSeek V4.1 Flash (366 GB)"],"Inkling 2 Small|IQ1_S, --n-cpu-moe 10 -ub 128":[-11,4,"end","Inkling 2 Small"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, memory-mapped":[11,4,"start","Qwen3.8 Q5, mapped"],"DeepSeek-V4-Flash|Q2, resident":[-11,4,"end","DeepSeek-V4-Flash"],"DeepSeek-V4-Flash|Q2, experts streamed from SSD":[-11,4,"end","streamed"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, --n-cpu-moe 8":[11,4,"start","Q5, CPU experts"]};
+ const g=el("g",{},S);
+ for(const p of POINTS){const P=PLACES.find(q=>q.k===p.p),X=lx(GiB(p.gb)),Y=ly(p.tg),fill=css(P.c);
+  if(p.lo)el("line",{x1:X,x2:X,y1:ly(p.lo),y2:ly(p.hi),stroke:fill,"stroke-width":2,"stroke-linecap":"round"},g);
+  const mk=marker(g,P.shape,X,Y,6,fill);
+  const hit=el("circle",{cx:X,cy:Y,r:13,fill:"transparent"},g);
+  hover(hit,`<b>${p.n}</b><span class="m">${p.q} · ${p.eng}</span><br>${fmt(GiB(p.gb))} GiB · <b style="display:inline">${p.lo?p.lo+"–"+p.hi:fmt(p.tg)}</b> tokens/s<br><span class="m">${P.n}${p.note?"; "+p.note:""}</span>`);
+  const o=LAB[p.n+"|"+p.q];if(o){const t=el("text",{x:X+o[0],y:Y+o[1],"text-anchor":o[2],class:"halo"},g);t.textContent=o[3]}}
+ legend("lg-size",PLACES);
+ const T=document.getElementById("t-size");T.innerHTML="<tr><th>Model</th><th>Setup</th><th class=n>GiB</th><th class=n>tokens/s</th><th>Where</th></tr>"+
+  POINTS.map(p=>`<tr><td>${p.n}</td><td>${p.q} (${p.eng})</td><td class=n>${fmt(GiB(p.gb))}</td><td class=n>${p.lo?p.lo+"–"+p.hi:fmt(p.tg)}</td><td>${PLACES.find(q=>q.k===p.p).n}</td></tr>`).join("")}
+
+// ---------- context lines ----------
+let measure="tg";
+function drawCtx(){const S=document.getElementById("c-ctx");S.innerHTML="";
+ const W=900,H=400,m={l:56,r:150,t:14,b:40},x0=m.l,x1=W-m.r,y0=H-m.b,y1=m.t,pp=measure==="pp";
+ const xs=DEPTHS.map((d,i)=>x0+i*(x1-x0)/3);
+ const ly=pp?v=>y0-(Math.log10(v)-1)/(Math.log10(5000)-1)*(y0-y1):v=>y0-v/150*(y0-y1);
+ const ticks=pp?[10,30,100,300,1000,3000]:[0,25,50,75,100,125,150];
+ for(const t of ticks){const Y=ly(t);el("line",{x1:x0,x2:x1,y1:Y,y2:Y,class:"gr"},S);el("text",{x:x0-8,y:Y+4,"text-anchor":"end"},S).textContent=t.toLocaleString()}
+ DEPTHS.forEach((d,i)=>{el("text",{x:xs[i],y:y0+18,"text-anchor":"middle"},S).textContent=d?d/1024+"K":"0"});
+ el("text",{x:(x0+x1)/2,y:H-4,"text-anchor":"middle"},S).textContent="tokens already in context";
+ el("text",{x:14,y:(y0+y1)/2,"text-anchor":"middle",transform:`rotate(-90 14 ${(y0+y1)/2})`},S).textContent=pp?"prompt tokens/s (log)":"generated tokens/s";
+ const groups=[];
+ MODELS.forEach((mo,i)=>{const c=css("--s"+(i+1)),v=mo[measure],g=el("g",{"data-k":mo.k},S);groups.push(g);
+  el("polyline",{points:v.map((y,j)=>xs[j]+","+ly(y)).join(" "),fill:"none",stroke:c,"stroke-width":2,"stroke-linejoin":"round"},g);
+  v.forEach((y,j)=>{el("circle",{cx:xs[j],cy:ly(y),r:4,fill:c,stroke:css("--bg"),"stroke-width":2},g)});});
+ // end labels, nudged apart
+ const ends=MODELS.map((mo,i)=>({i,y:ly(mo[measure][3]),n:mo.n})).sort((a,b)=>a.y-b.y);
+ for(let k=1;k<ends.length;k++)if(ends[k].y-ends[k-1].y<13)ends[k].y=ends[k-1].y+13;
+ for(const e of ends){el("text",{x:x1+8,y:e.y+4},groups[e.i]).textContent=e.n.replace(" (dense)","")}
+ // crosshair per depth column
+ const cross=el("line",{y1:y1,y2:y0,class:"ax",visibility:"hidden"},S);
+ DEPTHS.forEach((d,j)=>{const half=(x1-x0)/6,r=el("rect",{x:xs[j]-half,y:y1,width:half*2,height:y0-y1,fill:"transparent"},S);
+  const rows=MODELS.map((mo,i)=>({n:mo.n,v:mo[measure][j],c:"--s"+(i+1)})).sort((a,b)=>b.v-a.v);
+  hover(r,`<b>${d?d/1024+"K":"Empty"} context · ${pp?"prompt":"generation"} tokens/s</b>`+rows.map(o=>`<div><i style="display:inline-block;width:10px;height:3px;border-radius:2px;background:var(${o.c});vertical-align:middle;margin-right:6px"></i>${o.n}: <b style="display:inline">${fmt(o.v)}</b></div>`).join(""));
+  r.addEventListener("pointerenter",()=>{cross.setAttribute("x1",xs[j]);cross.setAttribute("x2",xs[j]);cross.setAttribute("visibility","visible")});
+  r.addEventListener("pointerleave",()=>cross.setAttribute("visibility","hidden"))});
+ const L=legend("lg-ctx",MODELS.map((mo,i)=>({n:mo.n,c:"--s"+(i+1),key:mo.k})),true);
+ L.querySelectorAll("span").forEach(s=>{s.addEventListener("pointerenter",()=>groups.forEach(g=>g.style.opacity=g.dataset.k===s.dataset.key?1:.15));
+  s.addEventListener("pointerleave",()=>groups.forEach(g=>g.style.opacity=1))});
+ const T=document.getElementById("t-ctx");T.innerHTML=`<tr><th>Model (${pp?"prompt":"generation"} tokens/s)</th>${DEPTHS.map(d=>`<th class=n>${d?d/1024+"K":"0"}</th>`).join("")}</tr>`+
+  MODELS.map(mo=>`<tr><td>${mo.n} ${mo.q}</td>${mo[measure].map(v=>`<td class=n>${fmt(v)}</td>`).join("")}</tr>`).join("")}
+for(const k of ["tg","pp"])document.getElementById("m-"+k).onclick=()=>{measure=k;document.getElementById("m-tg").setAttribute("aria-pressed",k==="tg");document.getElementById("m-pp").setAttribute("aria-pressed",k==="pp");drawCtx()};
+
+// ---------- bytes bars ----------
+function drawBytes(){const S=document.getElementById("c-bytes");S.innerHTML="";
+ const W=900,rowH=40,m={l:250,r:20,t:26,b:34},H=m.t+BARS.length*rowH+m.b;S.setAttribute("viewBox",`0 0 ${W} ${H}`);
+ const x0=m.l,x1=W-m.r,y0=H-m.b,max=350,lx=v=>x0+v/max*(x1-x0);
+ for(let t=0;t<=max;t+=50){const X=lx(t);el("line",{x1:X,x2:X,y1:m.t,y2:y0,class:"gr"},S);el("text",{x:X,y:y0+16,"text-anchor":"middle"},S).textContent=t}
+ el("text",{x:(x0+x1)/2,y:H-2,"text-anchor":"middle"},S).textContent="GiB";
+ for(const [v,lab] of [[LIMIT,"Metal GPU limit"],[RAM,"RAM"]]){const X=lx(v);el("line",{x1:X,x2:X,y1:m.t-8,y2:y0,class:"lim"},S);
+  el("text",{x:X+(v===RAM?4:-4),y:m.t-12,"text-anchor":v===RAM?"start":"end"},S).textContent=lab}
+ BARS.forEach((b,i)=>{const y=m.t+i*rowH+8,h=rowH-16;
+  el("text",{x:x0-10,y:y+h/2-2,"text-anchor":"end",style:"fill:var(--ink)"},S).textContent=b.n;
+  el("text",{x:x0-10,y:y+h/2+12,"text-anchor":"end"},S).textContent=b.s;
+  let x=0;const parts=SEGS.filter(s=>b.v[s.k]>0);
+  parts.forEach((s,j)=>{const w=b.v[s.k],X=lx(x),Wd=Math.max(1,lx(x+w)-X-(j<parts.length-1?2:0)),last=j===parts.length-1;
+   const r=el("path",{d:last?`M${X},${y}h${Wd-4}a4,4 0 0 1 4,4v${h-8}a4,4 0 0 1 -4,4h${-(Wd-4)}z`:`M${X},${y}h${Wd}v${h}h${-Wd}z`,fill:css(s.c)},S);
+   const gpu=(b.v.w||0)+(b.v.kv||0)+(b.v.cb||0);
+   hover(r,`<b>${b.n}</b><span class="m">${b.s}</span><br>${s.n}: <b style="display:inline">${fmt(w)} GiB</b><br><span class="m">GPU total ${fmt(gpu)} of ${fmt(LIMIT)} GiB allowed${b.approx?"<br>"+b.approx:""}</span>`);x+=w});
+  const tot=Object.values(b.v).reduce((a,c)=>a+c,0),gpu=(b.v.w||0)+(b.v.kv||0)+(b.v.cb||0);
+  const tag=b.bad?` · GPU ${fmt(gpu)} > ${fmt(LIMIT)} ✕ out of memory`:b.good?` · GPU ${fmt(gpu)} ✓ fits`:"";
+  el("text",{x:lx(tot)+6,y:y+h/2+4,class:"halo",style:b.bad?"fill:var(--bad);font-weight:600":""},S).textContent=`${fmt(tot)} GiB${tag}`;});
+ legend("lg-bytes",SEGS);
+ const T=document.getElementById("t-bytes");T.innerHTML="<tr><th>Configuration</th>"+SEGS.map(s=>`<th class=n>${s.n}</th>`).join("")+"</tr>"+
+  BARS.map(b=>`<tr><td>${b.n}, ${b.s}</td>${SEGS.map(s=>`<td class=n>${b.v[s.k]?fmt(b.v[s.k]):""}</td>`).join("")}</tr>`).join("")}
+
+// ---------- Inkling layers ----------
+const SWA=[...Array(48)].map((_,i)=>i%6!==5); // GGUF sliding_window_pattern: every 6th layer is global
+let ncmoe=10;
+function drawLayers(){const S=document.getElementById("c-layers");S.innerHTML="";
+ const cols=12,cw=66,ch=52,gap=6,x0=40,y0=24;
+ for(let r=0;r<4;r++)el("text",{x:x0-8,y:y0+r*(ch+gap)+ch/2+4,"text-anchor":"end"},S).textContent=r*12;
+ for(let i=0;i<48;i++){const r=Math.floor(i/cols),c=i%cols,X=x0+c*(cw+gap)+(c>=6?10:0),Y=y0+r*(ch+gap),cpu=i<ncmoe,glob=!SWA[i];
+  const g=el("g",{},S);
+  el("rect",{x:X,y:Y,width:cw,height:ch,rx:4,fill:css(cpu?"--cpu":"--lg")},g);
+  if(glob)el("rect",{x:X+3,y:Y+3,width:cw-6,height:ch-6,rx:3,fill:"none",stroke:css("--bg"),"stroke-width":2.5},g);
+  el("text",{x:X+cw/2,y:Y+20,"text-anchor":"middle",style:"fill:#fff;font-weight:600"},g).textContent=i;
+  el("text",{x:X+cw/2,y:Y+37,"text-anchor":"middle",style:"fill:#fff;font-size:10.5px"},g).textContent=glob?"full context":"1K window";
+  hover(g,`<b>Layer ${i}</b>${glob?"Global attention: sees the whole context. KV cache at 124K: ~496 MiB (f16).":"Sliding-window attention: looks back 1,024 tokens. KV cache stays ~4 MiB at any context."}<br>384 experts (8 used per token), ~2.6 GiB: <b style="display:inline">${cpu?"in RAM, computed by the CPU":"in GPU memory"}</b>.<br><span class="m">Attention weights and KV stay on the GPU either way.</span>`)}
+ el("text",{x:x0,y:14},S).textContent="each row: two blocks of six layers (five 1K-window + one full-context)";
+ legend("lg-layers",[{n:"Experts on the GPU",c:"--lg"},{n:"Experts on the CPU (RAM)",c:"--cpu"}]).insertAdjacentHTML("beforeend",'<span><i style="background:var(--lg);outline:2px solid var(--bg);outline-offset:-4px"></i>ringed = full-context layer</span>');
+ document.getElementById("layers-sum").textContent=ncmoe===10?
+  "10 layers' experts on the CPU: ~25.5 GiB in RAM, 104.2 GiB on the GPU at 124K context with a 128-token batch. Fits, and ran 46.8 / 18.7 tokens/s (prompt / generation).":
+  "8 layers' experts on the CPU: ~20.6 GiB in RAM, but 126.9 GiB on the GPU at 124K with the default 512-token batch (24.7 GiB of it compute buffer). Out of memory past 8K context."}
+for(const n of [8,10])document.getElementById("n-"+n).onclick=()=>{ncmoe=n;document.getElementById("n-8").setAttribute("aria-pressed",n===8);document.getElementById("n-10").setAttribute("aria-pressed",n===10);drawLayers()};
+
+// ---------- embed + theme ----------
+const Q=new URLSearchParams(location.search);
+if(Q.has("embed")){document.documentElement.classList.add("embed");const s=document.getElementById("s-"+(Q.get("view")||"size"));if(s)s.classList.add("shown")}
+const draw=()=>{drawSize();drawCtx();drawBytes();drawLayers()};draw();
+const mq=matchMedia("(prefers-color-scheme: dark)");if(mq.addEventListener)mq.addEventListener("change",draw);
+new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+</script>
+</body>
+</html>
