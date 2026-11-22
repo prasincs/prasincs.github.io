@@ -44,7 +44,7 @@ Here's what runs, top to bottom:
 
 | Component | What it does | Size |
 |---|---|---|
-| [llama.cpp](https://github.com/ggml-org/llama.cpp) `llama-server` | Serves the chat model (Qwen3.8-Flash-Next, 128K context, speculative decoding) and an agent model (Qwen3-Coder-30B) side by side | prebuilt release, pinned |
+| [llama.cpp](https://github.com/ggml-org/llama.cpp) `llama-server` | Serves the chat model (Qwen3.8-Flash-Next, 128K context, speculative decoding) and an agent model (Inkling 2 Mini, which replaced Qwen3-Coder-30B this week) side by side | prebuilt release, pinned |
 | stackd | A small router in front of both: streams responses byte for byte and routes by the request's `"model"` field | 167 lines, Python stdlib |
 | [Open WebUI](https://github.com/open-webui/open-webui) | The chat UI, in an Apple container on a host-only network | pinned image digest |
 | Socket gateway | The only way in or out of the containers (more below) | 225 lines, Python stdlib |
@@ -106,7 +106,7 @@ A few more results shaped the setup:
 - **Speculative decoding (MTP)** lets Qwen3.8 draft a few tokens ahead with a small extra module and verify them in one step. It averages 1.48× at 3 draft tokens and 1.59× at 5. Code and JSON reach 1.9× (89 tokens/s); prose gains 1.1–1.3×. It needs the *full* MTP module; the "shared" variant failed to load. On by default. I only measured generation; [one public test](https://dev.to/someoddcodeguy/llamacpps-new-mtp-on-macos-4ea0) of llama.cpp's MTP on an M2 Ultra (Qwen3.6-35B) saw 1.07–1.14× generation and about 17% slower prompt reading, which matches my prose numbers and is worth checking before turning it on for long documents.
 - **A real 128K chat works.** A 104,742-token document loaded in 137 s with exact recall. Follow-up questions on it came back in under a second from the cache, and memory peaked at 78 GB.
 - **KV cache at 8 bits is nearly free** on the Qwen and gpt-oss models (0–4% slower at 64K), but costs Gemma 18–20%.
-- **Two models fit at once.** Qwen3.8 and Coder-30B together peak at 108.5 GB with no new swap, for about 1.85× the machine's total throughput. So the chat model and the agent model now run side by side.
+- **Two models fit at once.** Qwen3.8 and Coder-30B together peak at 108.5 GB with no new swap, for about 1.85× the machine's total throughput. So the chat model and the agent model now run side by side. The agent model is now Inkling 2 Mini, which is smaller still (18.5 GB in memory).
 - **The Neural Engine sat idle** (0 W) in every llama.cpp run. The GPU ran at 90–98%, and the whole machine drew 120–140 W.
 
 Speed isn't quality, so Qwen3.8 also got a 20-prompt qualitative round with code and shell answers actually executed. It scored 14 pass, 5 partial and 1 fail. The one fail was a shell one-liner using GNU `head` syntax that doesn't work on macOS. The partials were the kind of thing you'd catch in review: 133 words for a 120-word limit, a percentage of the wrong base, stiff Nepali.
@@ -201,6 +201,10 @@ Some didn't:
 - **Destructive cleanup.** One batch ran `rm -f *.py` and deleted its own validator. Since then, protected files never come back out of the sandbox, and deletions never propagate.
 - **Too much input.** Every Qwen3.8 failure in the contest had more than 150 KB of input, and every success with that much input was pure reading. Inputs are now capped at about 60 KB for Qwen3.8 and 30 KB for Coder-30B.
 
+**Swapping the agent model.** Inkling 2 Mini (26B parameters, 3.4B active, released two days ago) went head to head with Coder-30B on the 10 gate tasks, twice each, graded only by each task's own check script. Mini passed 19 of 20, Coder-30B 18. Mini's miss was a half-done refactor that passed on the second try. Coder-30B's misses were worse: it diagnosed the same out-of-memory crash log wrongly both times, once recommending a flag that doesn't exist, and in another task it fixed the bug in seconds and then repeated its final message for 10 minutes until the timeout. Mini is slower (34 s median per task against 14 s), and the suite is easy, so the margin is thin; I swapped anyway, for the better diagnoses.
+
+The first real chat with it matched the benchmark. Over one session (13 requests, including retries and the title Open WebUI generates), Mini generated 24,286 tokens at 39.3 tokens/s, between 39.0 and 41.1 on every request; the benchmark says 42.7 on an empty context and 40.8 at 8K. Its longest prompt, 9,719 tokens, was read at 694 tokens/s, 14 seconds before the first token. The cost is length: two responses ran past 5,000 tokens and took 2.3 and 3 minutes.
+
 Each delegated task runs in its own container. It gets a private copy of the task folder, and the model is reachable through the gateway and nothing else. Only new or changed files that aren't protected come back.
 
 ## Gotchas
@@ -239,7 +243,7 @@ Most of this is small, dependency-free code that isn't specific to my machine, a
 
 ## What's next
 
-- **More Inkling 2.** The larger unsloth quant, which doesn't fit in RAM at all, and Inkling 2 Mini (26B, 3.4B active, released two days ago), which might replace Qwen3-Coder-30B as the agent model if it wins on real agent tasks.
+- **More Inkling 2.** The larger unsloth quant, which doesn't fit in RAM at all (downloading now), and a harder agent round to check that Inkling 2 Mini's lead over Coder-30B holds on multi-file changes and real logs.
 - **Raise the GPU cap** to see how much faster Inkling 2 gets with every layer on the GPU.
 - **Wire the router's decision models.** A bake-off picked two small classifier models for stackd: one to route requests between models, and one to escalate the hard ones and judge answers.
 - **Grade the second qualitative round.** Four more models were run and never scored.
