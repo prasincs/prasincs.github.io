@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="560" viewBox="0 0 860 560" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="13">
+  <title>Local AI stack on the Mac Studio</title>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#555"/>
+    </marker>
+    <style>
+      .box{fill:#fff;stroke:#444;stroke-width:1.2;rx:6}
+      .vm{fill:#eef4ff;stroke:#3b6fd8;stroke-width:1.2;stroke-dasharray:5 3}
+      .gpu{fill:#fff4e6;stroke:#d9822b;stroke-width:1.2}
+      .edge{fill:none;stroke:#555;stroke-width:1.3;marker-end:url(#a)}
+      .sock{fill:none;stroke:#3b6fd8;stroke-width:1.6;stroke-dasharray:2 3;marker-end:url(#a)}
+      .t{fill:#222}
+      .s{fill:#666;font-size:11px}
+      .h{fill:#222;font-weight:600}
+    </style>
+  </defs>
+  <rect x="0" y="0" width="860" height="560" fill="#fafafa"/>
+
+  <!-- outside -->
+  <rect class="box" x="20" y="20" width="170" height="54"/>
+  <text class="h" x="105" y="43" text-anchor="middle">Phone / laptop</text>
+  <text class="s" x="105" y="61" text-anchor="middle">on my tailnet</text>
+
+  <rect class="box" x="20" y="470" width="170" height="54"/>
+  <text class="h" x="105" y="493" text-anchor="middle">Allowlisted sites</text>
+  <text class="s" x="105" y="511" text-anchor="middle">arxiv, wikipedia, github…</text>
+
+  <!-- the Mac -->
+  <rect x="220" y="10" width="625" height="540" fill="none" stroke="#999" stroke-width="1.2" rx="10"/>
+  <text class="h" x="235" y="32">Mac Studio · M5 Max · 128 GB · firewall: block all incoming</text>
+
+  <rect class="box" x="240" y="48" width="170" height="54"/>
+  <text class="h" x="325" y="71" text-anchor="middle">tailscale serve</text>
+  <text class="s" x="325" y="89" text-anchor="middle">HTTPS + identity header</text>
+
+  <rect class="box" x="240" y="140" width="170" height="54"/>
+  <text class="h" x="325" y="163" text-anchor="middle">gw_host (gateway)</text>
+  <text class="s" x="325" y="181" text-anchor="middle">loopback ↔ unix sockets</text>
+
+  <rect class="vm" x="470" y="48" width="350" height="146" rx="8"/>
+  <text class="h" x="485" y="68">Apple container VM (host-only net)</text>
+  <rect class="box" x="490" y="80" width="150" height="54"/>
+  <text class="h" x="565" y="103" text-anchor="middle">Open WebUI</text>
+  <text class="s" x="565" y="121" text-anchor="middle">chat UI, users</text>
+  <rect class="box" x="660" y="80" width="145" height="54"/>
+  <text class="h" x="732" y="103" text-anchor="middle">gw.py sidecar</text>
+  <text class="s" x="732" y="121" text-anchor="middle">:8080 model · :3128 web</text>
+  <text class="s" x="485" y="182">no route to the internet, LAN, tailnet or host</text>
+
+  <rect class="box" x="240" y="240" width="170" height="54"/>
+  <text class="h" x="325" y="263" text-anchor="middle">stackd router</text>
+  <text class="s" x="325" y="281" text-anchor="middle">routes by "model"</text>
+
+  <rect class="gpu" x="470" y="226" width="165" height="68" rx="6"/>
+  <text class="h" x="552" y="249" text-anchor="middle">llama-server (chat)</text>
+  <text class="s" x="552" y="266" text-anchor="middle">Qwen3.8-Flash-Next</text>
+  <text class="s" x="552" y="282" text-anchor="middle">128K ctx · MTP</text>
+  <rect class="gpu" x="655" y="226" width="165" height="68" rx="6"/>
+  <text class="h" x="737" y="249" text-anchor="middle">llama-server (agent)</text>
+  <text class="s" x="737" y="266" text-anchor="middle">Qwen3-Coder-30B</text>
+  <text class="s" x="737" y="282" text-anchor="middle">64K ctx</text>
+
+  <rect class="box" x="240" y="470" width="170" height="54"/>
+  <text class="h" x="325" y="493" text-anchor="middle">fetch proxy</text>
+  <text class="s" x="325" y="511" text-anchor="middle">allowlist, no private IPs</text>
+
+  <rect class="vm" x="470" y="330" width="350" height="70" rx="8"/>
+  <text class="h" x="485" y="352">Agent containers (one per task)</text>
+  <text class="s" x="485" y="372">opencode + a copy of the task folder;</text>
+  <text class="s" x="485" y="388">the only exit is the model, through the gateway</text>
+
+  <rect class="box" x="470" y="430" width="165" height="54"/>
+  <text class="h" x="552" y="453" text-anchor="middle">expctl scheduler</text>
+  <text class="s" x="552" y="471" text-anchor="middle">GPU jobs when nobody chats</text>
+  <rect class="box" x="655" y="430" width="165" height="54"/>
+  <text class="h" x="737" y="453" text-anchor="middle">status page</text>
+  <text class="s" x="737" y="471" text-anchor="middle">jobs, queue, telemetry</text>
+  <text class="s" x="470" y="510">all of it under launchd; nothing runs until I log in (FileVault)</text>
+
+  <!-- edges -->
+  <path class="edge" d="M190,47 L238,72"/>
+  <path class="edge" d="M325,102 L325,138"/>
+  <path class="sock" d="M410,160 C440,160 450,110 488,108"/>
+  <path class="sock" d="M732,134 C732,150 450,175 412,175"/>
+  <path class="edge" d="M325,194 L325,238"/>
+  <path class="edge" d="M410,262 L468,260"/>
+  <path class="edge" d="M410,280 C560,310 650,300 700,296"/>
+  <path class="edge" d="M300,194 C270,300 270,400 300,468"/>
+  <path class="edge" d="M240,497 L192,497"/>
+  <path class="sock" d="M470,365 C430,365 420,200 410,190"/>
+  <text class="s" x="420" y="135" fill="#3b6fd8">unix socket</text>
+</svg>
