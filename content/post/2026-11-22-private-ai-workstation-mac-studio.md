@@ -180,7 +180,9 @@ So: experts for 10 layers on the CPU and batches of 128 tokens. That's 93.2 + 4.
 | 32K | 31.4 | 15.8 |
 | 64K | 12.4 | 11.9 |
 
-That's usable for a question, painful for a long document: reading a 64K prompt takes about 90 minutes. With 8 requests at once, total throughput only reaches 21 tokens/s. The 1-bit quant also costs quality, which the qualitative round will show. The remaining benchmarks are running as I write this. *(TODO: fill in v2 and qual results.)*
+It holds up at depth: with 120K tokens already in context it still runs at 7 tokens/s each way, and it never ran out of memory. A prompt you reuse is cheap: after one 34K-token prompt (read in about 5 minutes), asking again with the same prefix got a first token in 2.7 seconds. Two other results surprised me. Batching barely helps: 8 requests at once only reach 21 tokens/s in total, because with experts split across CPU and GPU, decoding is bound by moving expert weights. And an 8-bit KV cache was no slower, slightly faster at 32K and 64K, since with only 8 full-context layers the cache is small either way.
+
+Then the part I expected to be bad: quality at 1.56 bits per weight. On the same 20 prompts I gave Qwen3.8, Inkling scored **17 good, 2 partial, 1 failed** (Qwen3.8: 14, 5, 1). It kept to the word limit, invented nothing, and both coding answers passed extra tests. Its one failure was the same kind as Qwen3.8's: a macOS shell one-liner written with GNU habits (BSD `stat` prints a literal `\t`). The catch is time. Its median answer took 38 seconds, against 8 for Qwen3.8. It's the model I'd ask a hard question and go make coffee, not the one I chat with.
 
 ## Local models as workers
 
@@ -237,7 +239,7 @@ Most of this is small, dependency-free code that isn't specific to my machine, a
 
 ## What's next
 
-- **Finish Inkling 2.** The remaining benchmarks, the qualitative round, and the larger unsloth quant, which doesn't fit in RAM at all.
+- **More Inkling 2.** The larger unsloth quant, which doesn't fit in RAM at all, and Inkling 2 Mini (26B, 3.4B active, released two days ago), which might replace Qwen3-Coder-30B as the agent model if it wins on real agent tasks.
 - **Raise the GPU cap** to see how much faster Inkling 2 gets with every layer on the GPU.
 - **Wire the router's decision models.** A bake-off picked two small classifier models for stackd: one to route requests between models, and one to escalate the hard ones and judge answers.
 - **Grade the second qualitative round.** Four more models were run and never scored.
