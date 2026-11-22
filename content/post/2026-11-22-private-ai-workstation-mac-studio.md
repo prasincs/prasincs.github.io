@@ -131,7 +131,7 @@ The status page shows all of it: who's present, what's running with a log tail, 
 
 ## Bigger than memory
 
-The question I most wanted answered was whether the SSD can stand in for memory. The internal 2 TB SSD reads at up to ~12.7 GB/s sequentially ([PetaPixel's Blackmagic test](https://petapixel.com/2026/03/13/macbook-pro-with-m5-max-review-this-is-better-than-your-desktop/) of the same capacity; smaller drives are about half that), and I saw up to 10.5 GB/s of scattered expert reads while streaming, which is a lot less than unified memory's bandwidth but a lot more than nothing. A mixture-of-experts model only touches a few experts per token, so maybe the rest can live on disk.
+The question I most wanted answered was whether the SSD can stand in for memory. The internal 2 TB SSD reads at up to ~12.7 GB/s sequentially ([PetaPixel's Blackmagic test](https://petapixel.com/2026/03/13/macbook-pro-with-m5-max-review-this-is-better-than-your-desktop/) of the same capacity; smaller drives are about half that), and my own uncached test, counting what the disk actually delivered, topped out at 13.4 GB/s with 512 KB random reads and 16 or more in flight (2.4 GB/s with one at a time). DwarfStar's streaming peaked at 10.5 GB/s, which is a lot less than unified memory's bandwidth but a lot more than nothing. A mixture-of-experts model only touches a few experts per token, so maybe the rest can live on disk.
 
 {{< interactive src="/local-ai/models.html?embed&view=size" height="430" title="Size, speed and placement" caption="Figure 2. Every configuration in this post: size against generation speed on an empty context. Colour and shape say where the weights live. The dashed lines are Metal's GPU limit and physical RAM. Hover a point for details." >}}
 
@@ -219,7 +219,7 @@ Each delegated task runs in its own container. It gets a private copy of the tas
 - **zsh doesn't word-split `$VAR`.** Use `${=VAR}`. A benchmark rerun silently did nothing because of this.
 - **Qwen3.8's chat template** accepts `reasoning_effort` low, medium or xhigh; `none` is an HTTP 500. Send `enable_thinking: false` instead.
 - **Exit codes lie.** DwarfStar's failed first run and the Inkling out-of-memory both reported success. Check the rows, not the exit code.
-- **SSD benchmarks read the page cache** if the file was just read: my 12 GB/s figure is an upper bound.
+- **SSD benchmarks read the page cache**, even with caching turned off for the test (`F_NOCACHE` doesn't evict pages already in memory). My first uncached run reported 19 GB/s, above the drive's spec; counting real disk reads with `iostat` gave 13.4. Measure at the device, not in the app.
 
 </details>
 

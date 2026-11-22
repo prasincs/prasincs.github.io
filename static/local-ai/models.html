@@ -118,6 +118,7 @@ const DEPTHS=[0,8192,32768,65536];
 const PLACES=[{k:"gpu",n:"All in GPU memory",c:"--s1",shape:"circle"},{k:"cpu",n:"Some experts on the CPU",c:"--s2",shape:"square"},{k:"ssd",n:"Bigger than RAM, read from SSD",c:"--s3",shape:"diamond"}];
 const POINTS=[
  ...MODELS.filter(m=>m.k!=="ink").map(m=>({n:m.n,q:m.q,gb:m.gb,tg:m.tg[0],p:"gpu",eng:"llama.cpp"})),
+ {n:"Inkling 2 Mini",q:"IQ4_NL",gb:17.6,tg:42.7,p:"gpu",eng:"llama.cpp",note:"26.4B, 3.4B active; middle layers run 3× per token"},
  {n:"Qwen3.8-Flash-Next",q:"UD-Q4_K_XL",gb:111,tg:46.0,p:"gpu",eng:"llama.cpp",note:"just under Metal's limit"},
  {n:"Qwen3.8-Flash-Next",q:"UD-Q5_K_XL, memory-mapped",gb:158,tg:44.3,p:"ssd",eng:"llama.cpp",note:"the experts in use stay in the page cache"},
  {n:"Qwen3.8-Flash-Next",q:"UD-Q5_K_XL, --n-cpu-moe 8",gb:158,tg:31,p:"cpu",eng:"llama.cpp"},
@@ -161,7 +162,7 @@ function drawSize(){const S=document.getElementById("c-size");S.innerHTML="";
  el("text",{x:14,y:(y0+y1)/2,"text-anchor":"middle",transform:`rotate(-90 14 ${(y0+y1)/2})`},S).textContent="generated tokens/s";
  for(const [v,lab] of [[LIMIT,"Metal GPU limit 107.5"],[RAM,"RAM 128"]]){const X=lx(v);el("line",{x1:X,x2:X,y1:y1,y2:y0,class:"lim"},S);
   el("text",{x:X+(v===RAM?5:-5),y:y1+12,"text-anchor":v===RAM?"start":"end"},S).textContent=lab}
-const LAB={"gpt-oss-120b|MXFP4":[11,4,"start","gpt-oss-120b"],"Qwen3-Coder-30B-A3B|Q5_K_M":[11,4,"start","Qwen3-Coder-30B"],"Qwen3.8-Flash-Next|UD-Q3_K_XL":[-11,4,"end","Qwen3.8 Q3"],"Qwen3.8-Flash-Next|UD-Q4_K_XL":[0,-12,"middle","Q4"],"Gemma 4 31B (dense)|Q4_K_M":[11,4,"start","Gemma 4 31B (dense)"],"DeepSeek V4.1 Flash|Q2, SSD streaming":[6,24,"end","DeepSeek V4.1 Flash (366 GB)"],"Inkling 2 Small|IQ1_S, --n-cpu-moe 10 -ub 128":[-11,4,"end","Inkling 2 Small"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, memory-mapped":[11,4,"start","Qwen3.8 Q5, mapped"],"DeepSeek-V4-Flash|Q2, resident":[-11,4,"end","DeepSeek-V4-Flash"],"DeepSeek-V4-Flash|Q2, experts streamed from SSD":[-11,4,"end","streamed"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, --n-cpu-moe 8":[11,4,"start","Q5, CPU experts"]};
+const LAB={"gpt-oss-120b|MXFP4":[11,4,"start","gpt-oss-120b"],"Qwen3-Coder-30B-A3B|Q5_K_M":[11,4,"start","Qwen3-Coder-30B"],"Qwen3.8-Flash-Next|UD-Q3_K_XL":[-11,4,"end","Qwen3.8 Q3"],"Qwen3.8-Flash-Next|UD-Q4_K_XL":[0,-12,"middle","Q4"],"Gemma 4 31B (dense)|Q4_K_M":[11,4,"start","Gemma 4 31B (dense)"],"DeepSeek V4.1 Flash|Q2, SSD streaming":[6,24,"end","DeepSeek V4.1 Flash (366 GB)"],"Inkling 2 Small|IQ1_S, --n-cpu-moe 10 -ub 128":[-11,4,"end","Inkling 2 Small"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, memory-mapped":[11,4,"start","Qwen3.8 Q5, mapped"],"Inkling 2 Mini|IQ4_NL":[11,4,"start","Inkling 2 Mini"],"DeepSeek-V4-Flash|Q2, resident":[-11,4,"end","DeepSeek-V4-Flash"],"DeepSeek-V4-Flash|Q2, experts streamed from SSD":[-11,4,"end","streamed"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, --n-cpu-moe 8":[11,4,"start","Q5, CPU experts"]};
  const g=el("g",{},S);
  for(const p of POINTS){const P=PLACES.find(q=>q.k===p.p),X=lx(GiB(p.gb)),Y=ly(p.tg),fill=css(P.c);
   if(p.lo)el("line",{x1:X,x2:X,y1:ly(p.lo),y2:ly(p.hi),stroke:fill,"stroke-width":2,"stroke-linecap":"round"},g);
