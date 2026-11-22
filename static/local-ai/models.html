@@ -125,7 +125,7 @@ const POINTS=[
  {n:"Qwen3.8-Flash-Next",q:"UD-Q5_K_XL, --n-cpu-moe 24",gb:158,tg:19,p:"cpu",eng:"llama.cpp"},
  {n:"DeepSeek-V4-Flash",q:"Q2, resident",gb:81,tg:40.5,lo:39,hi:42,p:"gpu",eng:"DwarfStar"},
  {n:"DeepSeek-V4-Flash",q:"Q2, experts streamed from SSD",gb:81,tg:23.5,lo:19,hi:28,p:"ssd",eng:"DwarfStar"},
- {n:"DeepSeek V4.1 Flash",q:"Q2, SSD streaming",gb:366,tg:18,lo:16,hi:20,p:"ssd",eng:"DwarfStar",note:"~3× RAM; 6.3 GB/s from the SSD, RAM peak 70 GB"},
+ {n:"DeepSeek V4.1 Flash",q:"Q2, SSD streaming",gb:366,tg:18,lo:16,hi:20,p:"ssd",eng:"DwarfStar",note:"163 GB of weights + 203 GB of Engram tables read on demand; 6.3 GB/s from the SSD, RAM peak 70 GB"},
  {n:"Inkling 2 Small",q:"IQ1_S, --n-cpu-moe 10 -ub 128",gb:127.5,tg:18.7,p:"cpu",eng:"llama.cpp"},
  {n:"Inkling 2 Small",q:"IQ1_S, --n-cpu-moe 8",gb:127.5,tg:14.8,p:"cpu",eng:"llama.cpp",note:"ran out of GPU memory at 32K context"},
 ];
@@ -142,7 +142,7 @@ const BARS=[
  {n:"Inkling 2 Small",s:"--n-cpu-moe 10, batch 128, 124K ctx",v:{w:MiB(95447),kv:MiB(4174),cb:MiB(7062),cpu:INK-MiB(95447)},good:"fits, 3.4 GB to spare"},
  {n:"Qwen3.8-Flash-Next",s:"UD-Q5_K_XL, memory-mapped",v:{w:RAM-24,ssd:GiB(158)-(RAM-24)},approx:"The split moves: macOS keeps the experts in use in RAM (page cache) and leaves the rest on the SSD. Shown with ~24 GiB left for everything else."},
  {n:"DeepSeek-V4-Flash",s:"Q2 in DwarfStar, resident",v:{w:GiB(81)}},
- {n:"DeepSeek V4.1 Flash",s:"Q2 in DwarfStar, SSD streaming",v:{w:GiB(70),ssd:GiB(366)-GiB(70)},approx:"Memory shown is the measured RAM peak (70 GB); the rest streams from the SSD at 6.3 GB/s on average."},
+ {n:"DeepSeek V4.1 Flash",s:"Q2 in DwarfStar, SSD streaming",v:{w:GiB(70),ssd:GiB(366)-GiB(70)},approx:"Memory shown is the measured RAM peak (70 GB); the rest streams from the SSD at 6.3 GB/s on average. 203 GB of the file is Engram lookup tables, read only as needed."},
 ];
 
 // ---------- size scatter ----------

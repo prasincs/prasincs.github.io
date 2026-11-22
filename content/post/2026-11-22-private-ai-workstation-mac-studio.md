@@ -140,19 +140,19 @@ The question I most wanted answered was whether the SSD can stand in for memory.
 | Qwen3.8 UD-Q4_K_XL, all on GPU | 111 GB, just under Metal's 115 GB limit | 46.0 tokens/s, −3% vs the 90 GB quant |
 | Qwen3.8 UD-Q5_K_XL, memory-mapped | 158 GB, more than RAM | 44.3 tokens/s, 975 prompt tokens/s (3 reps) |
 | Same, with experts on the CPU (`--n-cpu-moe 8/16/24`) | 158 GB | 31 / 20 / 19 tokens/s: strictly worse |
-| DeepSeek-V4-Flash Q2 in DwarfStar, resident | 81 GB | 39–42 tokens/s |
+| DeepSeek-V4-Flash Q2 in DwarfStar, resident | 81 GB | 39–42 tokens/s (DwarfStar's own M5 Max baseline: 39.4 at 2K context) |
 | Same, streaming experts from SSD | 81 GB | 19–28 tokens/s |
-| DeepSeek V4.1 Flash Q2 in DwarfStar, SSD streaming | **366 GB, ~3× RAM** | **16–20 tokens/s**, 6.3 GB/s average from the SSD, RAM peak 70 GB |
+| DeepSeek V4.1 Flash Q2 in DwarfStar, SSD streaming | **366 GB on disk, ~2.7× RAM** (163 GB of weights + 203 GB of Engram lookup tables) | **16–20 tokens/s**, 6.3 GB/s average from the SSD, RAM peak 70 GB |
 
 {{< interactive src="/local-ai/models.html?embed&view=bytes" height="400" title="Where the bytes live" caption="Figure 3. Where each configuration keeps its bytes. Only the blue part (GPU memory: weights, KV cache, compute buffer) has to fit under Metal's limit; orange is experts the CPU computes from ordinary memory, green is read from the SSD on demand. Hover a segment for its size." >}}
 
 The first surprise was the 158 GB model. It ran at full speed because the experts it actually uses stay in the page cache, and llama.cpp's memory-mapped loading handles the rest. The first run was only 9 seconds long and the number looked too good, so I had it rerun longer; it held. For this model, the higher-quality quant was effectively free.
 
-The second was [DwarfStar](https://github.com/antirez/ds4), antirez's Metal inference engine with explicit SSD streaming. It ran a 366 GB DeepSeek model on a 128 GB machine at 16–20 tokens/s. That's slow for chat, but it runs, and the machine stayed usable (no new swap). Its first run failed instantly because it looks for its Metal shaders relative to the current directory. The script still exited 0, so the scheduler recorded the failure as done.
+The second was [DwarfStar](https://github.com/antirez/ds4), antirez's Metal inference engine with explicit SSD streaming. It ran a 366 GB DeepSeek model on a 128 GB machine at 16–20 tokens/s. To be fair about the size: per DwarfStar's model notes, 203 GB of that file is Engram lookup tables it reads only as needed, so the part that behaves like ordinary weights is 163 GB, still well past RAM. That's slow for chat, but it runs, and the machine stayed usable (no new swap). Its first run failed instantly because it looks for its Metal shaders relative to the current directory. The script still exited 0, so the scheduler recorded the failure as done.
 
 ### Inkling 2 Small: 594 billion parameters
 
-Then Thinking Machines released Inkling 2 Small. "Small" is relative: 594 billion parameters, 17 billion active per token, 1M context. The smallest quant that comes close to fitting is bartowski's IQ1_S at 127.5 GB, so it became the stress test.
+Then Thinking Machines released Inkling 2 Small. "Small" is relative: 594 billion parameters, 17 billion active per token, 1M context. The smallest quant that comes close to fitting is bartowski's IQ1_S at 127.5 GB, so it became the stress test. When I ran it, I couldn't find any published Inkling 2 Small speeds on a Mac. The closest public report is for the original, 276B Inkling-Small at Q3 on an M5 Max (25–31 tokens/s, [via Kingy AI](https://kingy.ai/blog/inkling-small-128gb-mac-studio-local/)), a model less than half the size.
 
 **Getting it onto the disk.** The pinned llama.cpp predates the `inkling2` architecture, so it got a second, newer pin (b12600) next to the old one; the live services didn't change. The first download ran at 1 MB/s, about 32 hours for 128 GB.
 
