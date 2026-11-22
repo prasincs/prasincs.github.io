@@ -205,6 +205,10 @@ Some didn't:
 
 The first real chat with it matched the benchmark. Over one session (13 requests, including retries and the title Open WebUI generates), Mini generated 24,286 tokens at 39.3 tokens/s, between 39.0 and 41.1 on every request; the benchmark says 42.7 on an empty context and 40.8 at 8K. Its longest prompt, 9,719 tokens, was read at 694 tokens/s, 14 seconds before the first token. The cost is length: two responses ran past 5,000 tokens and took 2.3 and 3 minutes.
 
+**A harder test.** The gate suite is easy, so I reran the 11 kernel-contest tasks Coder-30B had failed or half-done, with the same prompts and the same sandbox. Mini passed 9, half-passed 1 and failed 1; Coder-30B had passed none. The passes include a 12-line kernel edit Coder-30B failed twice, and an exact inverse of a weight-layout repack that round-trips bit for bit. The failure was a long, bit-exact emulator of a dequantization routine: it timed out twice without writing a file. Each task ran once (one needed a second try), and I graded the GPU tasks by reading the code, not running it. Two harness fixes came out of it: the old 8,192-token output cap silently killed four tasks, because Mini thinks first and then writes a whole file in one call, and a model that gets refused once may quit instead of asking.
+
+**Is it good enough for async work?** For what I use it for, yes. I don't sit and watch these tasks: I queue them, the scheduler runs them when I'm away from the machine, and Claude reviews the results later. At about 39 tokens/s a task takes from one minute to the 30-minute limit, which doesn't matter when nobody is waiting. What matters is whether the result survives review, and with Coder-30B that was hit or miss. With Mini, most tasks I'd previously have taken back now come back usable. It still isn't the tool for long, exact work, or for anything I'd merge without reading. And interactive chat is a different question: a 5,000-token answer that takes three minutes is fine in a queue and tedious in a chat window.
+
 Each delegated task runs in its own container. It gets a private copy of the task folder, and the model is reachable through the gateway and nothing else. Only new or changed files that aren't protected come back.
 
 ## Gotchas
@@ -226,6 +230,16 @@ Each delegated task runs in its own container. It gets a private copy of the tas
 - **SSD benchmarks read the page cache**, even with caching turned off for the test (`F_NOCACHE` doesn't evict pages already in memory). My first uncached run reported 19 GB/s, above the drive's spec; counting real disk reads with `iostat` gave 13.4. Measure at the device, not in the app.
 
 </details>
+
+## Was 128 GB the right call?
+
+I bought this machine in October. The alternative was to wait until January for a 256 GB Mac Studio, about $4,000 more. I chose to have a machine now.
+
+What 128 GB costs me shows up all over this post. Inkling 2 Small doesn't fit at any usable quant: the 127.5 GB IQ1_S needed 10 layers of experts moved to the CPU to load at all, and the larger UD-IQ1_S streams part of itself from the SSD. The 366 GB DeepSeek runs only by streaming, at 16–20 tokens/s. And I can keep the chat model and the agent model loaded together, but nothing big next to them; a GPU benchmark has to stop both. With 256 GB, the big models would mostly fit in memory, and the two everyday models could stay up while I test a third.
+
+What the three months bought is everything else in this post: a month of daily use, 94 delegated tasks, the reader for the kernel contest, and the lessons about false "DONE"s and sandboxing that I'd have had to learn in January instead. The bigger surprise is where the limit turned out to be. The agent model that finally made delegation work, Inkling 2 Mini, is a 26B model that fits in a corner of 128 GB. In the first month the bottleneck was model quality, not memory, and that improved with a model release, not a hardware upgrade.
+
+So for my use, delegated async work plus a private chat model, 128 GB was enough, and getting it three months earlier was worth more than the extra memory. If I wanted to run the 500B-class models every day rather than as an experiment, I'd have waited.
 
 ## What I'm open-sourcing
 
