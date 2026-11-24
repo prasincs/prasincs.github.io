@@ -61,9 +61,9 @@ footer{color:var(--muted);font-size:12.5px}
 :root.embed header,:root.embed footer,:root.embed section{display:none}
 :root.embed section.shown{display:grid;border:0;padding:0;gap:8px;background:transparent}
 :root.embed section.shown>h2,:root.embed section.shown>.note{display:none}
-:root.embed .plot{height:calc(100vh - 96px);min-height:300px;border:0}
+:root.embed section.shown{display:flex;flex-direction:column;height:calc(100vh - 12px)}
+:root.embed .plot{flex:1 1 0;height:auto;min-height:240px;border:0}
 :root.embed .seg button{font-size:11.5px;padding:4px 8px}
-:root.embed #s-terrain .plot{height:calc(100vh - 140px)}
 </style>
 </head>
 <body>
@@ -161,6 +161,7 @@ const CAM={over:{eye:{x:-1.5,y:-1.7,z:0.9},up:{x:0,y:0,z:1},projection:{type:"pe
 const FOC=[{id:"dv",n:"All decode-style boards",bs:DV},...DV.map(b=>({id:b.k,n:b.n,bs:[b],c:b.c})),...PF.map(b=>({id:b.k,n:b.n,bs:[b],c:b.c}))];
 document.getElementById("focus").innerHTML=FOC.map(f=>`<button type="button" id="f-${f.id}" ${f.c?`style="--c:var(${f.c})"`:""} aria-pressed="${f.id==="dv"}">${esc(f.n)}</button>`).join("");
 FOC.forEach(f=>document.getElementById("f-"+f.id).onclick=()=>{st.focus=f.id;press(FOC.map(g=>"f-"+g.id),"f-"+f.id);drawClimb();});
+const slim=()=>innerWidth<480; // a phone: no colour bar, and a smaller map so its axes fit
 function land(){const F=FOC.find(f=>f.id===st.focus),bs=F.bs,ea=R(bs[0])[0].ea,pf=bs[0].k==="muse_prefill_layer";
  const hi=Math.max(...bs.flatMap(b=>[DATA[b.k].sol.A,DATA[b.k].sol.B,...R(b).flatMap(r=>[r.A,r.B])]))*1.06,lo=0.8;
  return{bs,ea,single:bs.length===1,xr:[lo,hi],yr:[lo,hi],f:(a,b)=>Math.pow(a,ea)*Math.pow(b,1-ea),
@@ -171,7 +172,7 @@ function climbTraces(t){const L=land(),gx=[],gy=[],gz=[],N=56;
  for(let i=0;i<=N;i++)gx.push(L.xr[0]+(L.xr[1]-L.xr[0])*i/N);for(let j=0;j<=N;j++)gy.push(L.yr[0]+(L.yr[1]-L.yr[0])*j/N);
  for(const y of gy)gz.push(gx.map(x=>L.f(x,y)));
  const zlo=L.f(L.xr[0],L.yr[0]),zhi=L.f(L.xr[1],L.yr[1]),LZ=z=>st.cam==="top"?zhi*1.02:z,step=[0.1,0.25,0.5,1].find(v=>(zhi-zlo)/v<=24)||1,lift=(zhi-zlo)*0.006;
- const out=[{type:"surface",x:gx,y:gy,z:gz,cmin:zlo,cmax:zhi,opacity:1,showscale:true,colorscale:scale(t),
+ const out=[{type:"surface",x:gx,y:gy,z:gz,cmin:zlo,cmax:zhi,opacity:1,showscale:!slim(),colorscale:scale(t),
   colorbar:{title:{text:"score ×",font:{color:t.muted}},tickfont:{color:t.muted,family:t.mono,size:10},len:0.6,thickness:12,outlinewidth:0},
   contours:{z:{show:true,color:t.panel,width:1,start:Math.ceil(zlo/step)*step,end:zhi,size:step,project:{z:true}}},
   lighting:{ambient:0.75,diffuse:0.5,specular:0.03,roughness:1},hovertemplate:"%{x:.2f}× · %{y:.2f}×<br>score %{z:.3f}×<extra></extra>"}];
@@ -192,7 +193,7 @@ function climbTraces(t){const L=land(),gx=[],gy=[],gz=[],N=56;
    out.push({type:"scatter3d",mode:"text",x:[g.xs[m]],y:[g.ys[m]],z:[LZ(g.zs[m]+lift*3)],text:[(L.single?"":b.n+" ")+"hardware limit "+S.s.toFixed(2)+"×"],textfont:{color:t.ink,family:t.mono,size:10.5},hoverinfo:"skip",showlegend:false});}}
  return out;}
 function climbLayout(t){const L=land();return Object.assign(base(t),{uirevision:st.focus+st.cam,scene:{xaxis:ax(t,L.xt,{range:L.xr}),yaxis:ax(t,L.yt,{range:L.yr}),
- zaxis:ax(t,"score (×)"),aspectmode:"manual",aspectratio:{x:1.2,y:1.2,z:0.55},camera:CAM[st.cam]}});}
+ zaxis:ax(t,"score (×)"),aspectmode:"manual",aspectratio:slim()&&st.cam==="top"?{x:0.95,y:0.95,z:0.44}:{x:1.2,y:1.2,z:0.55},camera:CAM[st.cam]}});}
 const climbEl=document.getElementById("climb");
 function drawClimb(){const L=land(),t=tok(),pf=L.bs[0].k==="muse_prefill_layer";
  document.getElementById("climb-note").textContent=(pf
@@ -234,7 +235,7 @@ function terrLayout(t){const D=DATA[st.tb.k],sp=st.metric==="sp",rs=D.runs,zmax=
   xaxis:ax(t,"load",{tickvals:D.cols.map((_,i)=>i),ticktext:D.cols,range:[-0.6,D.cols.length-0.4]}),
   yaxis:ax(t,"",{tickvals:D.rows.map((_,i)=>i),ticktext:D.rows,range:[-0.6,D.rows.length-0.4]}),
   zaxis:ax(t,sp?"speedup vs SGLang (×)":"share of hardware limit",{range:[0,zmax],tickformat:sp?".1f":".0%"}),
-  aspectmode:"manual",aspectratio:{x:1.5,y:Math.max(0.35,Math.min(1.2,D.rows.length*0.3)),z:0.75},camera:{eye:{x:1.2,y:-1.9,z:0.95}}}});}
+  aspectmode:"manual",aspectratio:{x:1.5,y:Math.max(0.35,Math.min(1.2,D.rows.length*0.3)),z:0.75},camera:{eye:slim()?{x:1.75,y:-2.75,z:1.4}:{x:1.2,y:-1.9,z:0.95}}}});}
 function drawTerr(){const rs=R(st.tb),r=rs[st.i];
  nowEl.innerHTML=`${esc(r.l)} · ${esc(r.id)} <span>${esc(r.d)} UTC</span> · score ${r.s.toFixed(3)}× <span>(run ${st.i+1} of ${rs.length})</span>`;
  document.querySelectorAll("#ledger tr").forEach((tr,i)=>tr.classList.toggle("sel",i===st.i));
