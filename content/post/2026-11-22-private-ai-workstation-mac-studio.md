@@ -144,7 +144,7 @@ The question I most wanted answered was whether the SSD can stand in for memory.
 | Same, streaming experts from SSD | 81 GB | 19–28 tokens/s |
 | DeepSeek V4.1 Flash Q2 in DwarfStar, SSD streaming | **366 GB on disk, ~2.7× RAM** (163 GB of weights + 203 GB of Engram lookup tables) | **16–20 tokens/s**, 6.3 GB/s average from the SSD, RAM peak 70 GB |
 
-{{< interactive src="/local-ai/models.html?embed&view=bytes" height="400" title="Where the bytes live" caption="Figure 3. Where each configuration keeps its bytes. Only the blue part (GPU memory: weights, KV cache, compute buffer) has to fit under Metal's limit; orange is experts the CPU computes from ordinary memory, green is read from the SSD on demand. Hover a segment for its size." >}}
+{{< interactive src="/local-ai/models.html?embed&view=bytes" height="400" title="Where the bytes live" caption="Figure 3. Where a selection of these configurations keep their bytes. Only the blue part (GPU memory: weights, KV cache, compute buffer) has to fit under Metal's limit; orange is experts the CPU computes from ordinary memory, green is read from the SSD on demand. Hover a segment for its size." >}}
 
 The first surprise was the 158 GB model. It ran at full speed because the experts it actually uses stay in the page cache, and llama.cpp's memory-mapped loading handles the rest. The first run was only 9 seconds long and the number looked too good, so I had it rerun longer; it held. For this model, the higher-quality quant was effectively free.
 
@@ -184,6 +184,20 @@ It holds up at depth: with 120K tokens already in context it still runs at 7 tok
 
 Then the part I expected to be bad: quality at 1.56 bits per weight. On the same 20 prompts I gave Qwen3.8, Inkling scored **17 good, 2 partial, 1 failed** (Qwen3.8: 14, 5, 1). It kept to the word limit, invented nothing, and both coding answers passed extra tests. Its one failure was the same kind as Qwen3.8's: a macOS shell one-liner written with GNU habits (BSD `stat` prints a literal `\t`). The catch is time. Its median answer took 38 seconds, against 8 for Qwen3.8. It's the model I'd ask a hard question and go make coffee, not the one I chat with.
 
+**The quant that doesn't fit.** Then I deleted it and ran unsloth's larger UD-IQ1_S: 171.7 GB, more than the machine's RAM. Putting the experts of 32 of the 48 layers on the CPU was the fastest of the four settings I tried (24 ran at 3.8 tokens/s, 32 at 7.0, 40 at 6.8, 48 at 5.6).
+
+| Context | Prompt tokens/s | Generated tokens/s | IQ1_S, generated |
+|---|---|---|---|
+| 0 | 18.1 | 7.0 | 18.7 |
+| 8K | 21.0 | 7.0 | 17.4 |
+| 32K | 16.5 | 6.4 | 15.8 |
+| 64K | 12.4 | 6.4 | 11.9 |
+| 120K | 6.0 | 4.4 | 6.9 |
+
+(The 32K, 64K and 120K rows are single runs, for both quants.) A fresh 34K-token prompt took 16 minutes to read instead of 5, and reusing it 26 seconds instead of 2.7. Eight requests at once reached 8.6 tokens/s in total. During the main speed test the GPU was busy only 48% of the time, which fits a machine waiting on its SSD, but I didn't record disk reads, so that's a guess. Compare the 158 GB Qwen, which ran at full speed from the page cache: being bigger than RAM isn't the problem by itself. What matters is how much of the file each token touches.
+
+It didn't buy better answers either: **14 good, 4 partial, 2 failed**, against 17, 2 and 1 for the smaller quant. One run of 20 prompts can't tell those two scores apart, but it's no case for a model with a median answer of 139 seconds. It claimed a "reasoning tool" it doesn't have, gave a current date that contradicts its own cutoff, and never answered the shell question: that one hit my 15-minute timeout, and the run still reported success. On this machine, IQ1_S is the one to use.
+
 ## Local models as workers
 
 The second goal was to move real work off Claude. The plan was a ladder: Claude starts the project, and as soon as a local model is viable, Claude hands it more and more of the mechanical work through existing agent harnesses (here, [opencode](https://opencode.ai)), and reviews every result. Claude keeps design, debugging, security and review. Two failures and Claude takes the task back.
@@ -202,6 +216,8 @@ Some didn't:
 - **Too much input.** Every Qwen3.8 failure in the contest had more than 150 KB of input, and every success with that much input was pure reading. Inputs are now capped at about 60 KB for Qwen3.8 and 30 KB for Coder-30B.
 
 **Swapping the agent model.** Inkling 2 Mini (26B parameters, 3.4B active, released two days ago) went head to head with Coder-30B on the 10 gate tasks, twice each, graded only by each task's own check script. Mini passed 19 of 20, Coder-30B 18. Mini's miss was a half-done refactor that passed on the second try. Coder-30B's misses were worse: it diagnosed the same out-of-memory crash log wrongly both times, once recommending a flag that doesn't exist, and in another task it fixed the bug in seconds and then repeated its final message for 10 minutes until the timeout. Mini is slower (34 s median per task against 14 s), and the suite is easy, so the margin is thin; I swapped anyway, for the better diagnoses.
+
+Its other results are mixed. On an empty context it generates 43 tokens/s against Coder-30B's 140, though by 64K the gap is nearly gone (34 against 37). At 120K it still does 28.5, and eight requests at once reach 112 tokens/s in total. On the 20 prompts it scored 15 good, 3 partial, 2 failed: it's the only model I've graded that got the macOS one-liner right, but it claimed a `functions` tool that doesn't exist, and on one debugging question it spent its whole token budget thinking and never answered.
 
 The first real chat with it matched the benchmark. Over one session (13 requests, including retries and the title Open WebUI generates), Mini generated 24,286 tokens at 39.3 tokens/s, between 39.0 and 41.1 on every request; the benchmark says 42.7 on an empty context and 40.8 at 8K. Its longest prompt, 9,719 tokens, was read at 694 tokens/s, 14 seconds before the first token. The cost is length: two responses ran past 5,000 tokens and took 2.3 and 3 minutes.
 
@@ -235,7 +251,7 @@ Each delegated task runs in its own container. It gets a private copy of the tas
 
 I bought this machine in October. The alternative was to wait until January for a 256 GB Mac Studio, about $4,000 more. I chose to have a machine now.
 
-What 128 GB costs me shows up all over this post. Inkling 2 Small doesn't fit at any usable quant: the 127.5 GB IQ1_S needed 10 layers of experts moved to the CPU to load at all, and the larger UD-IQ1_S streams part of itself from the SSD. The 366 GB DeepSeek runs only by streaming, at 16–20 tokens/s. And I can keep the chat model and the agent model loaded together, but nothing big next to them; a GPU benchmark has to stop both. With 256 GB, the big models would mostly fit in memory, and the two everyday models could stay up while I test a third.
+What 128 GB costs me shows up all over this post. Inkling 2 Small doesn't fit at any usable quant: the 127.5 GB IQ1_S needed 10 layers of experts moved to the CPU to load at all, and the larger UD-IQ1_S, which is bigger than RAM, manages 7 tokens/s. The 366 GB DeepSeek runs only by streaming, at 16–20 tokens/s. And I can keep the chat model and the agent model loaded together, but nothing big next to them; a GPU benchmark has to stop both. With 256 GB, the big models would mostly fit in memory, and the two everyday models could stay up while I test a third.
 
 What the three months bought is everything else in this post: a month of daily use, 94 delegated tasks, the reader for the kernel contest, and the lessons about false "DONE"s and sandboxing that I'd have had to learn in January instead. The bigger surprise is where the limit turned out to be. The agent model that finally made delegation work, Inkling 2 Mini, is a 26B model that fits in a corner of 128 GB. In the first month the bottleneck was model quality, not memory, and that improved with a model release, not a hardware upgrade.
 
@@ -257,7 +273,7 @@ Most of this is small, dependency-free code that isn't specific to my machine, a
 
 ## What's next
 
-- **More Inkling 2.** The larger unsloth quant, which doesn't fit in RAM at all (downloading now), and a harder agent round to check that Inkling 2 Mini's lead over Coder-30B holds on multi-file changes and real logs.
+- **A fair agent round.** The contest rerun used tasks Coder-30B had already failed. Next is a set neither model has seen, with multi-file changes and real logs.
 - **Raise the GPU cap** to see how much faster Inkling 2 gets with every layer on the GPU.
 - **Wire the router's decision models.** A bake-off picked two small classifier models for stackd: one to route requests between models, and one to escalate the hard ones and judge answers.
 - **Grade the second qualitative round.** Four more models were run and never scored.

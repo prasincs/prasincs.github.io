@@ -134,6 +134,7 @@ const POINTS=[
  {n:"DeepSeek V4.1 Flash",q:"Q2, SSD streaming",gb:366,tg:18,lo:16,hi:20,p:"ssd",eng:"DwarfStar",note:"163 GB of weights + 203 GB of Engram tables read on demand; 6.3 GB/s from the SSD, RAM peak 70 GB"},
  {n:"Inkling 2 Small",q:"IQ1_S, --n-cpu-moe 10 -ub 128",gb:127.5,tg:18.7,p:"cpu",eng:"llama.cpp"},
  {n:"Inkling 2 Small",q:"IQ1_S, --n-cpu-moe 8",gb:127.5,tg:14.8,p:"cpu",eng:"llama.cpp",note:"ran out of GPU memory at 32K context"},
+ {n:"Inkling 2 Small",q:"UD-IQ1_S, --n-cpu-moe 32 -ub 128",gb:171.7,tg:7.0,p:"cpu",eng:"llama.cpp",note:"larger than RAM, memory-mapped"},
 ];
 const LIMIT=115448.73e6/2**20/1024, RAM=128; // Metal recommendedMaxWorkingSetSize (MiB) -> GiB; physical RAM
 // Device budgets from verbose llama-server loads at 124K context (MiB), and sizes for the rest.
@@ -167,7 +168,7 @@ function drawSize(){const S=document.getElementById("c-size");S.innerHTML="";
  el("text",{x:slim?10:14,y:(y0+y1)/2,"text-anchor":"middle",transform:`rotate(-90 ${slim?10:14} ${(y0+y1)/2})`},S).textContent="generated tokens/s";
  for(const [v,lab] of [[LIMIT,"Metal GPU limit 107.5"],[RAM,"RAM 128"]]){const X=lx(v);el("line",{x1:X,x2:X,y1:y1,y2:y0,class:"lim"},S);
   el("text",{x:X+(v===RAM?5:-5),y:y1+12,"text-anchor":v===RAM?"start":"end"},S).textContent=slim?(v===RAM?"RAM":"Metal limit"):lab}
-const LAB={"gpt-oss-120b|MXFP4":[11,4,"start","gpt-oss-120b"],"Qwen3-Coder-30B-A3B|Q5_K_M":[11,4,"start","Qwen3-Coder-30B"],"Qwen3.8-Flash-Next|UD-Q3_K_XL":[-11,4,"end","Qwen3.8 Q3"],"Qwen3.8-Flash-Next|UD-Q4_K_XL":[0,-12,"middle","Q4"],"Gemma 4 31B (dense)|Q4_K_M":[11,4,"start","Gemma 4 31B (dense)"],"DeepSeek V4.1 Flash|Q2, SSD streaming":[6,24,"end","DeepSeek V4.1 Flash (366 GB)"],"Inkling 2 Small|IQ1_S, --n-cpu-moe 10 -ub 128":[-11,4,"end","Inkling 2 Small"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, memory-mapped":[11,4,"start","Qwen3.8 Q5, mapped"],"Inkling 2 Mini|IQ4_NL":[11,4,"start","Inkling 2 Mini"],"DeepSeek-V4-Flash|Q2, resident":[-11,4,"end","DeepSeek-V4-Flash"],"DeepSeek-V4-Flash|Q2, experts streamed from SSD":[-11,4,"end","streamed"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, --n-cpu-moe 8":[11,4,"start","Q5, CPU experts"]};
+const LAB={"gpt-oss-120b|MXFP4":[11,4,"start","gpt-oss-120b"],"Qwen3-Coder-30B-A3B|Q5_K_M":[11,4,"start","Qwen3-Coder-30B"],"Qwen3.8-Flash-Next|UD-Q3_K_XL":[-11,4,"end","Qwen3.8 Q3"],"Qwen3.8-Flash-Next|UD-Q4_K_XL":[0,-12,"middle","Q4"],"Gemma 4 31B (dense)|Q4_K_M":[11,4,"start","Gemma 4 31B (dense)"],"DeepSeek V4.1 Flash|Q2, SSD streaming":[6,24,"end","DeepSeek V4.1 Flash (366 GB)"],"Inkling 2 Small|IQ1_S, --n-cpu-moe 10 -ub 128":[-11,4,"end","Inkling 2 Small"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, memory-mapped":[11,4,"start","Qwen3.8 Q5, mapped"],"Inkling 2 Small|UD-IQ1_S, --n-cpu-moe 32 -ub 128":[-11,4,"end","Inkling 2 Small UD"],"Inkling 2 Mini|IQ4_NL":[11,4,"start","Inkling 2 Mini"],"DeepSeek-V4-Flash|Q2, resident":[-11,4,"end","DeepSeek-V4-Flash"],"DeepSeek-V4-Flash|Q2, experts streamed from SSD":[-11,4,"end","streamed"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, --n-cpu-moe 8":[11,4,"start","Q5, CPU experts"]};
  const SLIM={"gpt-oss-120b":1,"Gemma 4 31B (dense)":1,"Inkling 2 Small":1,"Inkling 2 Mini":1,"Qwen3-Coder-30B":1}; // the labels that fit on a phone; tap a point for the rest
  const g=el("g",{},S);
  for(const p of POINTS){const P=PLACES.find(q=>q.k===p.p),X=lx(GiB(p.gb)),Y=ly(p.tg),fill=css(P.c);
