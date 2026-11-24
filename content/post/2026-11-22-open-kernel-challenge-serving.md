@@ -29,7 +29,7 @@ I submitted a patch to SGLang (v0.5.23, under 400 KB, files under `python/sglang
 
 - The workload is 13-turn conversations with a 74,160-token first turn, about 750 new tokens per later turn, and an average of 220 output tokens per turn, at 1, 4, 16 and 32 concurrent users.
 - The contest's settings are tensor parallelism across the eight GPUs for attention, experts spread across the GPUs, FP8 KV cache, a hierarchical cache that spills to host memory, and 16K-token prefill chunks. Speculative decoding uses a small drafter (DFlash) that guesses 8 tokens ahead, and about 4 of the 8 are accepted per step.
-- The score is the geometric mean of four ratios, one per load, so each load counts equally. A load's ratio is my throughput per GPU, read at stock SGLang's per-user speed, divided by stock's.
+- The score is the geometric mean of four ratios, one per load, and each ratio counts equally. A load's ratio is my throughput per GPU, read at stock SGLang's per-user speed, divided by stock's. Because it's read at stock's speed, one of my loads can feed more than one ratio ([details below](#what-the-score-was-made-of)).
 - The gates are later-turn time to first token within 2× stock's, GPU memory within stock + 2 GB, and answers that agree with stock's, checked by how far my next-token probabilities drift from stock's (KL divergence on the logits) and by rescoring my turns with stock.
 
 Each day allowed one scored run and three free checks; a check runs one load and doesn't count. Runs went in priority order: the kernel track's top 50, then each kernel board's top 10, then the rest of the top 100. I finished that track at #302, so any job of theirs in the queue went ahead of mine.
@@ -150,7 +150,7 @@ The cause took one GPU and about $0.60 to find. Each layer's repacked expert wei
 
 ### p16: grouped expert GEMMs for prefill
 
-At the judge's 16K prefill chunk, my expert kernel was slower than stock's. For big chunks, p16 decodes four experts at a time into reused scratch memory and runs grouped matrix multiplies (GEMMs), keeping only the packed 4-bit weights resident. **1.218×.**
+At the judge's 16K prefill chunk, my expert kernel was slower than stock's. For big chunks, p16 unpacks the weights of four experts at a time into reused scratch memory and runs grouped matrix multiplies (GEMMs), keeping only the packed 4-bit weights resident. **1.218×.**
 
 ### p19: someone else had just written the better kernel
 
@@ -208,7 +208,7 @@ $$
 
 ![Figure 7. How the judge reads each load's ratio off my throughput curve, from p19's report](/assets/images/okc/serving-frontier.svg)
 
-Rebuilt from the per-load data in all seven reports, the formula gives each judged score within 0.5%. My first version interpolated linearly in throughput; fitted to p19 alone it looked right, but on later runs it was up to 5% high at 1 user, which is why I now check a rebuilt rule against every saved result. Nate Mauer also reconstructed the rule independently, on his day 5, and [his write-up](https://n8mauer.github.io/musespark-serving/) adds a useful way to read it. At his speeds, stock's 16- and 32-user speeds both fell below his slowest load, so both ratios read his 32-user throughput and half his score sat on that one load. The 32-user ratio matches exactly, and the other ratios differ by up to about 1.1%. The reports say `paired_reps: 3`, although the 32-user load ran once, and I only have the means. Pairing may explain the difference, but I can't see the judge's code.
+Rebuilt from the per-load data in all seven reports, the formula gives each judged score within 0.5%. My first version interpolated linearly in throughput; fitted to p19 alone it looked right, but on later runs it was up to 5% high at 1 user, which is why I now check a rebuilt rule against every saved result. Nate Mauer also reconstructed the rule independently, on his day 5, and [his write-up](https://n8mauer.github.io/musespark-serving/) adds a useful way to read it. At his speeds, stock's 16- and 32-user speeds both fell below his slowest load, so both ratios read his 32-user throughput and half his score sat on that one load. Load by load against my own seven reports, my rebuilt formula matches the 32-user ratio exactly, and the other ratios differ by up to about 1.1%. The reports say `paired_reps: 3`, although the 32-user load ran once, and I only have the means. Pairing may explain the difference, but I can't see the judge's code.
 
 Three consequences shaped the rest of the track. For each load, the ratio is read between the two surviving runs whose speeds bracket stock's, so a gain at 4 users also lifts the 1-user ratio. p19's raw time ratios were 1.25, 1.33, 1.45 and 1.46, and the judged ratios were 1.43, 1.46, 1.48 and 1.46. When stock's speed is below my slowest run, the ratio reads that run directly. That was true at 32 users in every run, and from p21 on at 16 users too, so two of the four ratios used my 32-user throughput. And the first turn sets a ceiling. In my budget model, with prefill held at p21's times, even infinitely fast decode only reaches about 3.1×. That model put p21 itself at 1.78×, below the judged 2.21×, so treat the ceiling as rough. Going further means speeding up the first turn, the 74K-token prompt each conversation starts with.
 
@@ -250,7 +250,7 @@ Most experiments didn't need eight GPUs. A "mini engine" on one H200 ran a cut-d
 
 I was slow to ask what the dummy weights cost me. The mini engine had run on them since the start of November, and I asked why on Nov 15, three days into the track. Timings of fixed-shape work hold, because they don't depend on the values. But the mini engine couldn't measure anything that depends on real tokens: draft acceptance, prompt-lookup hits, real expert routing. Loading one GPU's real weights doesn't fix that, since each layer still lacks the other seven GPUs' share.
 
-The idea I'd use next time is record and replay. One real-weight 8×H200 run records the output tokens and each layer's chosen experts. The judge decodes greedily, so the output depends on the drafter only through small numerical differences. For a drafting rule that looks only at past tokens, like prompt lookup, acceptance can be estimated on a CPU from that trace. A neural drafter like DFlash also reads the big model's hidden states, which a token trace doesn't hold. None of this measures time. The routing trace can be replayed into the one-GPU rig for expert placement. One person in the contest Slack mentioned spending about 300 H200-hours, an anecdote I can't check. Some of the questions those hours answer, like token-based drafting acceptance and expert balance, could be screened from one recorded run. Timing still needs the GPUs.
+The idea I'd use next time is record and replay. One real-weight 8×H200 run records the output tokens and each layer's chosen experts. The judge decodes greedily, so the output depends on the drafter only through small numerical differences. For a drafting rule that looks only at past tokens, like prompt lookup, acceptance can be estimated on a CPU from that trace. That isn't a speedup estimate, and I've been caught by this before: my CPU replay of prompt lookup said +8–15%, and the 8-GPU rig measured +0.5%. I'd use a replay to drop weak rules, and still need the GPUs to size the ones that survive. A neural drafter like DFlash also reads the big model's hidden states, which a token trace doesn't hold. None of this measures time. The routing trace can be replayed into the one-GPU rig for expert placement. One person in the contest Slack mentioned spending about 300 H200-hours, an anecdote I can't check. Some of the questions those hours answer, like token-based drafting acceptance and expert balance, could be screened from one recorded run. Timing still needs the GPUs.
 
 ## Hunting for 3×, and stopping
 
@@ -264,7 +264,7 @@ On the last day I declined a second 8×H200 run and kept the plan. The last slot
 
 ## The setup, one track later
 
-The organization from the kernel track carried over, with roles adjusted for a track that ran on rented 8-GPU boxes and one verdict a day.
+The organization from the kernel track carried over, with roles adjusted for a track that ran on rented 8-GPU boxes and one verdict a day. I did a lot of my part on the flight to Nepal, running the sessions from a Pixel 11 Pro Fold.
 
 | Session | Role |
 |---|---|
@@ -274,18 +274,18 @@ The organization from the kernel track carried over, with roles adjusted for a t
 | Astra (ChatGPT) | Adversarial review of each patch family and of the reports and numbers I sent it, through the handoff queue |
 | Scheduled trackers | A periodic tracker that refreshed spend and wrote the timeline; waiters that armed each day's submit |
 
-A few things worked better than in the kernel track. The reviewer caught wording as much as bugs. Astra flagged "bit-equal" where the evidence only showed value-equal (twice), a lever I'd already measured on Nov 13, a one-repetition check described as a match, and a mislabelled latency figure in my own prompts.
+A few things worked better than in the kernel track. The reviewer caught more than bugs. Astra flagged "bit-equal" where the evidence only showed value-equal (twice), a one-repetition check described as a match, and a mislabelled latency figure in my own prompts. It also pointed out that one proposed lever was something I'd already measured on Nov 13.
 
 Before porting the upstream PR, the agents also saved the live rules and the terms and checked them for clauses on third-party code, and I approved each piece with credit kept. And I kept the contest Slack read-only. The organizers' answers there (greedy decoding, prompt lookup and wider verify allowed, expert swaps allowed) went into a notes file as rulings, other people's reports went in as anecdotes, and nothing was posted.
 
-## Wrong turns
+## Wrong turns, and what I'd do next time
 
-1. My rig's workload didn't match the judge's. Same flags, different conversations, and p13's 1.33× became 1.07×. I read the judge's workload report on day 3, and it should have been day 1.
-2. Nobody looked at the weight memory. My own logs showed +13 GB from the first validation run. A total-memory gate can't see memory that came out of the cache; only the KV capacity line shows it.
+1. My rig's workload didn't match the judge's. Same flags, different conversations, and p13's 1.33× became 1.07×. I read the judge's workload report on day 3. Next time I'd read it on day 1 and reproduce it exactly, token IDs included.
+2. Nobody looked at the weight memory. My own logs showed +13 GB from the first validation run. A total-memory gate can't see memory that came out of the cache; only the KV capacity line shows it, so I'd print it next to every result.
 3. I trusted single-pass rig deltas of a few percent. p24's +3–5% was +0.6% on the judge, and prompt lookup's +8–15% replay was +0.5% on the rig. Below about 5%, one pass on my rig told me the sign at best.
-4. A profiler never flushed. The n21 first-turn profiles asked for 8 steps, but the 62K-token prompt was only four 16K prefill chunks, so the profiler never stopped and I lost the traces from my biggest run. The harness now stops it explicitly.
-5. I planned early and started late. The plan existed from Oct 25, with requesting the gated weights on it. I didn't get around to that until Nov 13, and I was approved within about an hour and a half. No 8-GPU work on real weights could start before that.
-6. I questioned the dummy weights late. Expert routing and draft acceptance aren't real on them, and I only asked on Nov 15.
+4. A profiler never flushed. The n21 first-turn profiles asked for 8 steps, but the 62K-token prompt was only four 16K prefill chunks, so the profiler never stopped, and I lost the traces from my biggest run. The harness now stops it explicitly.
+5. I planned early and started late. The plan existed from Oct 25, with requesting the gated weights on it. I didn't get around to that until Nov 13, and I was approved within about an hour and a half. No 8-GPU work on real weights could start before that. I'd request the weights the day they go on the plan, and have a box ready before the track opens.
+6. I questioned the dummy weights late. Expert routing and draft acceptance aren't real on them, and I only asked on Nov 15. I'd record one real-weight run early, then replay it for token-based drafting rules and expert placement.
 
 ## What I learned
 
@@ -293,22 +293,11 @@ With one verdict a day, the quality of my own measurements decided more than any
 
 Memory counts toward the score. The track's cheapest steps were about memory: 13 GB given back, and one flag that regrouped the same memory.
 
-Try the flags first. I found the KV-pool flag two days before the close, and it was worth 4% of my score. Nate Mauer's second scored run was his first run's patch plus the same flag (at 0.15) and the host cache tier switched off, and it took him from 1.05× to 1.20× on his day 2. Launch flags cost nothing to try, and the judge's checks could have measured them in the first week.
+Try the flags first. I found the KV-pool flag two days before the close, and it was worth 4% of my score. Nate Mauer's second scored run was his first run's patch plus the same flag (at 0.15) and the host cache tier switched off, and it took him from 1.05× to 1.20× on his day 2. Launch flags cost nothing to try, and next time I'd sweep the allowed ones with free checks in the first week, before writing code.
 
-Read upstream before writing. My two biggest steps came from code that already existed, an open pull request and a disabled path in SGLang itself.
+Read upstream before writing. My two biggest steps came from code that already existed, an open pull request and a disabled path in SGLang itself. I'd look for both before writing anything new.
 
 Plan around the worst queue rather than the last one: arm the submission for the reset, decide the day before, and treat a check as a next-day answer. And I'd put the cap in the launcher again. Every 8×H200 run had an hour cap enforced by the box itself, and the one overspend of the track was a sandbox created before the stop-all command existed.
-
-## In retrospect
-
-What I'd do differently next time:
-
-1. Read the judge's workload on day 1 and reproduce it exactly, token IDs included.
-2. Sweep the allowed launch flags with free checks in the first week, before writing code.
-3. Request the weights the day I plan to use them, and have a box before the track opens.
-4. Record one real-weight run, then replay it for drafting rules and expert placement.
-5. Print KV capacity next to every result.
-6. Look for disabled paths in the engine before writing new ones.
 
 ## References and credits
 
