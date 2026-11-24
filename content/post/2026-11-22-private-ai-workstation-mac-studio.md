@@ -284,7 +284,7 @@ So for my use, delegated async work plus a private chat model, 128 GB was enough
 
 ## The small tools behind it
 
-Most of this is small, dependency-free code that isn't specific to my machine. These are the pieces I'd reuse, and some of them may get a post of their own:
+Most of this is small, dependency-free code that isn't specific to my machine. The main pieces, which may get a post of their own:
 
 - **The socket gateway:** container networking on a Mac with a block-all firewall, with host-fixed targets.
 - **The fetch proxy:** an allowlist proxy that refuses private addresses and DNS rebinding.
