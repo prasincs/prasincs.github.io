@@ -204,7 +204,7 @@ T_z & \text{if } u \le u_z
 \end{cases}
 $$
 
-\(a\) and \(b\) are the two neighboring loads whose speeds bracket \(u\), and \(z\) is my slowest load.
+\(a\) and \(b\) are the two neighboring loads whose speeds bracket \(u\), and \(z\) is my slowest load. In all seven reports, stock's speeds were at or below my fastest surviving load, so these two cases cover them. I don't know what the judge does when stock is faster than all of my loads.
 
 ![Figure 7. How the judge reads each load's ratio off my throughput curve, from p19's report](/assets/images/okc/serving-frontier.svg)
 
