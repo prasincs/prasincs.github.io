@@ -1,4 +1,64 @@
 /* ==========================================
+   Screen sizes: one scale (--k) for type, column and figures
+   ========================================== */
+
+/* PaperMod's sizes are fixed pixels, so on a 4K screen everything stayed laptop-sized. From 1280px up, sizes are PaperMod's
+   times --k, and the text column is 42em (about 80 characters) at every size. */
+:root { --k: 1; }
+
+@media screen and (min-width: 1280px) { :root { --main-width: calc(756px * var(--k)); --toc-width: calc(240px * var(--k)); --toc-gap: calc(48px * var(--k)); } }
+@media screen and (min-width: 1600px) { :root { --k: 1.15; } }
+@media screen and (min-width: 2200px) { :root { --k: 1.35; } }
+@media screen and (min-width: 3000px) { :root { --k: 1.7; } }
+
+@media screen and (min-width: 1600px) {
+  :root {
+    --gap: calc(24px * var(--k));
+    --content-gap: calc(20px * var(--k));
+    --nav-width: calc(1044px * var(--k));
+    --header-height: calc(60px * var(--k));
+    --footer-height: calc(60px * var(--k));
+  }
+  body { font-size: calc(18px * var(--k)); }
+  .logo a { font-size: calc(24px * var(--k)); }
+  #menu a { font-size: calc(16px * var(--k)); }
+  button#theme-toggle svg { width: calc(18px * var(--k)); height: calc(18px * var(--k)); }
+  .post-title, .page-header h1, .post-content h1 { font-size: calc(40px * var(--k)); }
+  .first-entry .entry-header h1 { font-size: calc(34px * var(--k)); }
+  .post-content h2 { font-size: calc(32px * var(--k)); }
+  .post-content h3, .entry-header h2 { font-size: calc(24px * var(--k)); }
+  .post-content h4, .breadcrumbs a, .first-entry .entry-content, .archive-posts, .post-content figure > figcaption { font-size: calc(16px * var(--k)); }
+  .post-content h5, .post-meta, .breadcrumbs, .entry-content, .entry-footer, .first-entry .entry-footer, .archive-count, .archive-meta,
+  .post-tags a, .copy-code, .post-content figure > figcaption > p { font-size: calc(14px * var(--k)); }
+  .post-content h6, .footer, .top-link { font-size: calc(12px * var(--k)); }
+  .footer { line-height: calc(24px * var(--k)); }
+  .post-tags a { line-height: calc(34px * var(--k)); }
+}
+
+/* Interactive figures: the page inside is laid out as if the column were at its base width, then scaled up with the text,
+   so its labels grow too. The margin makes room for the scaled height. */
+figure.interactive { margin: 1.5rem 0; }
+figure.interactive iframe {
+  display: block;
+  box-sizing: border-box;
+  width: calc(100% / var(--k));
+  height: var(--h, 720px);
+  margin-bottom: calc(var(--h, 720px) * (var(--k) - 1));
+  transform: scale(var(--k));
+  transform-origin: 0 0;
+  border: 1px solid var(--border, #ddd);
+  border-radius: 8px;
+}
+.post-content figure.interactive > figcaption { font-size: .85em; font-weight: 400; color: var(--secondary, #666); }
+
+/* Static charts (SVG): fill the column; on a phone keep their drawn size and scroll sideways, or their labels are ~4px. */
+.post-content img[src$=".svg"] { width: 100%; height: auto; }
+@media screen and (max-width: 600px) {
+  .post-content p:has(> img[src$=".svg"]) { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .post-content img[src$=".svg"] { width: auto; min-width: 100%; max-width: none; }
+}
+
+/* ==========================================
    Sticky Sidebar TOC with Scrollspy
    ========================================== */
 
@@ -9,12 +69,16 @@
 
 /* On large screens, use grid layout for sidebar TOC */
 @media screen and (min-width: 1280px) {
-  .post-content-wrapper {
+  /* The sidebar gets its own width next to the text column; it used to be cut out of it, which left the text 504px wide. */
+  .main:has(.toc-sidebar .toc) { max-width: calc(var(--main-width) + var(--toc-gap) + var(--toc-width) + var(--gap) * 2); }
+
+  .post-content-wrapper:has(.toc-sidebar .toc) {
     display: grid;
-    grid-template-columns: 1fr 280px;
-    gap: 3rem;
+    grid-template-columns: minmax(0, var(--main-width)) minmax(0, var(--toc-width));
+    gap: var(--toc-gap);
     align-items: start;
   }
+  .toc-sidebar { align-self: stretch; }
 
   .toc-sidebar {
     order: 2;
@@ -22,11 +86,11 @@
 
   .toc-sidebar .toc {
     position: sticky;
-    top: 80px;
-    max-height: calc(100vh - 100px);
+    top: calc(80px * var(--k));
+    max-height: calc(100vh - 100px * var(--k));
     overflow-y: auto;
     margin: 0;
-    font-size: 0.8rem;
+    font-size: calc(13px * var(--k));
     border: none;
     background: transparent;
     padding: 0;
@@ -38,7 +102,7 @@
   }
 
   .toc-sidebar .toc .inner {
-    max-height: calc(100vh - 160px);
+    max-height: calc(100vh - 160px * var(--k));
     overflow-y: auto;
     padding-right: 0.5rem;
   }
@@ -52,7 +116,7 @@
     font-weight: 600;
     margin-bottom: 0.75rem;
     color: var(--primary);
-    font-size: 0.9rem;
+    font-size: calc(14.5px * var(--k));
     pointer-events: none;
     list-style: none;
   }
