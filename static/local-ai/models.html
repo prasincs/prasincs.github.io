@@ -263,8 +263,6 @@ const Q=new URLSearchParams(location.search);
 if(Q.has("embed")){document.documentElement.classList.add("embed");const s=document.getElementById("s-"+(Q.get("view")||"size"));if(s)s.classList.add("shown")}
 const draw=()=>{drawSize();drawCtx();drawBytes();drawLayers()};draw();
 let lastW=wide();addEventListener("resize",()=>{if(wide()!==lastW){lastW=wide();draw()}});
-// Embedded: tell the page how tall this is (the review page and the blog size the frame to it).
-if(Q.has("embed")&&parent!==window){const report=()=>parent.postMessage({type:"okc-height",h:document.body.scrollHeight},"*");new ResizeObserver(report).observe(document.body);report()}
 const mq=matchMedia("(prefers-color-scheme: dark)");if(mq.addEventListener)mq.addEventListener("change",draw);
 new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
 </script>
