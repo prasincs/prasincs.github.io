@@ -66,7 +66,7 @@ Three things in that picture explain most of the runs that follow. The pooler an
 
 I had seven judged runs, each built on the last and named for its main change. Two steps account for most of the score. One was an upstream MoE op (1.218× → 1.457×), and the other made SGLang's sequence-parallel prefill work on H200 (1.457× → 2.208×). The last step was a single launch flag.
 
-Step through the runs below. The grey bars are the run before, and the buttons switch between the score, raw throughput, and the two latencies.
+Step through the runs below. The gray bars are the run before, and the buttons switch between the score, raw throughput, and the two latencies.
 
 {{< interactive src="/okc/serving-runs.html?embed" height="820" title="Serving run by run" caption="Figure 4. Each judged run at each load against stock SGLang. Press Play to step through all seven, or switch the bars to tokens per second or time to first token." >}}
 
@@ -178,9 +178,9 @@ For each load, the judge runs my server at 1, 4, 16 and 32 users and records two
 
 ![Figure 7. How the judge reads each load's ratio off my throughput curve, from p19's report](/assets/images/okc/serving-frontier.svg)
 
-Rebuilt from the per-load data in the six reports that have it, the formula gives each judged score within 0.5%. My first version interpolated linearly in throughput; fitted to p19 alone it looked right, but on later runs it was up to 5% high at 1 user, which is why I now check a rebuilt rule against every saved result. Nate Mauer also reconstructed the rule independently, on his day 5, and [his write-up](https://n8mauer.github.io/musespark-serving/) adds a useful way to read it. At his speeds, stock's 16- and 32-user speeds both fell below his slowest load, so both ratios read his 32-user throughput and half his score sat on that one load. The 32-user ratio matches exactly, and the other ratios differ by up to about 1.1%. The reports say `paired_reps: 3`, although the 32-user load ran once, and I only have the means. Pairing may explain the difference, but I can't see the judge's code.
+Rebuilt from the per-load data in all seven reports, the formula gives each judged score within 0.5%. My first version interpolated linearly in throughput; fitted to p19 alone it looked right, but on later runs it was up to 5% high at 1 user, which is why I now check a rebuilt rule against every saved result. Nate Mauer also reconstructed the rule independently, on his day 5, and [his write-up](https://n8mauer.github.io/musespark-serving/) adds a useful way to read it. At his speeds, stock's 16- and 32-user speeds both fell below his slowest load, so both ratios read his 32-user throughput and half his score sat on that one load. The 32-user ratio matches exactly, and the other ratios differ by up to about 1.1%. The reports say `paired_reps: 3`, although the 32-user load ran once, and I only have the means. Pairing may explain the difference, but I can't see the judge's code.
 
-Three consequences shaped the rest of the track. For each load, the ratio is read between the two surviving runs whose speeds bracket stock's, so a gain at 4 users also lifts the 1-user ratio. p19's raw time ratios were 1.25, 1.33, 1.45 and 1.46, and the judged ratios were 1.43, 1.46, 1.48 and 1.46. When stock's speed is below my slowest run, the ratio reads that run directly. That was true at 32 users in every run, and from p21 on at 16 users too, so half of my score came from my 32-user throughput, as Nate Mauer's did. And the first turn sets a ceiling. In my budget model, with prefill held at p21's times, even infinitely fast decode only reaches about 3.1×. That model put p21 itself at 1.78×, below the judged 2.21×, so treat the ceiling as rough. Going further means speeding up the first turn, the 74K-token prompt each conversation starts with.
+Three consequences shaped the rest of the track. For each load, the ratio is read between the two surviving runs whose speeds bracket stock's, so a gain at 4 users also lifts the 1-user ratio. p19's raw time ratios were 1.25, 1.33, 1.45 and 1.46, and the judged ratios were 1.43, 1.46, 1.48 and 1.46. When stock's speed is below my slowest run, the ratio reads that run directly. That was true at 32 users in every run, and from p21 on at 16 users too, so two of the four ratios used my 32-user throughput. And the first turn sets a ceiling. In my budget model, with prefill held at p21's times, even infinitely fast decode only reaches about 3.1×. That model put p21 itself at 1.78×, below the judged 2.21×, so treat the ceiling as rough. Going further means speeding up the first turn, the 74K-token prompt each conversation starts with.
 
 My two biggest steps were both about the first turn. Over the seven runs, the time to first token at one user went from 9.3 s to 3.8 s.
 
@@ -267,7 +267,7 @@ Try the flags first. I found the KV-pool flag two days before the close, and it 
 
 Read upstream before writing. My two biggest steps came from code that already existed, an open pull request and a disabled path in SGLang itself.
 
-Plan around the worst queue rather than the last one: arm the submit for the reset, decide the day before, and treat a check as a next-day answer. And I'd put the cap in the launcher again. Every 8×H200 run had an hour cap enforced by the box itself, and the one overspend of the track was a sandbox created before the stop-all command existed.
+Plan around the worst queue rather than the last one: arm the submission for the reset, decide the day before, and treat a check as a next-day answer. And I'd put the cap in the launcher again. Every 8×H200 run had an hour cap enforced by the box itself, and the one overspend of the track was a sandbox created before the stop-all command existed.
 
 ## In retrospect
 
