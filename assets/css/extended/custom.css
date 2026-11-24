@@ -2,47 +2,25 @@
    Screen sizes: one scale (--k) for type, column and figures
    ========================================== */
 
-/* PaperMod's sizes are fixed pixels, so on a 4K screen everything stayed laptop-sized. From 1280px up, sizes are PaperMod's
-   times --k, and the text column is 42em (about 80 characters) at every size. */
+/* PaperMod's sizes are fixed pixels, so on a 4K screen everything stayed laptop-sized. Above 1600px the whole page is zoomed by
+   --k, so every rule below is written for a laptop. The text column is 42em (about 80 characters).
+   vh units are zoomed too, so anything sized by the window's height divides by --k. */
 :root { --k: 1; }
-
-@media screen and (min-width: 1280px) { :root { --main-width: calc(756px * var(--k)); --toc-width: calc(240px * var(--k)); --toc-gap: calc(48px * var(--k)); } }
+@media screen and (min-width: 1280px) { :root { --main-width: 756px; --toc-width: 240px; --toc-gap: 48px; } }
 @media screen and (min-width: 1600px) { :root { --k: 1.15; } }
 @media screen and (min-width: 2200px) { :root { --k: 1.35; } }
 @media screen and (min-width: 3000px) { :root { --k: 1.7; } }
+body { zoom: var(--k); }
+.main { min-height: calc(100vh / var(--k) - var(--header-height) - var(--footer-height)); }
 
-@media screen and (min-width: 1600px) {
-  :root {
-    --gap: calc(24px * var(--k));
-    --content-gap: calc(20px * var(--k));
-    --nav-width: calc(1044px * var(--k));
-    --header-height: calc(60px * var(--k));
-    --footer-height: calc(60px * var(--k));
-  }
-  body { font-size: calc(18px * var(--k)); }
-  .logo a { font-size: calc(24px * var(--k)); }
-  #menu a { font-size: calc(16px * var(--k)); }
-  button#theme-toggle svg { width: calc(18px * var(--k)); height: calc(18px * var(--k)); }
-  .post-title, .page-header h1, .post-content h1 { font-size: calc(40px * var(--k)); }
-  .first-entry .entry-header h1 { font-size: calc(34px * var(--k)); }
-  .post-content h2 { font-size: calc(32px * var(--k)); }
-  .post-content h3, .entry-header h2 { font-size: calc(24px * var(--k)); }
-  .post-content h4, .breadcrumbs a, .first-entry .entry-content, .archive-posts, .post-content figure > figcaption { font-size: calc(16px * var(--k)); }
-  .post-content h5, .post-meta, .breadcrumbs, .entry-content, .entry-footer, .first-entry .entry-footer, .archive-count, .archive-meta,
-  .post-tags a, .copy-code, .post-content figure > figcaption > p { font-size: calc(14px * var(--k)); }
-  .post-content h6, .footer, .top-link { font-size: calc(12px * var(--k)); }
-  .archive-month-header { width: calc(200px * var(--k)); flex-shrink: 0; }
-  .social-icons a svg { width: calc(26px * var(--k)); height: calc(26px * var(--k)); }
-  .footer { line-height: calc(24px * var(--k)); }
-  .post-tags a { line-height: calc(34px * var(--k)); }
-}
-
-/* Interactive figures: the page inside is laid out as if the column were at its base width, then scaled up with the text,
-   so its labels grow too. The margin makes room for the scaled height. */
+/* Interactive figures. --h starts as the shortcode's height; the shortcode's script then sets it to the page's own height.
+   Safari multiplies vh inside a zoomed iframe (Chrome doesn't), so the frame cancels the page's zoom and is scaled up instead:
+   the page inside is laid out at the column's laptop width. The margin makes room for the scaled height. */
 figure.interactive { margin: 1.5rem 0; }
 figure.interactive iframe {
   display: block;
   box-sizing: border-box;
+  zoom: calc(1 / var(--k));
   width: calc(100% / var(--k));
   height: var(--h, 720px);
   margin-bottom: calc(var(--h, 720px) * (var(--k) - 1));
@@ -91,11 +69,11 @@ figure.interactive iframe {
 
   .toc-sidebar .toc {
     position: sticky;
-    top: calc(80px * var(--k));
-    max-height: calc(100vh - 100px * var(--k));
+    top: 80px;
+    max-height: calc(100vh / var(--k) - 100px);
     overflow-y: auto;
     margin: 0;
-    font-size: calc(13px * var(--k));
+    font-size: 13px;
     border: none;
     background: transparent;
     padding: 0;
@@ -107,7 +85,7 @@ figure.interactive iframe {
   }
 
   .toc-sidebar .toc .inner {
-    max-height: calc(100vh - 160px * var(--k));
+    max-height: calc(100vh / var(--k) - 160px);
     overflow-y: auto;
     padding-right: 0.5rem;
   }
@@ -121,7 +99,7 @@ figure.interactive iframe {
     font-weight: 600;
     margin-bottom: 0.75rem;
     color: var(--primary);
-    font-size: calc(14.5px * var(--k));
+    font-size: 14.5px;
     pointer-events: none;
     list-style: none;
   }

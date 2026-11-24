@@ -222,7 +222,7 @@ People describe optimization as hill climbing all the time. In this contest it i
 
 **The map is real.** Four boards score decode and verify loads: the decode layer, attention decode, MoE and BF16 projections. Each of their scores is a geometric mean, so it splits *exactly* into two halves: the geomean of the decode shapes (call it D) and of the verify shapes (V). The prefill board scores first and later turns instead, so it doesn't split this way. The score is √(D × V). So every candidate kernel is a point on a two-dimensional map, its height is its judged score, and the lines of equal height are curves you can draw. Here is my decode-layer climb on that map, from the first scored run to the last.
 
-{{< interactive src="/okc/kernel-climb.html?embed&view=climb&board=muse_decode_layer&mode=ours" height="560" title="Decode-layer climb" caption="Figure 2. My 43 scored decode-layer runs on the board's exact score map, from 1.05× to 2.24×. The white curves are lines of equal score; the black dashed curve is the judge's modeled limit." >}}
+{{< interactive src="/okc/kernel-climb.html?embed&view=climb&board=muse_decode_layer&mode=ours" height="560" fixed="true" title="Decode-layer climb" caption="Figure 2. My 43 scored decode-layer runs on the board's exact score map, from 1.05× to 2.24×. The white curves are lines of equal score; the black dashed curve is the judge's modeled limit." >}}
 
 **A step is one change.** Each move on the map was meant to be one change, A/B'd against the version before it, though a few late steps bundled links I had already tested one at a time, and the judge's noise moved heights too. If it went up, I kept it; if not, I stepped back. That's the "one change at a time" rule, and it's why the path is a staircase of small steps. Most of the height came from a handful of big ones.
 
@@ -232,7 +232,7 @@ People describe optimization as hill climbing all the time. In this contest it i
 
 **The ground doesn't rise evenly.** The map shows one number per run, but each run is twelve shapes, and they didn't move together. Press Play to watch every shape's bar across all 43 runs.
 
-{{< interactive src="/okc/kernel-climb.html?embed&view=terrain&board=muse_decode_layer&run=first" height="600" title="Decode-layer shapes, run by run" caption="Figure 3. One bar per scored shape: decode and verify loads left to right, sliding and full-attention layers front to back. The grid at 1.0× is SGLang; the small diamonds mark the first run. Press Play, or switch the height to each shape's share of the judge's modeled limit." >}}
+{{< interactive src="/okc/kernel-climb.html?embed&view=terrain&board=muse_decode_layer&run=first" height="600" fixed="true" title="Decode-layer shapes, run by run" caption="Figure 3. One bar per scored shape: decode and verify loads left to right, sliding and full-attention layers front to back. The grid at 1.0× is SGLang; the small diamonds mark the first run. Press Play, or switch the height to each shape's share of the judge's modeled limit." >}}
 
 **The biggest steps were jumps, not climbs.** Two kinds of moves gave most of the height. One was moving to someone else's position: porting a piece of public code. The other was taking down a fence I had built myself. My bit-identical rule kept me off a faster public base from Oct 28 to Oct 30; the day I dropped it, one run moved me from 1.896× to 2.163×.
 
@@ -240,11 +240,11 @@ People describe optimization as hill climbing all the time. In this contest it i
 
 **There's no summit, just a ceiling.** The score only rises with speed, so the surface is a ramp. Its top is the hardware limit, where every shape runs at its floor. Nobody reached it. The ceiling that mattered was the field's, and it moved every day.
 
-{{< interactive src="/okc/kernel-climb.html?embed&view=climb&board=muse_decode_layer&mode=field" height="560" title="Decode-layer climb with the field" caption="Figure 4. The same map with where the contest finished: #1 (solid), the top-10 and top-100 cutoffs, and the judge's modeled limit." >}}
+{{< interactive src="/okc/kernel-climb.html?embed&view=climb&board=muse_decode_layer&mode=field" height="560" fixed="true" title="Decode-layer climb with the field" caption="Figure 4. The same map with where the contest finished: #1 (solid), the top-10 and top-100 cutoffs, and the judge's modeled limit." >}}
 
 All four boards that score decode and verify loads share the same surface, so their paths can be drawn together. Drag to rotate.
 
-{{< interactive src="/okc/kernel-climb.html?embed&view=climb&mode=ours&cam=over" height="600" title="Four boards, one surface" caption="Figure 5. Decode layer, attention decode, MoE and BF16 projections on one √(D × V) surface, each with its own judge's modeled limit. Use the buttons to focus on one board or switch to the field." >}}
+{{< interactive src="/okc/kernel-climb.html?embed&view=climb&mode=ours&cam=over" height="600" fixed="true" title="Four boards, one surface" caption="Figure 5. Decode layer, attention decode, MoE and BF16 projections on one √(D × V) surface, each with its own judge's modeled limit. Use the buttons to focus on one board or switch to the field." >}}
 
 ![Figure 6. Every board, flat: my path, #1, the top-100 cutoff and the judge's modeled limit](/assets/images/okc/kernel-climb-field.svg)
 
