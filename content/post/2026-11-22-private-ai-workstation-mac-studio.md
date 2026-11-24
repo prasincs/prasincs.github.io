@@ -198,6 +198,31 @@ Then the part I expected to be bad: quality at 1.56 bits per weight. On the same
 
 It didn't buy better answers either: **14 good, 4 partial, 2 failed**, against 17, 2 and 1 for the smaller quant. One run of 20 prompts can't tell those two scores apart, but it's no case for a model with a median answer of 139 seconds. It claimed a "reasoning tool" it doesn't have, gave a current date that contradicts its own cutoff, and never answered the shell question: that one hit my 15-minute timeout, and the run still reported success. On this machine, IQ1_S is the one to use.
 
+### What it costs on disk
+
+Memory is the limit you plan for; disk is the one that sneaks up. A month of trying models left 1.59 TB of weights on a 2 TB drive that was 97% full. On Nov 24 I sorted them:
+
+| What | Size | Decision |
+|---|---|---|
+| Qwen3.8-Flash-Next UD-Q3_K_XL, with its vision and MTP files | 95 GB | Keep: the chat model |
+| Inkling 2 Mini IQ4_NL | 18 GB | Keep: the agent model |
+| Qwen3-Coder-30B Q5_K_M | 22 GB | Keep: the rollback for the agent model |
+| lev Q8 | 5 GB | Keep: picked to route requests |
+| DeepSeek V4.1 Flash Q2 | 366 GB | Kept for now: planned for the model switcher |
+| Inkling 2 Small UD-IQ1_S, with its vision file | 172 GB | Kept for now: one prompt to rerun |
+| Qwen3.8 UD-Q5_K_XL | 158 GB | Kept for now: possible chat upgrade |
+| DeepSeek-V4-Flash Q2 | 87 GB | Kept for now |
+| gpt-oss-120b MXFP4 | 63 GB | Kept for now: planned for the switcher |
+| Gemma 4 31B and 26B Q8, with vision files | 62 GB | Kept for now: planned for the switcher |
+| Qwen3-Coder-Next Q4_K_M | 49 GB | Kept for now: planned for the switcher |
+| Clef Q8, with its vision file | 29 GB | Kept for now: picked to judge answers |
+| Qwen3.6-35B Q5_K_M | 26 GB | Kept for now: planned for the switcher |
+| Second and third quants (Qwen3.8 Q2 and Q4, Coder-Next Q6, Qwen3.6 Q8, Coder-30B Q8, both Gemma Q4s), three smaller decision models, a spare MTP file | 437 GB | Deleted |
+
+Free space went from 67 GB to 503 GB. Almost all of what I deleted was a second or third quant of a model I was keeping, downloaded for one benchmark and never loaded again.
+
+Two things made it safe. Every file had a pinned source (repo, revision and sha256), and I re-hashed each one before deleting it, so any benchmark here can be rerun on the same bytes; the run logs stay in git. And a folder named `.staging-p7`, which looked like leftovers, held the MTP file the chat server had open. Check what's open before you clean up by name.
+
 ## Local models as workers
 
 The second goal was to move real work off Claude. The plan was a ladder: Claude starts the project, and as soon as a local model is viable, Claude hands it more and more of the mechanical work through existing agent harnesses (here, [opencode](https://opencode.ai)), and reviews every result. Claude keeps design, debugging, security and review. Two failures and Claude takes the task back.
