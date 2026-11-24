@@ -58,7 +58,7 @@
   <text class="s" x="552" y="282" text-anchor="middle">128K ctx · MTP</text>
   <rect class="gpu" x="655" y="226" width="165" height="68" rx="6"/>
   <text class="h" x="737" y="249" text-anchor="middle">llama-server (agent)</text>
-  <text class="s" x="737" y="266" text-anchor="middle">Qwen3-Coder-30B</text>
+  <text class="s" x="737" y="266" text-anchor="middle">Inkling 2 Mini</text>
   <text class="s" x="737" y="282" text-anchor="middle">64K ctx</text>
 
   <rect class="box" x="240" y="470" width="170" height="54"/>
@@ -85,9 +85,10 @@
   <path class="sock" d="M732,134 C732,150 450,175 412,175"/>
   <path class="edge" d="M325,194 L325,238"/>
   <path class="edge" d="M410,262 L468,260"/>
-  <path class="edge" d="M410,280 C560,310 650,300 700,296"/>
-  <path class="edge" d="M300,194 C270,300 270,400 300,468"/>
+  <path class="edge" d="M410,284 C450,318 700,330 737,296"/>
+  <path class="edge" d="M240,178 H236 Q229,178 229,185 V476 Q229,483 236,483 H238"/>
   <path class="edge" d="M240,497 L192,497"/>
   <path class="sock" d="M470,365 C430,365 420,200 410,190"/>
-  <text class="s" x="420" y="135" fill="#3b6fd8">unix socket</text>
+  <text class="s" x="440" y="92" text-anchor="middle" fill="#3b6fd8">unix</text>
+  <text class="s" x="440" y="105" text-anchor="middle" fill="#3b6fd8">socket</text>
 </svg>

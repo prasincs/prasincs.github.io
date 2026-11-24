@@ -54,6 +54,8 @@ Here's what runs, top to bottom:
 | Status page | Jobs, queue, failures and telemetry, for me and the people I share the machine with | 623 lines, Python stdlib |
 | Agent containers | One throwaway container per delegated coding task | 113 lines + a 7-line Containerfile |
 
+The first prototype was in Python, and it's being rewritten in Rust so the binaries are portable. So far the router and the host side of the gateway have moved over; the sizes above, and the file names below, are from the Python version.
+
 Everything runs under launchd. The disk is encrypted with FileVault and there's no auto-login, so nothing starts until I log in.
 
 ### Locking it down
@@ -96,7 +98,7 @@ On day one I benchmarked seven models with llama.cpp's `llama-bench`. Every mode
 
 {{< interactive src="/local-ai/models.html?embed&view=context" height="480" title="Speed as the context fills" caption="Figure 1. The same benchmark for eight models, including Inkling 2 Small from later in this post. Switch to Prompt reading for the other half of the grid (log scale). Hover a column for the numbers." >}}
 
-Qwen3.8-Flash-Next is the slowest of the mixture-of-experts models on an empty context, and by far the flattest: it loses 10% from an empty context to 64K, while the small models lose half or more. Prompt processing shows the same pattern: 1,033 → 852 tokens/s, while Qwen3-Coder-30B drops from 2,986 to 352.
+Qwen3.8-Flash-Next is the slowest of the mixture-of-experts models on an empty context, and by far the flattest, losing 10% from an empty context to 64K while the others lose between a third and three quarters. Prompt processing shows the same pattern: 1,033 → 852 tokens/s, while Qwen3-Coder-30B drops from 2,986 to 352.
 
 At 120K tokens of context, Qwen3.8 still generates 39 tokens/s; Coder-30B is down to 22. Since a personal assistant spends its time on long documents and long chats, Qwen3.8 became the chat model.
 
