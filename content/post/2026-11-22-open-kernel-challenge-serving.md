@@ -34,7 +34,15 @@ I submitted a patch to SGLang (v0.5.23, under 400 KB, files under `python/sglang
 
 Each day allowed one scored run and three free checks; a check runs one load and doesn't count. Runs went in priority order: the kernel track's top 50, then each kernel board's top 10, then the rest of the top 100. I finished that track at #302, so any job of theirs in the queue went ahead of mine.
 
-A few terms come up a lot below. **Prefill** is processing the prompt before the first output token. A 74K-token first turn takes seconds, and the user waits for all of it; that wait is the **time to first token (TTFT)**. **Decode** is generating output, and with speculative decoding each step checks the drafter's 8 guesses in one pass of the big model. The **KV cache** is the per-token memory each conversation keeps so later turns don't recompute the prompt. When it runs out, SGLang moves some of it to host memory and has to load it back. Most of the model's layers use **sliding-window attention (SWA)**, which only looks back 2,048 tokens and so needs little cache; the rest attend to the whole conversation.
+A few terms come up a lot below.
+
+| Term | What it means here |
+|---|---|
+| **Prefill** | Processing the prompt before the first output token. A 74K-token first turn takes seconds. |
+| **Time to first token (TTFT)** | How long the user waits for the first output token. On the first turn, that includes the whole prefill. |
+| **Decode** | Generating output. With speculative decoding, each step checks the drafter's 8 guesses in one pass of the big model. |
+| **KV cache** | The per-token memory each conversation keeps so later turns don't recompute the prompt. When it runs out, SGLang moves some of it to host memory and has to load it back. |
+| **Sliding-window attention (SWA)** | Attention that only looks back 2,048 tokens and so needs little cache. Most of the model's layers use it; the rest attend to the whole conversation. |
 
 Runs and patches have short names. Patches are p1 to p25, numbered in the order I built them. Six of them reached a scored run (p13, p15, p16, p19, p21 and p24); the rest were folded into a later patch, replaced, or dropped. A suffix marks a variant of the same patch, so p21eq and p19nvls are p21 and p19 with one setting changed. My own 8×H200 batches are n14 to n21, and n20b was a second attempt at n20. fix1 is the validation run that tested the hang fix on real weights. The kernel-track names in the first post (v20, c16b, a22) are a separate series.
 
@@ -175,6 +183,28 @@ Setting the ratio to 0.25 regroups the same memory, and full-attention capacity 
 The rules said the score was throughput at stock's interactivity, but not how the judge computed it. On Nov 18 the agents reconstructed the formula from the judge's own reports.
 
 For each load, the judge runs my server at 1, 4, 16 and 32 users and records two numbers: tokens per second per user, end to end, and tokens per second per GPU. The per-GPU count includes every prompt token, cached or not, plus the outputs, about 1.04M tokens per conversation. Stock gets the same treatment. Then, for each load, the judge looks up stock's per-user speed on my curve. When that speed falls between two of my loads, it interpolates in log throughput against log per-user speed (a straight line on log-log axes). My throughput at that point divided by stock's is the load's ratio, and the score is the geometric mean of the four ratios. A load that fails a gate drops off my curve, and its ratio is read from the loads around it; for p13 at 16 users that gave 0.999.
+
+As a formula, let \(u_n\) and \(T_n\) be my per-user speed and per-GPU throughput at \(n\) users, and \(u^{\text{stock}}_n\) and \(T^{\text{stock}}_n\) be stock's:
+
+$$
+\text{score} = \left(\prod_{n \in \{1,4,16,32\}} r_n\right)^{1/4},
+\qquad
+r_n = \frac{\hat{T}\left(u^{\text{stock}}_n\right)}{T^{\text{stock}}_n}
+$$
+
+Here \(\hat{T}(u)\) is my curve read at speed \(u\), using only the loads that passed the gates:
+
+$$
+\hat{T}(u) =
+\begin{cases}
+T_a \left(\dfrac{T_b}{T_a}\right)^{w},
+\quad w = \dfrac{\log u - \log u_a}{\log u_b - \log u_a}
+& \text{if } u_b \le u \le u_a \\[2ex]
+T_z & \text{if } u \le u_z
+\end{cases}
+$$
+
+\(a\) and \(b\) are the two neighboring loads whose speeds bracket \(u\), and \(z\) is my slowest load.
 
 ![Figure 7. How the judge reads each load's ratio off my throughput curve, from p19's report](/assets/images/okc/serving-frontier.svg)
 
