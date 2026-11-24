@@ -31,6 +31,8 @@
   .post-content h5, .post-meta, .breadcrumbs, .entry-content, .entry-footer, .first-entry .entry-footer, .archive-count, .archive-meta,
   .post-tags a, .copy-code, .post-content figure > figcaption > p { font-size: calc(14px * var(--k)); }
   .post-content h6, .footer, .top-link { font-size: calc(12px * var(--k)); }
+  .archive-month-header { width: calc(200px * var(--k)); flex-shrink: 0; }
+  .social-icons a svg { width: calc(26px * var(--k)); height: calc(26px * var(--k)); }
   .footer { line-height: calc(24px * var(--k)); }
   .post-tags a { line-height: calc(34px * var(--k)); }
 }
@@ -50,6 +52,9 @@ figure.interactive iframe {
   border-radius: 8px;
 }
 .post-content figure.interactive > figcaption { font-size: .85em; font-weight: 400; color: var(--secondary, #666); }
+
+/* Script-drawn canvases (the music post's notation) have a fixed pixel width. */
+.post-content canvas { max-width: 100%; height: auto !important; }
 
 /* Static charts (SVG): fill the column; on a phone keep their drawn size and scroll sideways, or their labels are ~4px. */
 .post-content img[src$=".svg"] { width: 100%; height: auto; }
