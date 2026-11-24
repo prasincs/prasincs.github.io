@@ -32,6 +32,13 @@ markup:
   goldmark:
     renderer:
       unsafe: true
+    # LaTeX formulas (layouts/_default/_markup/render-passthrough.html). A single $ stays a dollar sign.
+    extensions:
+      passthrough:
+        enable: true
+        delimiters:
+          block: [['$$', '$$'], ['\[', '\]']]
+          inline: [['\(', '\)']]
 
 # Enable emoji support
 enableEmoji: true

@@ -1,0 +1,12 @@
+{{- /* LaTeX formulas (the delimiters are in hugo.yaml), rendered at build time by Hugo's KaTeX as MathML: no script, font
+     or stylesheet on the page. A formula that doesn't parse fails the build. Browsers drop the space after a function
+     name (log u), so it's put back; column alignment is in custom.css. */ -}}
+{{- $block := eq .Type "block" -}}
+{{- with try (transform.ToMath .Inner (dict "output" "mathml" "displayMode" $block)) -}}
+  {{- with .Err -}}
+    {{- errorf "formula: %s: %s" . $.Position -}}
+  {{- else -}}
+    {{- $m := .Value | string | replaceRE "(<mo>\\x{2061}</mo>)(<m[^o/]|<mover)" "$1<mspace width=\"0.1667em\"></mspace>$2" -}}
+    <span class="math{{ if $block }} block{{ end }}">{{ $m | safeHTML }}</span>
+  {{- end -}}
+{{- end -}}
