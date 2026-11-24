@@ -206,10 +206,6 @@ document.getElementById("dag").addEventListener("keydown", e => {
 document.querySelectorAll(".seg button").forEach(b => b.addEventListener("click", () => { mode = b.dataset.mode; draw(); }));
 document.getElementById("foot").textContent = FOOT;
 draw();
-if (QS.has("embed") && parent !== window) {
-  const report = () => parent.postMessage({ type: "okc-height", h: document.documentElement.offsetHeight }, "*");
-  new ResizeObserver(report).observe(document.body); report();
-}
 </script>
 </body>
 </html>

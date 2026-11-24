@@ -329,10 +329,6 @@ new MutationObserver(() => setFrame(cur)).observe(document.documentElement, { at
   const k = want ? F.findIndex(f => f.label === want || f.id === want) : -1;
   setFrame(k >= 0 ? k : F.length - 1);
 }
-if (QS.has("embed") && parent !== window) {
-  const report = () => parent.postMessage({ type: "okc-height", h: document.documentElement.offsetHeight }, "*");
-  new ResizeObserver(report).observe(document.body); report();
-}
 </script>
 </body>
 </html>
