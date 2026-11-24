@@ -18,7 +18,8 @@
 @media (prefers-color-scheme:dark){:root.embed:not([data-theme="light"]){--bg:#1d1e20}}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;padding:16px}
-main{max-width:980px;margin:0 auto;display:grid;gap:28px}
+main{max-width:980px;margin:0 auto;display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
+section{min-width:0}details{overflow-x:auto}
 h1{font-size:20px;margin:0}
 h2{font-size:16px;margin:0 0 4px}
 .note{color:var(--ink2);font-size:13px;margin:0 0 8px}
@@ -44,7 +45,7 @@ table{border-collapse:collapse;font-size:12.5px;margin-top:6px}
 td,th{padding:3px 10px 3px 0;text-align:left;border-bottom:1px solid var(--rule)}
 td.n,th.n{text-align:right}
 :root.embed body{padding:6px 4px}
-:root.embed main{gap:0}
+:root.embed main{gap:0;max-width:none}
 :root.embed h1,:root.embed .intro,:root.embed section{display:none}
 :root.embed section.shown{display:grid}
 :root.embed section.shown>h2,:root.embed section.shown>.note{display:none}
@@ -99,6 +100,10 @@ function hover(node,html){node.addEventListener("pointerenter",()=>{tip.innerHTM
  node.addEventListener("pointermove",e=>{const w=tip.offsetWidth,h=tip.offsetHeight;let x=e.clientX+14,y=e.clientY+14;
   if(x+w>innerWidth-8)x=e.clientX-w-14;if(y+h>innerHeight-8)y=e.clientY-h-14;tip.style.left=Math.max(4,x)+"px";tip.style.top=Math.max(4,y)+"px"});
  node.addEventListener("pointerleave",()=>tip.style.display="none")}
+// Charts are drawn at the width they're shown at (640-900 units, or the phone's own width), so labels stay ~11px instead of
+// shrinking with the picture. slim: a phone-width drawing.
+const wide=()=>{const w=document.querySelector('main').clientWidth;return w<560?Math.max(300,w):Math.min(900,Math.max(640,w))};
+const size=(S,W,H)=>S.setAttribute('viewBox',`0 0 ${W} ${H}`);
 const fmt=x=>x>=100?Math.round(x).toLocaleString():x.toFixed(1);
 
 // ---------- data ----------
@@ -154,22 +159,23 @@ function marker(g,shape,x,y,r,fill){const ring=css("--bg");
  if(shape==="square")return el("rect",{x:x-r*.9,y:y-r*.9,width:r*1.8,height:r*1.8,rx:2,fill,stroke:ring,"stroke-width":2},g);
  return el("path",{d:`M${x},${y-r*1.25}L${x+r*1.25},${y}L${x},${y+r*1.25}L${x-r*1.25},${y}Z`,fill,stroke:ring,"stroke-width":2},g)}
 function drawSize(){const S=document.getElementById("c-size");S.innerHTML="";
- const W=900,H=430,m={l:52,r:20,t:16,b:44},x0=m.l,x1=W-m.r,y0=H-m.b,y1=m.t;
- const lx=v=>x0+(Math.log(v)-Math.log(12))/(Math.log(400)-Math.log(12))*(x1-x0), ly=v=>y0-(v/150)*(y0-y1);
+ const W=wide(),slim=W<560,H=slim?360:430,m=slim?{l:50,r:8,t:16,b:40}:{l:52,r:20,t:16,b:44},x0=m.l,x1=W-m.r,y0=H-m.b,y1=m.t;
+ size(S,W,H);const lx=v=>x0+(Math.log(v)-Math.log(12))/(Math.log(400)-Math.log(12))*(x1-x0), ly=v=>y0-(v/150)*(y0-y1);
  for(const t of [16,32,64,128,256]){const X=lx(t);el("line",{x1:X,x2:X,y1:y1,y2:y0,class:"gr"},S);el("text",{x:X,y:y0+16,"text-anchor":"middle"},S).textContent=t}
  for(let t=0;t<=150;t+=25){const Y=ly(t);el("line",{x1:x0,x2:x1,y1:Y,y2:Y,class:"gr"},S);el("text",{x:x0-8,y:Y+4,"text-anchor":"end"},S).textContent=t}
  el("text",{x:(x0+x1)/2,y:H-6,"text-anchor":"middle"},S).textContent="model size, GiB (log scale)";
- el("text",{x:14,y:(y0+y1)/2,"text-anchor":"middle",transform:`rotate(-90 14 ${(y0+y1)/2})`},S).textContent="generated tokens/s";
+ el("text",{x:slim?10:14,y:(y0+y1)/2,"text-anchor":"middle",transform:`rotate(-90 ${slim?10:14} ${(y0+y1)/2})`},S).textContent="generated tokens/s";
  for(const [v,lab] of [[LIMIT,"Metal GPU limit 107.5"],[RAM,"RAM 128"]]){const X=lx(v);el("line",{x1:X,x2:X,y1:y1,y2:y0,class:"lim"},S);
-  el("text",{x:X+(v===RAM?5:-5),y:y1+12,"text-anchor":v===RAM?"start":"end"},S).textContent=lab}
+  el("text",{x:X+(v===RAM?5:-5),y:y1+12,"text-anchor":v===RAM?"start":"end"},S).textContent=slim?(v===RAM?"RAM":"Metal limit"):lab}
 const LAB={"gpt-oss-120b|MXFP4":[11,4,"start","gpt-oss-120b"],"Qwen3-Coder-30B-A3B|Q5_K_M":[11,4,"start","Qwen3-Coder-30B"],"Qwen3.8-Flash-Next|UD-Q3_K_XL":[-11,4,"end","Qwen3.8 Q3"],"Qwen3.8-Flash-Next|UD-Q4_K_XL":[0,-12,"middle","Q4"],"Gemma 4 31B (dense)|Q4_K_M":[11,4,"start","Gemma 4 31B (dense)"],"DeepSeek V4.1 Flash|Q2, SSD streaming":[6,24,"end","DeepSeek V4.1 Flash (366 GB)"],"Inkling 2 Small|IQ1_S, --n-cpu-moe 10 -ub 128":[-11,4,"end","Inkling 2 Small"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, memory-mapped":[11,4,"start","Qwen3.8 Q5, mapped"],"Inkling 2 Mini|IQ4_NL":[11,4,"start","Inkling 2 Mini"],"DeepSeek-V4-Flash|Q2, resident":[-11,4,"end","DeepSeek-V4-Flash"],"DeepSeek-V4-Flash|Q2, experts streamed from SSD":[-11,4,"end","streamed"],"Qwen3.8-Flash-Next|UD-Q5_K_XL, --n-cpu-moe 8":[11,4,"start","Q5, CPU experts"]};
+ const SLIM={"gpt-oss-120b":1,"Gemma 4 31B (dense)":1,"Inkling 2 Small":1,"Inkling 2 Mini":1,"Qwen3-Coder-30B":1}; // the labels that fit on a phone; tap a point for the rest
  const g=el("g",{},S);
  for(const p of POINTS){const P=PLACES.find(q=>q.k===p.p),X=lx(GiB(p.gb)),Y=ly(p.tg),fill=css(P.c);
   if(p.lo)el("line",{x1:X,x2:X,y1:ly(p.lo),y2:ly(p.hi),stroke:fill,"stroke-width":2,"stroke-linecap":"round"},g);
   const mk=marker(g,P.shape,X,Y,6,fill);
   const hit=el("circle",{cx:X,cy:Y,r:13,fill:"transparent"},g);
   hover(hit,`<b>${p.n}</b><span class="m">${p.q} · ${p.eng}</span><br>${fmt(GiB(p.gb))} GiB · <b style="display:inline">${p.lo?p.lo+"–"+p.hi:fmt(p.tg)}</b> tokens/s<br><span class="m">${P.n}${p.note?"; "+p.note:""}</span>`);
-  const o=LAB[p.n+"|"+p.q];if(o){const t=el("text",{x:X+o[0],y:Y+o[1],"text-anchor":o[2],class:"halo"},g);t.textContent=o[3]}}
+  const o=LAB[p.n+"|"+p.q];if(o&&(!slim||SLIM[o[3]])){const t=el("text",{x:X+o[0],y:Y+o[1],"text-anchor":o[2],class:"halo"},g);t.textContent=slim?o[3].replace(" (dense)",""):o[3]}}
  legend("lg-size",PLACES);
  const T=document.getElementById("t-size");T.innerHTML="<tr><th>Model</th><th>Setup</th><th class=n>GiB</th><th class=n>tokens/s</th><th>Where</th></tr>"+
   POINTS.map(p=>`<tr><td>${p.n}</td><td>${p.q} (${p.eng})</td><td class=n>${fmt(GiB(p.gb))}</td><td class=n>${p.lo?p.lo+"–"+p.hi:fmt(p.tg)}</td><td>${PLACES.find(q=>q.k===p.p).n}</td></tr>`).join("")}
@@ -177,14 +183,14 @@ const LAB={"gpt-oss-120b|MXFP4":[11,4,"start","gpt-oss-120b"],"Qwen3-Coder-30B-A
 // ---------- context lines ----------
 let measure="tg";
 function drawCtx(){const S=document.getElementById("c-ctx");S.innerHTML="";
- const W=900,H=400,m={l:56,r:150,t:14,b:40},x0=m.l,x1=W-m.r,y0=H-m.b,y1=m.t,pp=measure==="pp";
- const xs=DEPTHS.map((d,i)=>x0+i*(x1-x0)/3);
+ const W=wide(),slim=W<560,H=slim?300:400,m=slim?{l:50,r:12,t:14,b:40}:{l:56,r:150,t:14,b:40},x0=m.l,x1=W-m.r,y0=H-m.b,y1=m.t,pp=measure==="pp";
+ size(S,W,H);const xs=DEPTHS.map((d,i)=>x0+i*(x1-x0)/3);
  const ly=pp?v=>y0-(Math.log10(v)-1)/(Math.log10(5000)-1)*(y0-y1):v=>y0-v/150*(y0-y1);
  const ticks=pp?[10,30,100,300,1000,3000]:[0,25,50,75,100,125,150];
  for(const t of ticks){const Y=ly(t);el("line",{x1:x0,x2:x1,y1:Y,y2:Y,class:"gr"},S);el("text",{x:x0-8,y:Y+4,"text-anchor":"end"},S).textContent=t.toLocaleString()}
  DEPTHS.forEach((d,i)=>{el("text",{x:xs[i],y:y0+18,"text-anchor":"middle"},S).textContent=d?d/1024+"K":"0"});
  el("text",{x:(x0+x1)/2,y:H-4,"text-anchor":"middle"},S).textContent="tokens already in context";
- el("text",{x:14,y:(y0+y1)/2,"text-anchor":"middle",transform:`rotate(-90 14 ${(y0+y1)/2})`},S).textContent=pp?"prompt tokens/s (log)":"generated tokens/s";
+ el("text",{x:slim?10:14,y:(y0+y1)/2,"text-anchor":"middle",transform:`rotate(-90 ${slim?10:14} ${(y0+y1)/2})`},S).textContent=pp?"prompt tokens/s (log)":"generated tokens/s";
  const groups=[];
  MODELS.forEach((mo,i)=>{const c=css("--s"+(i+1)),v=mo[measure],g=el("g",{"data-k":mo.k},S);groups.push(g);
   el("polyline",{points:v.map((y,j)=>xs[j]+","+ly(y)).join(" "),fill:"none",stroke:c,"stroke-width":2,"stroke-linejoin":"round"},g);
@@ -192,7 +198,7 @@ function drawCtx(){const S=document.getElementById("c-ctx");S.innerHTML="";
  // end labels, nudged apart
  const ends=MODELS.map((mo,i)=>({i,y:ly(mo[measure][3]),n:mo.n})).sort((a,b)=>a.y-b.y);
  for(let k=1;k<ends.length;k++)if(ends[k].y-ends[k-1].y<13)ends[k].y=ends[k-1].y+13;
- for(const e of ends){el("text",{x:x1+8,y:e.y+4},groups[e.i]).textContent=e.n.replace(" (dense)","")}
+ if(!slim)for(const e of ends){el("text",{x:x1+8,y:e.y+4},groups[e.i]).textContent=e.n.replace(" (dense)","")}
  // crosshair per depth column
  const cross=el("line",{y1:y1,y2:y0,class:"ax",visibility:"hidden"},S);
  DEPTHS.forEach((d,j)=>{const half=(x1-x0)/6,r=el("rect",{x:xs[j]-half,y:y1,width:half*2,height:y0-y1,fill:"transparent"},S);
@@ -209,15 +215,16 @@ for(const k of ["tg","pp"])document.getElementById("m-"+k).onclick=()=>{measure=
 
 // ---------- bytes bars ----------
 function drawBytes(){const S=document.getElementById("c-bytes");S.innerHTML="";
- const W=900,rowH=40,m={l:250,r:20,t:26,b:34},H=m.t+BARS.length*rowH+m.b;S.setAttribute("viewBox",`0 0 ${W} ${H}`);
+ const W=wide(),slim=W<560,rowH=slim?54:40,m=slim?{l:6,r:10,t:30,b:34}:{l:250,r:64,t:26,b:34},H=m.t+BARS.length*rowH+m.b;size(S,W,H);
  const x0=m.l,x1=W-m.r,y0=H-m.b,max=350,lx=v=>x0+v/max*(x1-x0);
- for(let t=0;t<=max;t+=50){const X=lx(t);el("line",{x1:X,x2:X,y1:m.t,y2:y0,class:"gr"},S);el("text",{x:X,y:y0+16,"text-anchor":"middle"},S).textContent=t}
+ for(let t=0;t<=max;t+=slim?100:50){const X=lx(t);el("line",{x1:X,x2:X,y1:m.t,y2:y0,class:"gr"},S);el("text",{x:X,y:y0+16,"text-anchor":"middle"},S).textContent=t}
  el("text",{x:(x0+x1)/2,y:H-2,"text-anchor":"middle"},S).textContent="GiB";
  for(const [v,lab] of [[LIMIT,"Metal GPU limit"],[RAM,"RAM"]]){const X=lx(v);el("line",{x1:X,x2:X,y1:m.t-8,y2:y0,class:"lim"},S);
   el("text",{x:X+(v===RAM?4:-4),y:m.t-12,"text-anchor":v===RAM?"start":"end"},S).textContent=lab}
- BARS.forEach((b,i)=>{const y=m.t+i*rowH+8,h=rowH-16;
-  el("text",{x:x0-10,y:y+h/2-2,"text-anchor":"end",style:"fill:var(--ink)"},S).textContent=b.n;
-  el("text",{x:x0-10,y:y+h/2+12,"text-anchor":"end"},S).textContent=b.s;
+ BARS.forEach((b,i)=>{const y=m.t+i*rowH+(slim?34:8),h=slim?14:rowH-16;
+  if(slim){el("text",{x:x0,y:y-17,class:"halo",style:"fill:var(--ink);font-weight:600"},S).textContent=b.n;el("text",{x:x0,y:y-4,class:"halo"},S).textContent=b.s}
+  else{el("text",{x:x0-10,y:y+h/2-2,"text-anchor":"end",style:"fill:var(--ink)"},S).textContent=b.n;
+  el("text",{x:x0-10,y:y+h/2+12,"text-anchor":"end"},S).textContent=b.s;}
   let x=0;const parts=SEGS.filter(s=>b.v[s.k]>0);
   parts.forEach((s,j)=>{const w=b.v[s.k],X=lx(x),Wd=Math.max(1,lx(x+w)-X-(j<parts.length-1?2:0)),last=j===parts.length-1;
    const r=el("path",{d:last?`M${X},${y}h${Wd-4}a4,4 0 0 1 4,4v${h-8}a4,4 0 0 1 -4,4h${-(Wd-4)}z`:`M${X},${y}h${Wd}v${h}h${-Wd}z`,fill:css(s.c)},S);
@@ -225,7 +232,8 @@ function drawBytes(){const S=document.getElementById("c-bytes");S.innerHTML="";
    hover(r,`<b>${b.n}</b><span class="m">${b.s}</span><br>${s.n}: <b style="display:inline">${fmt(w)} GiB</b><br><span class="m">GPU total ${fmt(gpu)} of ${fmt(LIMIT)} GiB allowed${b.approx?"<br>"+b.approx:""}</span>`);x+=w});
   const tot=Object.values(b.v).reduce((a,c)=>a+c,0),gpu=(b.v.w||0)+(b.v.kv||0)+(b.v.cb||0);
   const tag=b.bad?` · GPU ${fmt(gpu)} > ${fmt(LIMIT)} ✕ out of memory`:b.good?` · GPU ${fmt(gpu)} ✓ fits`:"";
-  el("text",{x:lx(tot)+6,y:y+h/2+4,class:"halo",style:b.bad?"fill:var(--bad);font-weight:600":""},S).textContent=`${fmt(tot)} GiB${tag}`;});
+  el("text",slim?{x:x1,y:y-17,"text-anchor":"end",class:"halo"}:{x:lx(tot)+6,y:y+h/2+4,class:"halo"},S).textContent=`${fmt(tot)} GiB${slim?(b.bad?" ✕ no fit":b.good?" ✓ fits":""):tag}`;
+  if(b.bad)S.lastChild.setAttribute("style","fill:var(--bad);font-weight:600");});
  legend("lg-bytes",SEGS);
  const T=document.getElementById("t-bytes");T.innerHTML="<tr><th>Configuration</th>"+SEGS.map(s=>`<th class=n>${s.n}</th>`).join("")+"</tr>"+
   BARS.map(b=>`<tr><td>${b.n}, ${b.s}</td>${SEGS.map(s=>`<td class=n>${b.v[s.k]?fmt(b.v[s.k]):""}</td>`).join("")}</tr>`).join("")}
@@ -234,16 +242,16 @@ function drawBytes(){const S=document.getElementById("c-bytes");S.innerHTML="";
 const SWA=[...Array(48)].map((_,i)=>i%6!==5); // GGUF sliding_window_pattern: every 6th layer is global
 let ncmoe=10;
 function drawLayers(){const S=document.getElementById("c-layers");S.innerHTML="";
- const cols=12,cw=66,ch=52,gap=6,x0=40,y0=24;
- for(let r=0;r<4;r++)el("text",{x:x0-8,y:y0+r*(ch+gap)+ch/2+4,"text-anchor":"end"},S).textContent=r*12;
- for(let i=0;i<48;i++){const r=Math.floor(i/cols),c=i%cols,X=x0+c*(cw+gap)+(c>=6?10:0),Y=y0+r*(ch+gap),cpu=i<ncmoe,glob=!SWA[i];
+ const W=wide(),slim=W<560,cols=slim?6:12,gap=slim?4:6,ch=slim?40:52,x0=slim?26:40,y0=24,cw=(W-x0-4-(slim?0:10)-(cols-1)*gap)/cols,rows=48/cols;size(S,W,y0+rows*(ch+gap)+4);
+ for(let r=0;r<rows;r++)el("text",{x:x0-8,y:y0+r*(ch+gap)+ch/2+4,"text-anchor":"end"},S).textContent=r*cols;
+ for(let i=0;i<48;i++){const r=Math.floor(i/cols),c=i%cols,X=x0+c*(cw+gap)+(!slim&&c>=6?10:0),Y=y0+r*(ch+gap),cpu=i<ncmoe,glob=!SWA[i];
   const g=el("g",{},S);
   el("rect",{x:X,y:Y,width:cw,height:ch,rx:4,fill:css(cpu?"--cpu":"--lg")},g);
   if(glob)el("rect",{x:X+3,y:Y+3,width:cw-6,height:ch-6,rx:3,fill:"none",stroke:css("--bg"),"stroke-width":2.5},g);
-  el("text",{x:X+cw/2,y:Y+20,"text-anchor":"middle",style:"fill:#fff;font-weight:600"},g).textContent=i;
-  el("text",{x:X+cw/2,y:Y+37,"text-anchor":"middle",style:"fill:#fff;font-size:10.5px"},g).textContent=glob?"full context":"1K window";
+  el("text",{x:X+cw/2,y:Y+(slim?17:20),"text-anchor":"middle",style:"fill:#fff;font-weight:600"},g).textContent=i;
+  el("text",{x:X+cw/2,y:Y+(slim?32:37),"text-anchor":"middle",style:"fill:#fff;font-size:10.5px"},g).textContent=cw<60?(glob?"full":"1K"):glob?"full context":"1K window";
   hover(g,`<b>Layer ${i}</b>${glob?"Global attention: sees the whole context. KV cache at 124K: ~496 MiB (f16).":"Sliding-window attention: looks back 1,024 tokens. KV cache stays ~4 MiB at any context."}<br>384 experts (8 used per token), ~2.6 GiB: <b style="display:inline">${cpu?"in RAM, computed by the CPU":"in GPU memory"}</b>.<br><span class="m">Attention weights and KV stay on the GPU either way.</span>`)}
- el("text",{x:x0,y:14},S).textContent="each row: two blocks of six layers (five 1K-window + one full-context)";
+ el("text",{x:x0,y:14},S).textContent=slim?"each row: five 1K-window layers + one full-context":"each row: two blocks of six layers (five 1K-window + one full-context)";
  legend("lg-layers",[{n:"Experts on the GPU",c:"--lg"},{n:"Experts on the CPU (RAM)",c:"--cpu"}]).insertAdjacentHTML("beforeend",'<span><i style="background:var(--lg);outline:2px solid var(--bg);outline-offset:-4px"></i>ringed = full-context layer</span>');
  document.getElementById("layers-sum").textContent=ncmoe===10?
   "10 layers' experts on the CPU: ~25.5 GiB in RAM, 104.2 GiB on the GPU at 124K context with a 128-token batch. Fits, and ran 46.8 / 18.7 tokens/s (prompt / generation).":
@@ -254,6 +262,9 @@ for(const n of [8,10])document.getElementById("n-"+n).onclick=()=>{ncmoe=n;docum
 const Q=new URLSearchParams(location.search);
 if(Q.has("embed")){document.documentElement.classList.add("embed");const s=document.getElementById("s-"+(Q.get("view")||"size"));if(s)s.classList.add("shown")}
 const draw=()=>{drawSize();drawCtx();drawBytes();drawLayers()};draw();
+let lastW=wide();addEventListener("resize",()=>{if(wide()!==lastW){lastW=wide();draw()}});
+// Embedded: tell the page how tall this is (the review page and the blog size the frame to it).
+if(Q.has("embed")&&parent!==window){const report=()=>parent.postMessage({type:"okc-height",h:document.body.scrollHeight},"*");new ResizeObserver(report).observe(document.body);report()}
 const mq=matchMedia("(prefers-color-scheme: dark)");if(mq.addEventListener)mq.addEventListener("change",draw);
 new MutationObserver(draw).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
 </script>
