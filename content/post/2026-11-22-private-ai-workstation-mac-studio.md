@@ -194,9 +194,9 @@ Then the part I expected to be bad: quality at 1.56 bits per weight. On the same
 | 64K | 12.4 | 6.4 | 11.9 |
 | 120K | 6.0 | 4.4 | 6.9 |
 
-(The 32K, 64K and 120K rows are single runs, for both quants.) A fresh 34K-token prompt took 16 minutes to read instead of 5, and reusing it 26 seconds instead of 2.7. Eight requests at once reached 8.6 tokens/s in total. During the main speed test the GPU was busy only 48% of the time, which fits a machine waiting on its SSD, but I didn't record disk reads, so that's a guess. Compare the 158 GB Qwen, which ran at full speed from the page cache: being bigger than RAM isn't the problem by itself. What matters is how much of the file each token touches.
+(The 32K, 64K and 120K rows are single runs, for both quants.) A fresh 34K-token prompt took 16 minutes to read instead of 5, and reusing it 26 seconds instead of 2.7. Eight requests at once reached 8.6 tokens/s in total. The GPU was busy only 48% of the time in the main speed test, so I measured the disk in a later run. While it generated text, the GPU was about 10% busy and the disk delivered 675 MB/s, as roughly 29,000 small reads and writes a second (24 KB each). The same drive does 13.4 GB/s in my 512 KB test, so it isn't running out of bandwidth; it looks like a long stream of small page-ins, though I didn't isolate the cause. Compare the 158 GB Qwen, which ran at full speed from the page cache: being bigger than RAM isn't the problem by itself. What matters is how much of the file each token touches.
 
-It didn't buy better answers either: **14 good, 4 partial, 2 failed**, against 17, 2 and 1 for the smaller quant. One run of 20 prompts can't tell those two scores apart, but it's no case for a model with a median answer of 139 seconds. It claimed a "reasoning tool" it doesn't have, gave a current date that contradicts its own cutoff, and never answered the shell question: that one hit my 15-minute timeout, and the run still reported success. On this machine, IQ1_S is the one to use.
+It didn't buy better answers either: **14 good, 4 partial, 2 failed**, against 17, 2 and 1 for the smaller quant. One run of 20 prompts can't tell those two scores apart, but it's no case for a model with a median answer of 139 seconds. It claimed a "reasoning tool" it doesn't have, gave a current date that contradicts its own cutoff, and never answered the shell question: that one hit my 15-minute timeout, and the run still reported success. I reran that one prompt two days later and it answered in 12 minutes, correctly. I didn't change the score, since no other model got a second try. On this machine, IQ1_S is the one to use.
 
 ### What it costs on disk
 
@@ -209,7 +209,7 @@ Memory is the limit you plan for; disk is the one that sneaks up. A month of try
 | Qwen3-Coder-30B Q5_K_M | 22 GB | Keep: the rollback for the agent model |
 | lev Q8 | 5 GB | Keep: picked to route requests |
 | DeepSeek V4.1 Flash Q2 | 366 GB | Kept for now: planned for the model switcher |
-| Inkling 2 Small UD-IQ1_S, with its vision file | 172 GB | Kept for now: one prompt to rerun |
+| Inkling 2 Small UD-IQ1_S, with its vision file | 172 GB | Kept for now: benchmarks done, next to go |
 | Qwen3.8 UD-Q5_K_XL | 158 GB | Kept for now: possible chat upgrade |
 | DeepSeek-V4-Flash Q2 | 87 GB | Kept for now |
 | gpt-oss-120b MXFP4 | 63 GB | Kept for now: planned for the switcher |
