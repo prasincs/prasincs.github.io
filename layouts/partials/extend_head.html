@@ -65,12 +65,10 @@ document.addEventListener('DOMContentLoaded', function() {
   if (headings.length === 0) return;
 
   function updateActiveLink() {
-    const scrollPos = window.scrollY + 120; // offset for header
-
     let current = headings[0];
 
     for (const heading of headings) {
-      if (heading.element.offsetTop <= scrollPos) {
+      if (heading.element.getBoundingClientRect().top <= 120) {
         current = heading;
       } else {
         break;

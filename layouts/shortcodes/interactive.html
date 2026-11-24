@@ -1,7 +1,22 @@
-{{- /* Embed a standalone interactive page from static/ (e.g. a 3D figure).
-     Usage: {{< interactive src="/okc/kernel-climb.html" height="1100" title="Kernel Climb" caption="..." >}} */ -}}
-<figure class="interactive" style="margin:1.5rem 0">
-  <iframe src="{{ .Get "src" }}" title="{{ .Get "title" | default "Interactive figure" }}" loading="lazy"
-    style="width:100%;height:{{ .Get "height" | default "720" }}px;border:1px solid var(--border,#ddd);border-radius:8px"></iframe>
-  {{- with .Get "caption" }}<figcaption style="font-size:.85rem;color:var(--secondary,#666)">{{ . }} <a href="{{ $.Get "src" }}">Open full screen</a></figcaption>{{ end }}
+{{- /* Embed a standalone interactive page from static/ (e.g. a 3D figure). Styles are in assets/css/extended/custom.css.
+     Usage: {{< interactive src="/okc/plan-dag.html" height="900" title="The plan" caption="..." >}}
+     The frame fits the page's own height; height="" is what shows until it loads. A page that sizes itself to its window
+     (100vh) has no height of its own and would grow forever: give it fixed="true" to keep height="". */ -}}
+{{- if not ($.Page.Scratch.Get "interactiveFit") }}{{ $.Page.Scratch.Set "interactiveFit" true }}
+<script>
+document.addEventListener("load", e => {
+  const f = e.target, d = f.matches?.("figure.interactive:not([data-fixed]) > iframe") && f.contentDocument?.documentElement;
+  if (!d) return;
+  const fit = () => {   // 2px of border, and 1px because zoom rounds
+    const h = Math.ceil(d.getBoundingClientRect().height);
+    if (h > 100) f.parentNode.style.setProperty("--h", h + 3 + "px");
+  };
+  new f.contentWindow.ResizeObserver(fit).observe(d);
+  fit();
+}, true);
+</script>
+{{- end }}
+<figure class="interactive"{{ if .Get "fixed" }} data-fixed{{ end }} style="--h:{{ .Get "height" | default "720" }}px">
+  <iframe src="{{ .Get "src" }}" title="{{ .Get "title" | default "Interactive figure" }}" loading="lazy"></iframe>
+  {{- with .Get "caption" }}<figcaption>{{ . }} <a href="{{ $.Get "src" }}">Open full screen</a></figcaption>{{ end }}
 </figure>
