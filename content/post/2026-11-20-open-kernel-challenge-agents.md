@@ -23,7 +23,7 @@ The point was to explore the optimization space for serving an LLM: where the ti
 
 There was a third question underneath both: how far could I get with the life I actually have? I have a day job and kids. I didn't take time off, and I couldn't watch a GPU queue all evening like I would have in my 20s. So the setup was designed around my time rather than the contest's.
 
-So I ran the contest as a small organization: several Claude sessions working in parallel, ChatGPT as an adversarial reviewer, Grok and Gemini as outside researchers, and two Qwen models running locally for the reading. I set the budgets, approved any scored run past the agents' five a day, and decided which ideas to chase and when to stop. The agents wrote the kernels, built the tools to measure them, merged each other's work and kept the tickets.
+So I ran the contest as a small organization: several Claude sessions working in parallel, ChatGPT as an adversarial reviewer, Grok and Gemini as outside researchers, and two Qwen models running locally for the reading. I set the budgets, approved the scored runs past the agents' five a day (all but one, sent by mistake), and decided which ideas to chase and when to stop. The agents wrote the kernels, built the tools to measure them, merged each other's work and kept the tickets.
 
 I finished around the top quarter on the main board, for about $500 of Modal GPU time plus about $6 of Runpod credits (model subscriptions extra). This post is about how the setup worked: which model did what, how I kept spending under control, what the process caught, and what it missed. The logs are in collapsible tables for anyone who wants to check my work.
 
@@ -61,7 +61,7 @@ I ran the contest as one person with a small organization of agents. Three ideas
 
 **One change at a time.** Each candidate changed one thing against the one before it, so when an A/B moved I knew what to look at.
 
-**Linear as the source of truth.** One issue per workstream, every result posted as a comment, and every scored run past the agents' daily five approved by me in chat and quoted in the ticket ("Send S1", "You have my ok to send it", "Send the winner").
+**Linear as the source of truth.** One issue per workstream, every result posted as a comment, and scored runs past the agents' daily five approved by me in chat, one at a time or for the day, and quoted in the ticket ("Send S1", "You have my ok to send it", "Send the winner"). My records show one that wasn't: on Oct 28 an agent sent a run two minutes before the daily reset, thinking it had passed, and then reported it.
 
 ### Five model families, each with one job
 
