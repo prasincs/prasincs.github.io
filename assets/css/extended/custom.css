@@ -192,3 +192,13 @@ figure.interactive iframe {
   display: block;
   overflow-x: auto;
 }
+
+/* Formulas (MathML, layouts/_default/_markup/render-passthrough.html): wide ones scroll on phones, and column alignment,
+   which browsers no longer read from the MathML, is set here. */
+.post-content .math.block { display: block; margin: 1em 0; text-align: center; overflow-x: auto; overflow-y: hidden; padding: 2px 0; -webkit-overflow-scrolling: touch; }
+.post-content math { font-size: 1.1em; }
+.post-content mtable[columnalign^="left"] > mtr > mtd:first-child,
+.post-content mtable[columnalign^="left left"] > mtr > mtd:nth-child(2),
+.post-content mtable[columnalign^="right left"] > mtr > mtd:nth-child(even) { text-align: left; }
+.post-content mtable[columnalign^="right"] > mtr > mtd:first-child,
+.post-content mtable[columnalign^="right left"] > mtr > mtd:nth-child(odd) { text-align: right; }

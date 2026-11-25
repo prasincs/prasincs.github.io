@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>One Layer, Eight GPUs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@600&display=swap">
+<style>
+/* One Muse Spark layer split across the judge's eight H200s (TP8 attention, experts spread 32 per GPU).
+   Five stages in order; two switches show what p21 (sequence-parallel prefill) and p24 (expert swaps) changed.
+   Model sizes come from the checkpoint's config.json; loads and timings carry a provenance mark. */
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --ink: #1b2230; --muted: #5b6577; --rule: #dde1e8;
+  --accent: #0d6b86; --accent-soft: #e2f0f4;
+  --work: #1d6fb8; --dup: #c2410c; --idle: #e9ecf1; --wire: #6b7486;
+  --f-display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --surface: #1a2029; --ink: #e4e8ef; --muted: #9aa4b5; --rule: #2c3442;
+    --accent: #5cc0db; --accent-soft: #15323c; --work: #5aa7e8; --dup: #f08a5d; --idle: #262d38; --wire: #8f99ab;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --surface: #1a2029; --ink: #e4e8ef; --muted: #9aa4b5; --rule: #2c3442;
+  --accent: #5cc0db; --accent-soft: #15323c; --work: #5aa7e8; --dup: #f08a5d; --idle: #262d38; --wire: #8f99ab;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 15px; line-height: 1.5;
+  padding-block: 24px 40px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+main { max-width: 920px; margin: 0 auto; display: grid; gap: 14px; }
+h1 { font-family: var(--f-display); font-weight: 600; font-size: clamp(26px, 4vw, 34px); margin: 0; }
+header p { margin: 4px 0 0; color: var(--muted); max-width: 70ch; }
+.controls { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; background: var(--surface); flex-wrap: wrap; }
+.seg button { font: 500 13px var(--f-body); color: var(--muted); background: transparent; border: 0; padding: 6px 10px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); }
+button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.play { font: 600 13px var(--f-body); border: 1px solid var(--accent); color: var(--accent); background: var(--surface); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.toggle { font: 500 13px var(--f-body); color: var(--muted); background: var(--surface); border: 1px solid var(--rule); border-radius: 6px; padding: 6px 10px; cursor: pointer; }
+.toggle[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.toggle b { font-family: var(--f-mono); font-weight: 500; }
+.card { background: var(--surface); border: 1px solid var(--rule); border-radius: 8px; padding: 14px 16px; }
+.chart svg { display: block; width: 100%; height: auto; }
+.chart text { font-family: var(--f-mono); font-size: 12px; fill: var(--muted); }
+.chart text.lbl { font-family: var(--f-body); font-size: 13px; fill: var(--ink); font-weight: 500; }
+.chart text.ink { fill: var(--ink); }
+.chart .row { transition: opacity .3s ease; }
+.chart .dim { opacity: .28; }
+.chart rect.work { fill: var(--work); }
+.chart rect.dup { fill: url(#hatch); stroke: var(--dup); stroke-width: 1; }
+.chart rect.idle { fill: var(--idle); }
+.chart rect.over { fill: none; stroke: var(--dup); stroke-width: 1.5; stroke-dasharray: 4 3; }
+.chart .wire { stroke: var(--wire); stroke-width: 1.5; fill: none; }
+.chart .band { fill: var(--accent-soft); }
+.chart text.band-t { fill: var(--accent); font-family: var(--f-body); font-size: 12px; font-weight: 500; }
+.chart rect.slice { transition: width .35s ease, x .35s ease, height .35s ease, y .35s ease; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 14px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend .l-work { background: var(--work); }
+.legend .l-dup { border: 1px solid var(--dup); background: repeating-linear-gradient(45deg, var(--dup) 0 2px, transparent 2px 5px); }
+.legend .l-idle { background: var(--idle); }
+.legend .l-over { border: 1.5px dashed var(--dup); background: none; box-sizing: border-box; }
+.stage h2 { font-family: var(--f-display); font-size: 22px; margin: 0; }
+.stage .sub { color: var(--muted); font-size: 13.5px; margin-top: 2px; }
+.stage p { margin: 8px 0 0; max-width: 74ch; }
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; margin-top: 12px; }
+.fact { border-top: 1px solid var(--rule); padding-top: 6px; }
+.fact .k { font-size: 11.5px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+.fact .v { font-family: var(--f-mono); font-size: 15px; }
+.fact .s { font-size: 12px; color: var(--muted); }
+.key { font-size: 12.5px; color: var(--muted); }
+footer { color: var(--muted); font-size: 12.5px; }
+:root.embed { --bg: #ffffff; --surface: #ffffff; }
+@media (prefers-color-scheme: dark) { :root.embed:not([data-theme="light"]) { --bg: #1d1e20; --surface: #1d1e20; } }
+:root.embed[data-theme="dark"] { --bg: #1d1e20; --surface: #1d1e20; }
+:root.embed body { padding-block: 6px; padding-left: max(6px, env(safe-area-inset-left, 0px)); padding-right: max(6px, env(safe-area-inset-right, 0px)); }
+:root.embed main { max-width: none; gap: 12px; }
+:root.embed header, :root.embed footer { display: none; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <h1>One layer, eight GPUs</h1>
+  <p>How the judge's SGLang setup splits one layer of Muse Spark across eight H200s, stage by stage, and what two of my patches changed.</p>
+</header>
+
+<div class="controls">
+  <button class="play" id="play" type="button">Play</button>
+  <div class="seg" id="stages" role="group" aria-label="Stage"></div>
+</div>
+<div class="controls">
+  <button class="toggle" id="sp" type="button" aria-pressed="false">Sequence-parallel prefill <b>p21</b></button>
+  <button class="toggle" id="swaps" type="button" aria-pressed="false">Expert swaps <b>p24</b></button>
+</div>
+
+<div class="card chart" id="chart" aria-live="polite"></div>
+
+<div class="card stage" id="stage"></div>
+
+<p class="key">● measured by the judge &nbsp; ◐ measured on my own rig &nbsp; ○ estimated from source and FLOP counts</p>
+
+<footer>Sizes: the checkpoint's config.json (hidden 8192, 128 query heads and 16 KV heads of 64, 256 experts of width 4096, 8 per token, 62 layers). Expert balance: routing traces from a real-weight 8×H200 run, median over layers. Code: SGLang v0.5.23 <code>muse_spark.py</code>.</footer>
+</main>
+
+<script>
+"use strict";
+const G = 8;                                  // GPUs (tensor-parallel ranks)
+const STOCK_BUSIEST = 1.528, SWAP_BUSIEST = 1.131;   // busiest GPU's expert work / average, median layer
+
+// Each stage: label, what one GPU does, and how its work is drawn per GPU.
+//   kind "slice": every GPU does a different 1/8 of the work (blue)
+//   kind "dup":   every GPU does the same whole job (hatched); with SP on it becomes "slice"
+//   kind "moe":   expert work per GPU, the slowest GPU sets the pace
+//   wire:         a collective after the stage (all-reduce sums partial results on every GPU)
+//   spWire:       the collective after the stage when sequence-parallel prefill (p21) is on
+const STAGES = [
+  { id: "in", label: "1 · Tokens in", kind: "dup", spAffects: false,
+    title: "Every GPU starts with every token",
+    sub: "A 16K-token prefill chunk, 8,192 numbers per token, copied on all eight GPUs.",
+    text: "Tensor parallelism splits the weights, not the tokens. Each GPU gets the whole chunk and its own eighth of most weight matrices, so the hidden state is the same on all eight at the start of every layer.",
+    facts: [["Hidden width", "8,192", "per token, on every GPU"], ["Prefill chunk", "16,384 tokens", "the judge's setting"], ["Layers", "62", "46 sliding-window, 16 full"]] },
+  { id: "attn", label: "2 · Attention", kind: "slice", wire: "all-reduce: every GPU ends with the same sum",
+    spWire: "reduce-scatter: each GPU keeps the sum for its eighth of the tokens",
+    title: "Attention: 16 of the 128 heads on each GPU",
+    spSub: "Each GPU projects and attends with its own heads, then a reduce-scatter sums the partial outputs and leaves each GPU its eighth of the tokens.",
+    spText: "With 16 KV heads, each GPU keeps 2 of them, so it stores KV cache for its 2 heads only, for every token of every conversation. The output projection leaves each GPU with a partial sum; the reduce-scatter adds the eight partials, and each GPU keeps the rows for its eighth of the tokens for the pooler.",
+    spFacts: [["Query heads per GPU", "16 of 128", "head size 64"], ["KV heads per GPU", "2 of 16", "FP8 cache"], ["Collective", "reduce-scatter", "8,192 wide, every layer"]],
+    sub: "Each GPU projects and attends with its own heads, then an all-reduce sums the partial outputs.",
+    text: "With 16 KV heads, each GPU keeps 2 of them, so it stores KV cache for its 2 heads only, for every token of every conversation. The output projection leaves each GPU with a partial sum of the full 8,192-wide result; the all-reduce adds the eight partials so every GPU has the same answer again.",
+    facts: [["Query heads per GPU", "16 of 128", "head size 64"], ["KV heads per GPU", "2 of 16", "FP8 cache"], ["Collective", "all-reduce", "8,192 wide, every layer"]] },
+  { id: "pool", label: "3 · Pooler", kind: "dup", spAffects: true,
+    spWire: "all-gather: every GPU gets every token for the experts",
+    title: "The pooler: the same work on all eight GPUs",
+    sub: "Each MoE layer narrows 8,192 → 4,096 before the experts, with a full bf16 GEMM that isn't split.",
+    text: "At prefill sizes SGLang runs this projection, and the unpooler after the experts, on every GPU for every token: eight copies of identical work. Sequence-parallel prefill gives each GPU one eighth of the tokens for these replicated parts and gathers the result. That removes 7/8 of the duplicate work, and it's most of why p21 was the biggest step of the track.",
+    facts: [["Shape", "8,192 → 4,096", "bf16, every token"], ["Cost per first turn", "0.8–1.0 s ○", "pooler + unpooler, of a 9.2 s TTFT"], ["p21 judged", "1.457× → 2.208× ●", "with p20's cache-copy batching"]],
+    spFacts: [["Shape", "8,192 → 4,096", "1/8 of the tokens per GPU"], ["4-GPU test, 30K prefill", "1.18× ◐", "6 layers, 3/4 of the duplicate removed"], ["68K prefill on 8 GPUs", "6.36 s → 2.74 s ◐", "stock vs p21"]] },
+  { id: "moe", label: "4 · Experts", kind: "moe", wire: "all-reduce: every GPU ends with the same sum",
+    spWire: "reduce-scatter: back to each GPU's eighth",
+    title: "Experts: 32 of the 256 on each GPU",
+    sub: "A router picks 8 experts per token; each token's work goes to whichever GPUs hold them.",
+    text: "Now the split depends on the data. Popular experts make their GPU busier, and the layer can't finish until the busiest GPU does, so the others wait. A chunk can also send no tokens at all to one GPU's experts. That empty case is what hung p12 on eight GPUs; my first one-GPU tests never produced it, and a targeted one-GPU test later reproduced it.",
+    facts: [["Experts per GPU", "32 of 256", "width 4,096, NVFP4 (bf16 in the first and last layer)"], ["Busiest GPU", "1.53× average ◐", "median layer, stock placement"], ["More swaps", "flat past 8", "greedy search, held-out traces"]],
+    swapFacts: [["Experts per GPU", "32 of 256", "8 swapped per layer"], ["Busiest GPU", "1.13× average ◐", "held-out traces"], ["p24 judged", "+0.6% ●", "rig said +3–5% ◐"]] },
+  { id: "unpool", label: "5 · Unpooler", kind: "dup", spAffects: true,
+    spWire: "all-gather: every token back on every GPU for attention",
+    title: "Back to full width, then the next layer",
+    spSub: "A reduce-scatter sums the experts' 4,096-wide results back to each GPU's eighth of the tokens, the unpooler widens them to 8,192, and an all-gather puts every token back on every GPU.",
+    spText: "After the all-gather every GPU holds the same hidden state again, and the next layer starts from stage 2. A 74K-token first turn goes through this 62 layers × 5 chunks. Any work that is duplicated, or any GPU that runs long, is paid 310 times per first turn.",
+    sub: "An all-reduce sums the experts' 4,096-wide results, then the unpooler widens 4,096 → 8,192 (replicated like the pooler).",
+    text: "After the unpooler every GPU holds the same hidden state again, and the next layer starts from stage 2. A 74K-token first turn goes through this 62 layers × 5 chunks. Any work that is duplicated, or any GPU that runs long, is paid 310 times per first turn.",
+    facts: [["Shape", "4,096 → 8,192", "bf16, every token"], ["Collective (before it)", "all-reduce", "4,096 wide, the second per layer"], ["Per first turn", "62 × 5 chunks", "74,160 tokens in 16K chunks"]],
+    spFacts: [["Shape", "4,096 → 8,192", "1/8 of the tokens per GPU"], ["Collectives", "reduce-scatter + all-gather", "the all-reduce split in two"], ["Per first turn", "62 × 5 chunks", "74,160 tokens in 16K chunks"]] },
+];
+
+const embed = new URLSearchParams(location.search).has("embed");
+if (embed) document.documentElement.classList.add("embed");
+const params = new URLSearchParams(location.search);
+let cur = Math.max(0, STAGES.findIndex(s => s.id === params.get("stage")));
+let sp = params.get("sp") === "1", swaps = params.get("swaps") === "1", timer = null;
+
+const $ = id => document.getElementById(id);
+const seg = $("stages");
+STAGES.forEach((s, i) => {
+  const b = document.createElement("button"); b.type = "button"; b.textContent = s.label;
+  b.addEventListener("click", () => { stop(); cur = i; render(); });
+  seg.appendChild(b);
+});
+$("sp").addEventListener("click", () => { sp = !sp; render(); });
+$("swaps").addEventListener("click", () => { swaps = !swaps; render(); });
+$("play").addEventListener("click", () => {
+  if (timer) { stop(); return; }
+  $("play").textContent = "Pause";
+  timer = setInterval(() => { cur = (cur + 1) % STAGES.length; render(); }, 2600);
+});
+function stop() { if (timer) clearInterval(timer); timer = null; $("play").textContent = "Play"; }
+
+const NS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, text) {
+  const e = document.createElementNS(NS, tag);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function render() {
+  [...seg.children].forEach((b, i) => b.setAttribute("aria-pressed", String(i === cur)));
+  $("sp").setAttribute("aria-pressed", String(sp));
+  $("swaps").setAttribute("aria-pressed", String(swaps));
+  drawChart();
+  drawStage();
+}
+
+function drawChart() {
+  const narrow = $("chart").clientWidth < 560;
+  const W = narrow ? 400 : 860, left = narrow ? 80 : 132, right = 8, top = 30;
+  const rowH = narrow ? 44 : 46, gap = 16, colW = (W - left - right) / G;
+  const H = top + STAGES.length * (rowH + gap) + 8;
+  const svg = el("svg", { viewBox: `0 0 ${W} ${H}`, role: "img", "aria-label": "Work per GPU at each stage of one layer" });
+  const defs = el("defs", {});
+  const pat = el("pattern", { id: "hatch", width: 6, height: 6, patternUnits: "userSpaceOnUse", patternTransform: "rotate(45)" });
+  pat.appendChild(el("rect", { width: 6, height: 6, fill: "var(--surface)" }));
+  pat.appendChild(el("line", { x1: 0, y1: 0, x2: 0, y2: 6, stroke: "var(--dup)", "stroke-width": 2.2 }));
+  defs.appendChild(pat); svg.appendChild(defs);
+
+  for (let g = 0; g < G; g++) {
+    svg.appendChild(el("text", { x: left + g * colW + colW / 2, y: 16, "text-anchor": "middle" }, narrow ? String(g) : `GPU ${g}`));
+  }
+  const busiest = swaps ? SWAP_BUSIEST : STOCK_BUSIEST;
+  const hot = 5;                                      // which GPU is busiest varies by layer; one is drawn as an example
+
+  STAGES.forEach((s, i) => {
+    const y = top + i * (rowH + gap);
+    const row = el("g", { class: "row" + (i === cur ? "" : " dim") });
+    row.appendChild(el("text", { x: 0, y: y + rowH / 2 + 4, class: "lbl" }, narrow ? s.label.replace(/^\d · /, "") : s.label));
+    const kind = s.kind === "dup" && sp && s.spAffects ? "slice" : s.kind;
+    for (let g = 0; g < G; g++) {
+      const x = left + g * colW + 3, w = colW - 6;
+      row.appendChild(el("rect", { x, y, width: w, height: rowH, rx: 3, class: "idle" }));
+      if (kind === "dup") {
+        row.appendChild(el("rect", { x, y, width: w, height: rowH, rx: 3, class: "dup slice" }));
+      } else if (kind === "slice") {
+        const h = rowH / G;                           // its own eighth of the work, the same height on every GPU
+        row.appendChild(el("rect", { x, y: y + rowH - h * 1 - (rowH - h) / 2, width: w, height: h, rx: 2, class: "work slice" }));
+      } else if (kind === "moe") {
+        const scale = rowH / (STOCK_BUSIEST * 1.05), avgv = (G - busiest) / (G - 1), avg = avgv * scale;  // the others share the rest, so the mean is 1.0
+        const h = g === hot ? busiest * scale : avg;
+        row.appendChild(el("rect", { x, y: y + rowH - h, width: w, height: h, rx: 2, class: "work slice" }));
+        if (g !== hot) row.appendChild(el("rect", { x: x + 1, y: y + rowH - busiest * scale, width: w - 2, height: (busiest - avgv) * scale, class: "over" }));
+      }
+    }
+    if (s.kind === "moe") {
+      row.appendChild(el("text", { x: left + hot * colW + colW / 2, y: y + rowH - busiest * (rowH / (STOCK_BUSIEST * 1.05)) + 13, "text-anchor": "middle", fill: "#ffffff", "font-weight": 600 }, `${busiest.toFixed(2)}×`));  // inside the bar: the gap above can hold a collective band
+    }
+    const wire = sp && s.spWire ? s.spWire : s.wire;
+    if (wire) {
+      const wy = y + rowH + gap / 2;
+      row.appendChild(el("rect", { x: left, y: wy - 6, width: W - left - right, height: 12, rx: 6, class: "band" }));
+      row.appendChild(el("text", { x: left + (W - left - right) / 2, y: wy + 4, "text-anchor": "middle", class: "band-t" }, narrow ? wire.split(":")[0] : wire));
+    }
+    svg.appendChild(row);
+  });
+  const c = $("chart"); c.replaceChildren(svg);
+  const lg = document.createElement("div"); lg.className = "legend";
+  lg.innerHTML = '<span><i class="l-work"></i>work only this GPU does</span>' +
+    '<span><i class="l-dup"></i>the same data or work on all eight GPUs</span>' +
+    '<span><i class="l-idle"></i>not this GPU\'s share (bar height = share of the stage\'s work)</span>' +
+    '<span><i class="l-over"></i>waiting for the busiest GPU</span>';
+  c.appendChild(lg);
+}
+
+function drawStage() {
+  const s = STAGES[cur];
+  const facts = (sp && s.spFacts) || (swaps && s.swapFacts) || s.facts;
+  let note = "";
+  if (s.spAffects) note = sp ? " With p21 on, each GPU does one eighth." : " Switch on p21 to split it by tokens.";
+  if (s.kind === "moe") note = swaps ? " With p24's swaps, the busiest GPU drops to 1.13×." : " Switch on p24 to see the swaps' effect.";
+  $("stage").innerHTML = `<h2>${s.title}</h2><div class="sub">${(sp && s.spSub) || s.sub}${note}</div><p>${(sp && s.spText) || s.text}</p>` +
+    '<div class="facts">' + facts.map(([k, v, sm]) => `<div class="fact"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${sm}</div></div>`).join("") + "</div>";
+}
+
+render();
+let rw; addEventListener("resize", () => { clearTimeout(rw); rw = setTimeout(drawChart, 120); });
+</script>
+</body>
+</html>
