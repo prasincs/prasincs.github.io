@@ -449,7 +449,7 @@ The best example: a **time lapse** of every version of the decode layer, replaye
 
 ## The serving track
 
-The second track opened on Nov 12 and worked completely differently: you submitted a patch to SGLang and the judge served the whole model on a full 8×H200 node. It closed on Nov 19 with my best at 2.315×, and I'll write it up separately. The H200 shortage was much worse there: no cloud would give me an 8×H200 node on demand, a Modal request sat in a queue for 45 minutes without one, and getting a working box on AWS took most of the first day. The cost controls got stricter there, because an 8×H200 node costs about $30 an hour: one long packed run per day at most, and actual billing pulled every few hours instead of estimates.
+The second track opened on Nov 12 and worked completely differently: you submitted a patch to SGLang and the judge served the whole model on a full 8×H200 node. It closed on Nov 19 with my best at 2.315×; [the second post](/2026/11/24/then-they-gave-me-eight-gpus-and-one-try-a-day/) covers it. The H200 shortage was much worse there: no cloud would give me an 8×H200 node on demand, a Modal request sat in a queue for 45 minutes without one, and getting a working box on AWS took most of the first day. The cost controls got stricter there, because an 8×H200 node costs about $30 an hour: one long packed run per day at most, and actual billing pulled every few hours instead of estimates.
 
 ## What I learned
 
