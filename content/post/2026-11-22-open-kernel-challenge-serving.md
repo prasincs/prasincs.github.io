@@ -166,7 +166,9 @@ On my rig, a 68K-token prefill went from 6.36 s with stock to 2.74 s (one sample
 
 ### p24: expert swaps
 
-Each GPU holds 32 of the 256 experts in each layer, and a token's work lands on whichever GPUs hold its experts. Routing traces from a real-weight run showed the busiest GPU doing about 1.5× the average expert work in a typical layer. Eight swaps per layer, fitted on some traces and tested on others, cut that to 1.13× (the table I shipped was fitted on all of them). The organizers had confirmed in the contest Slack that rearranging experts was allowed.
+Each GPU holds 32 of the 256 experts in each layer, and a token's work lands on whichever GPUs hold its experts. Routing traces from a real-weight run showed the busiest GPU doing about 1.5× the average expert work in a typical layer. Eight swaps per layer, fitted on some traces and tested on others, cut that to 1.13× (the table I shipped was fitted on all of them). The organizers had said in the contest Slack that swaps picked from routing counts were fine, at startup or once while serving. I picked mine offline, from stock's routing counts, and shipped a fixed table, which the run's notes disclose.
+
+The swaps also have a known bug that the judged H200 setup doesn't reach. On Blackwell GPUs with the experts split eight ways, SGLang's default TRT-LLM path ignores the new placement, so some tokens would go to the wrong experts (982 of the 15,872 layer and expert pairs, in a CPU test of the patch's loader; I haven't run it on Blackwell). Setting `SGLANG_OKC_EP_SWAPS=0` turns the swaps off and avoids it.
 
 My rig said +3–5%. The judge said **2.222×**, +0.6%. More swaps didn't help: my greedy swap search stayed at 1.13× on held-out traces from 8 swaps per layer up to 128. Splitting a hot expert's tokens across two GPUs might have gone lower, but I didn't try it.
 
@@ -276,7 +278,7 @@ The organization from the kernel track carried over, with roles adjusted for a t
 
 A few things worked better than in the kernel track. The reviewer caught more than bugs. Astra flagged "bit-equal" where the evidence only showed value-equal (twice), a one-repetition check described as a match, and a mislabelled latency figure in my own prompts. It also pointed out that one proposed lever was something I'd already measured on Nov 13.
 
-Before porting the upstream PR, the agents also saved the live rules and the terms and checked them for clauses on third-party code, and I approved each piece with credit kept. And I kept the contest Slack read-only. The organizers' answers there (greedy decoding, prompt lookup and wider verify allowed, expert swaps allowed) went into a notes file as rulings, other people's reports went in as anecdotes, and nothing was posted.
+Before porting the upstream PR, the agents also saved the live rules and the terms and checked them for clauses on third-party code, and I approved each piece with credit kept. And I kept the contest Slack read-only. The organizers' answers there (greedy decoding, prompt lookup and wider verify allowed, expert swaps from routing counts allowed) went into a notes file as rulings, other people's reports went in as anecdotes, and nothing was posted.
 
 ## Wrong turns, and what I'd do next time
 
