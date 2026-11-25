@@ -27,7 +27,7 @@ I built it the way I ran the kernel contest. Claude did most of the typing; I se
 
 I gave the project a short list of constraints up front, and most of the design falls out of them.
 
-- **Nothing leaves the machine** except pinned downloads. Every benchmark reads local weights with `HF_HUB_OFFLINE=1`.
+- **Chats stay on the machine.** The chat UI can fetch web pages from an allowlist, and Claude, which is hosted, sees the coding work it builds or reviews. Every benchmark reads local weights with `HF_HUB_OFFLINE=1`.
 - **No Docker and no VMs** except Apple's own [`container`](https://github.com/apple/container) tool, which runs each container as a lightweight VM.
 - **Small, self-written tools** in Swift, Python stdlib or Rust, instead of large third-party stacks. Ask before installing anything.
 - **Pin everything.** Every runtime and container image is pinned by version and sha256 (or OCI digest), and nothing auto-upgrades. A version change is a proposal with a changelog and a security note.
@@ -164,14 +164,14 @@ It had one bug. After a restart, a preallocated file looked complete, so the fet
 
 **Getting it to run.** It didn't fit. Metal lets the GPU use about 107.5 GiB of the 128, and the weights alone are 118.7 GiB. I had two options:
 
-- **Raise the cap** with `sudo sysctl iogpu.wired_limit_mb=…` so the GPU can pin ~120 GB. That's the fast way, but pinned memory can't be reclaimed, so macOS and everything else would live in the last few GB. The worst case is a frozen machine.
+- **Raise the cap** with `sudo sysctl iogpu.wired_limit_mb=…` so the GPU can pin ~121 GiB. That might be the fast way, but only for short contexts, since the weights take 118.7 of it. Pinned memory also can't be reclaimed, so macOS and everything else would live in the last few GB. The worst case is a frozen machine.
 - **Keep some experts on the CPU** (`--n-cpu-moe`): slower, but nothing extra is pinned, so memory pressure slows things down instead of locking up.
 
 I started with the second. Experts for 8 of the 48 layers on the CPU ran at 30 prompt / 15 generated tokens/s, until the 32K-context test ran out of GPU memory. The grid script swallowed the error and reported success; I only caught it by checking the rows.
 
 A verbose load showed why. At 124K context, the GPU needed 98.1 GiB of weights, 4.1 GiB of KV cache and **24.7 GiB of compute buffer**. The KV cache is small because 40 of the 48 layers only look back 1,024 tokens. The compute buffer grows with the batch size.
 
-So: experts for 10 layers on the CPU and batches of 128 tokens. That's 93.2 + 4.1 + 6.9 = 104.2 GiB, which fits at 124K. It was also *faster* than the first setting, presumably because the smaller buffer relieves memory pressure more than two more CPU layers cost. llama.cpp's own auto-fit found a working setting too, at half the speed.
+So: experts for 10 layers on the CPU and batches of 128 tokens. That's 93.2 + 4.1 + 6.9 = 104.2 GiB, which fits at 124K. It was also *faster* than the first setting, presumably because the smaller buffer relieves memory pressure more than two more CPU layers cost. llama.cpp's own auto-fit found a working setting too, but a much slower one (16.8 prompt and 3.7 generated tokens/s in a short test).
 
 {{< interactive src="/local-ai/models.html?embed&view=layers" height="330" title="Inkling 2 Small, layer by layer" caption="Figure 4. Inkling's 48 layers: in each block of six, five look back only 1,024 tokens and one (ringed) sees the whole context. Orange layers keep their experts in ordinary memory, where the CPU computes them; attention stays on the GPU. Toggle between the two settings I tried." >}}
 
@@ -242,7 +242,7 @@ Some didn't:
 - **Destructive cleanup.** One batch ran `rm -f *.py` and deleted its own validator. Since then, protected files never come back out of the sandbox, and deletions never propagate.
 - **Too much input.** Every Qwen3.8 failure in the contest had more than 150 KB of input, and every success with that much input was pure reading. Inputs are now capped at about 60 KB for Qwen3.8 and 30 KB for Coder-30B.
 
-**Swapping the agent model.** Inkling 2 Mini (26B parameters, 3.4B active, released two days before) went head to head with Coder-30B on the 10 gate tasks, twice each, graded only by each task's own check script. Mini passed 19 of 20, Coder-30B 18. Mini's miss was a half-done refactor that passed on the second try. Coder-30B's misses were worse: it diagnosed the same out-of-memory crash log wrongly both times, once recommending a flag that doesn't exist, and in another task it fixed the bug in seconds and then repeated its final message for 10 minutes until the timeout. Mini is slower (34 s median per task against 14 s), and the suite is easy, so the margin is thin; I swapped anyway, for the better diagnoses.
+**Swapping the agent model.** Inkling 2 Mini (26B parameters, 3.4B active, released two days before) went head to head with Coder-30B on the 10 gate tasks, twice each, graded only by each task's own check script. Mini passed 19 of 20, Coder-30B 18. Mini's miss was a half-done refactor that passed on the second try. Coder-30B's two misses were worse: it diagnosed the same out-of-memory crash log wrongly both times, once recommending a flag that doesn't exist. It also passed one task by fixing the bug in seconds, then repeated its final message for 10 minutes until the timeout. Mini is slower (34 s median per task against 14 s), and the suite is easy, so the margin is thin; I swapped anyway, for the better diagnoses.
 
 Its other results are mixed. On an empty context it generates 43 tokens/s against Coder-30B's 140, though by 64K the gap is nearly gone (34 against 37). At 120K it still does 28.5, and eight requests at once reach 112 tokens/s in total. On the 20 prompts it scored 15 good, 3 partial, 2 failed: it's the only model I've graded that got the macOS one-liner right, but it claimed a `functions` tool that doesn't exist, and on one debugging question it spent its whole token budget thinking and never answered.
 
@@ -278,7 +278,7 @@ Each delegated task runs in its own container. It gets a private copy of the tas
 
 I bought this machine in October. The alternative was to wait until January for a 256 GB Mac Studio, about $4,000 more. I chose to have a machine now.
 
-What 128 GB costs me shows up all over this post. Inkling 2 Small doesn't fit at any usable quant: the 127.5 GB IQ1_S needed 10 layers of experts moved to the CPU to load at all, and the larger UD-IQ1_S, which is bigger than RAM, manages 7 tokens/s. The 366 GB DeepSeek runs only by streaming, at 16–20 tokens/s. And I can keep the chat model and the agent model loaded together, but nothing big next to them; a GPU benchmark has to stop both. With 256 GB, the big models would mostly fit in memory, and the two everyday models could stay up while I test a third.
+What 128 GB costs me shows up all over this post. Inkling 2 Small doesn't fit at any usable quant: the 127.5 GB IQ1_S needed 10 layers of experts moved to the CPU to run at 124K context, and the larger UD-IQ1_S, which is bigger than RAM, manages 7 tokens/s. The 366 GB DeepSeek runs only by streaming, at 16–20 tokens/s. And I can keep the chat model and the agent model loaded together, but nothing big next to them; a GPU benchmark has to stop both. With 256 GB, the big models would mostly fit in memory, and the two everyday models could stay up while I test a third.
 
 What the three months bought is everything else in this post: a month of daily use, 94 delegated tasks, the reader for the kernel contest, and the lessons about false "DONE"s and sandboxing that I'd have had to learn in January instead. The bigger surprise is where the limit turned out to be. The agent model that finally made delegation work, Inkling 2 Mini, is a 26B model that fits in a corner of 128 GB. In the first month the bottleneck was model quality, not memory, and that improved with a model release, not a hardware upgrade.
 
@@ -299,6 +299,5 @@ Most of this is small, dependency-free code that isn't specific to my machine. T
 ## What's next
 
 - **A fair agent round.** The contest rerun used tasks Coder-30B had already failed. Next is a set neither model has seen, with multi-file changes and real logs.
-- **Raise the GPU cap** to see how much faster Inkling 2 gets with every layer on the GPU.
 - **Wire the router's decision models.** A bake-off picked two small classifier models for stackd: one to route requests between models, and one to escalate the hard ones and judge answers.
 - **Grade the second qualitative round.** Four more models were run and never scored.
