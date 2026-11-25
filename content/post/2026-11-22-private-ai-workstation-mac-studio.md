@@ -54,7 +54,7 @@ Here's what runs, top to bottom:
 | Status page | Jobs, queue, failures and telemetry, for me and the people I share the machine with | 623 lines, Python stdlib |
 | Agent containers | One throwaway container per delegated coding task | 113 lines + a 7-line Containerfile |
 
-The first prototype was in Python, and it's being rewritten in Rust so the binaries are portable. So far the router and the host side of the gateway have moved over; the sizes above, and the file names below, are from the Python version.
+The first prototype was in Python, and it's being rewritten in Rust so the binaries are portable. So far the router and the host side of the gateway have moved over; the sizes above are from the Python version.
 
 Everything runs under launchd. The disk is encrypted with FileVault and there's no auto-login, so nothing starts until I log in.
 
@@ -62,7 +62,7 @@ Everything runs under launchd. The disk is encrypted with FileVault and there's 
 
 The interesting part of the security model came from a constraint I didn't plan for. The macOS firewall is set to **block all incoming connections**. That turns out to block TCP between the host and its own container VMs too, in both directions: the container couldn't reach the model server, and publishing a container port on localhost gave "connection reset by peer".
 
-Rather than loosen the firewall, Claude built a gateway over Unix sockets. Apple's `container run --publish-socket` exposes a socket from inside the container on the host. A small host process (`gw_host`) keeps a pool of connections dialed *into* each container. When the container wants out, its sidecar (`gw.py`) claims one of those connections, and the host pipes it to a target that's fixed on the host side: the model, or the fetch proxy. Inbound chat traffic goes the same way in reverse.
+Rather than loosen the firewall, Claude built a gateway over Unix sockets. Apple's `container run --publish-socket` exposes a socket from inside the container on the host. A small host process keeps a pool of connections dialed *into* each container. When the container wants out, its sidecar claims one of those connections, and the host pipes it to a target that's fixed on the host side: the model, or the fetch proxy. Inbound chat traffic goes the same way in reverse.
 
 The result is that a container can reach exactly two things, the model and the proxy, and it can't name any others. Not the internet, not my LAN, not my tailnet, not other ports on the host.
 
@@ -72,7 +72,7 @@ Authentication is Tailscale's identity header. `tailscale serve` adds the visito
 
 That header is also the main weak spot: any process on the Mac that can reach Open WebUI's local port can forge it. That's why agents only ever run inside containers, which can't reach that port.
 
-A 22-check script (`setup/verify.sh`) proves all of this from scratch:
+A 22-check script proves all of this from scratch:
 - the firewall mode, and that every service listens on loopback only;
 - the API returns 401 without its key;
 - a header-less sign-in is refused;
@@ -223,7 +223,7 @@ Memory is the limit you plan for; disk is the one that sneaks up. A month of try
 
 Free space went from 67 GB to 503 GB. Almost all of what I deleted was a second or third quant of a model I was keeping, downloaded for one benchmark and never loaded again.
 
-Two things made it safe. Every file had a pinned source (repo, revision and sha256), and I re-hashed each one before deleting it, so any benchmark here can be rerun on the same bytes; the run logs stay in git. And a folder named `.staging-p7`, which looked like leftovers, held the MTP file the chat server had open. Check what's open before you clean up by name.
+Two things made it safe. Every file had a pinned source (repo, revision and sha256), and I re-hashed each one before deleting it, so any benchmark here can be rerun on the same bytes; the run logs stay in git. And a staging folder that looked like leftovers held the MTP file the chat server had open. Check what's open before you clean up by name.
 
 ## Local models as workers
 

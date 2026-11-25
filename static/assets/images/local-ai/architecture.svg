@@ -35,7 +35,7 @@
   <text class="s" x="325" y="89" text-anchor="middle">HTTPS + identity header</text>
 
   <rect class="box" x="240" y="140" width="170" height="54"/>
-  <text class="h" x="325" y="163" text-anchor="middle">gw_host (gateway)</text>
+  <text class="h" x="325" y="163" text-anchor="middle">socket gateway</text>
   <text class="s" x="325" y="181" text-anchor="middle">loopback ↔ unix sockets</text>
 
   <rect class="vm" x="470" y="48" width="350" height="146" rx="8"/>
@@ -44,7 +44,7 @@
   <text class="h" x="565" y="103" text-anchor="middle">Open WebUI</text>
   <text class="s" x="565" y="121" text-anchor="middle">chat UI, users</text>
   <rect class="box" x="660" y="80" width="145" height="54"/>
-  <text class="h" x="732" y="103" text-anchor="middle">gw.py sidecar</text>
+  <text class="h" x="732" y="103" text-anchor="middle">gateway sidecar</text>
   <text class="s" x="732" y="121" text-anchor="middle">:8080 model · :3128 web</text>
   <text class="s" x="485" y="182">no route to the internet, LAN, tailnet or host</text>
 
