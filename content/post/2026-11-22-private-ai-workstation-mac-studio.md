@@ -167,7 +167,7 @@ It had one bug. After a restart, a preallocated file looked complete, so the fet
 - **Raise the cap** with `sudo sysctl iogpu.wired_limit_mb=…` so the GPU can pin ~121 GiB. That might be the fast way, but only for short contexts, since the weights take 118.7 of it. Pinned memory also can't be reclaimed, so macOS and everything else would live in the last few GB. The worst case is a frozen machine.
 - **Keep some experts on the CPU** (`--n-cpu-moe`): slower, but nothing extra is pinned, so memory pressure slows things down instead of locking up.
 
-I went with the second and never tried raising the cap. Experts for 8 of the 48 layers on the CPU ran at 30 prompt / 15 generated tokens/s, until the 32K-context test ran out of GPU memory. The grid script swallowed the error and reported success; I only caught it by checking the rows.
+I went with the second and never raised the cap. I didn't want to risk the machine's stability, and I wanted to keep it flexible for everything else I use it for. Experts for 8 of the 48 layers on the CPU ran at 30 prompt / 15 generated tokens/s, until the 32K-context test ran out of GPU memory. The grid script swallowed the error and reported success; I only caught it by checking the rows.
 
 A verbose load showed why. At 124K context, the GPU needed 98.1 GiB of weights, 4.1 GiB of KV cache and **24.7 GiB of compute buffer**. The KV cache is small because 40 of the 48 layers only look back 1,024 tokens. The compute buffer grows with the batch size.
 
@@ -284,6 +284,8 @@ I bought this machine in October. The alternative was to wait until January for 
 What 128 GB costs me shows up all over this post. Inkling 2 Small doesn't fit at any usable quant: the 127.5 GB IQ1_S needed 10 layers of experts moved to the CPU to run at 124K context, and the larger UD-IQ1_S, which is bigger than RAM, manages 7 tokens/s. The 366 GB DeepSeek runs only by streaming, at 16–20 tokens/s. And I can keep the chat model and the agent model loaded together, but nothing big next to them; a GPU benchmark has to stop both. With 256 GB, the big models would mostly fit in memory, and the two everyday models could stay up while I test a third.
 
 What the three months bought is everything else in this post: a month of daily use, 94 delegated tasks, the reader for the kernel contest, and the lessons about false "DONE"s and sandboxing that I'd have had to learn in January instead. The bigger surprise is where the limit turned out to be. The agent model that finally made delegation work, Inkling 2 Mini, is a 26B model that fits in a corner of 128 GB. In the first month the bottleneck was model quality, not memory, and that improved with a model release, not a hardware upgrade.
+
+A big part of the value of a Mac Studio is its versatility. I can use it for video editing and a lot of other things, and it keeps a decent resale value.
 
 So for my use, delegated async work plus a private chat model, 128 GB was enough, and getting it three months earlier was worth more than the extra memory. If I wanted to run the 500B-class models every day rather than as an experiment, I'd have waited.
 
