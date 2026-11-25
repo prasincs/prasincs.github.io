@@ -141,7 +141,7 @@ const STAGES = [
     sub: "Each MoE layer narrows 8,192 → 4,096 before the experts, with a full bf16 GEMM that isn't split.",
     text: "At prefill sizes SGLang runs this projection, and the unpooler after the experts, on every GPU for every token: eight copies of identical work. Sequence-parallel prefill gives each GPU one eighth of the tokens for these replicated parts and gathers the result. That removes 7/8 of the duplicate work, and it's most of why p21 was the biggest step of the track.",
     facts: [["Shape", "8,192 → 4,096", "bf16, every token"], ["Cost per first turn", "0.8–1.0 s ○", "pooler + unpooler, of a 9.2 s TTFT"], ["p21 judged", "1.457× → 2.208× ●", "with p20's cache-copy batching"]],
-    spFacts: [["Shape", "8,192 → 4,096", "1/8 of the tokens per GPU"], ["4-GPU test, 30K prefill", "1.18× ◐", "6 layers, 3/4 of the duplicate removed"], ["74K prefill on 8 GPUs", "6.36 s → 2.74 s ◐", "stock vs p21"]] },
+    spFacts: [["Shape", "8,192 → 4,096", "1/8 of the tokens per GPU"], ["4-GPU test, 30K prefill", "1.18× ◐", "6 layers, 3/4 of the duplicate removed"], ["68K prefill on 8 GPUs", "6.36 s → 2.74 s ◐", "stock vs p21"]] },
   { id: "moe", label: "4 · Experts", kind: "moe", wire: "all-reduce: every GPU ends with the same sum",
     spWire: "reduce-scatter: back to each GPU's eighth",
     title: "Experts: 32 of the 256 on each GPU",

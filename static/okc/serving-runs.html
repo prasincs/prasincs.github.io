@@ -122,7 +122,7 @@ const RUNS = [
     text: "An open upstream pull request with a Hopper grouped NVFP4 expert op, opened the same day the agents went looking. The agents read the rules first, then the code. On one H200 it ran 2.4–3.3× my expert kernel at prefill sizes, and I approved porting it with credit, which replaced 137 KB of my code.",
     ratio: [1.431, 1.464, 1.480, 1.455], tok: [8105, 13208, 17839, 18474], first: [6.41, 15.19, 60.03, 132.07], later: [0.16, 0.19, 0.24, 2.11], kv: 1.89, queue: "3 h 51", ran: "40 min" },
   { id: "p21", date: "Nov 18", score: 2.208, change: "Sequence-parallel prefill on H200",
-    text: "SGLang ships a sequence-parallel prefill path for this model, behind a launch flag, with no Hopper path. Adding one splits each prefill chunk's replicated work across the eight GPUs. The biggest step of the track: 74K-token prefill went from 6.4 s to 2.7 s on my rig.",
+    text: "SGLang ships a sequence-parallel prefill path for this model, behind a launch flag, with no Hopper path. Adding one splits each prefill chunk's replicated work across the eight GPUs. The biggest step of the track: 68K-token prefill went from 6.4 s to 2.7 s on my rig.",
     ratio: [2.042, 2.264, 2.302, 2.233], tok: [9649, 17871, 26263, 28351], first: [3.92, 9.06, 35.46, 77.19], later: [0.14, 0.18, 0.24, 1.44], kv: 2.03, queue: "6 h 44", ran: "33 min" },
   { id: "p24", date: "Nov 19", score: 2.222, change: "Static expert swaps",
     text: "Routing traces from a real-weight run showed the busiest GPU doing 1.5× the mean expert work. Eight swaps per layer, fitted on some traces and tested on held-out ones, cut that to 1.13×. My rig said +3–5%; the judge said +0.6%.",
