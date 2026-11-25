@@ -167,7 +167,7 @@ It had one bug. After a restart, a preallocated file looked complete, so the fet
 - **Raise the cap** with `sudo sysctl iogpu.wired_limit_mb=…` so the GPU can pin ~121 GiB. That might be the fast way, but only for short contexts, since the weights take 118.7 of it. Pinned memory also can't be reclaimed, so macOS and everything else would live in the last few GB. The worst case is a frozen machine.
 - **Keep some experts on the CPU** (`--n-cpu-moe`): slower, but nothing extra is pinned, so memory pressure slows things down instead of locking up.
 
-I started with the second. Experts for 8 of the 48 layers on the CPU ran at 30 prompt / 15 generated tokens/s, until the 32K-context test ran out of GPU memory. The grid script swallowed the error and reported success; I only caught it by checking the rows.
+I went with the second and never tried raising the cap. Experts for 8 of the 48 layers on the CPU ran at 30 prompt / 15 generated tokens/s, until the 32K-context test ran out of GPU memory. The grid script swallowed the error and reported success; I only caught it by checking the rows.
 
 A verbose load showed why. At 124K context, the GPU needed 98.1 GiB of weights, 4.1 GiB of KV cache and **24.7 GiB of compute buffer**. The KV cache is small because 40 of the 48 layers only look back 1,024 tokens. The compute buffer grows with the batch size.
 
